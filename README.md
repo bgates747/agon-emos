@@ -1,4 +1,21 @@
-# agon-mos
+# agon-emos
+
+Agon Extender MOS (EMOS) is the project-owned, backward-compatible MOS
+derivative that integrates the Agon Extender. It retains an upstream-shaped
+MOS source tree so tagged official releases can be incorporated without
+maintaining a second, structurally unrelated port.
+
+The firmware behavior, EMOS module/service contract, implementation tasks,
+tests, and qualification evidence are maintained here. Generic ZDS-to-AgonDev
+translation, linking, runtime, emulator, and inspection infrastructure remains
+in the separate `mos-agondev` project. See [OWNERSHIP.md](OWNERSHIP.md) for the
+authoritative repository boundary.
+
+The source lineage begins with official Agon Platform MOS v3.0.2. The original
+upstream README follows because its build, hardware, recovery, and licensing
+information still applies to this derivative.
+
+## Upstream MOS documentation
 
 Part of the official Agon Platform organisation firmware for all Agon computers.
 

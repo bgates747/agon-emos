@@ -1,0 +1,33 @@
+[
+  {
+    "name": "malformed-identity",
+    "manifest_overrides": {"name": "Upper"},
+    "payload_size": 1,
+    "error": "canonical lowercase"
+  },
+  {
+    "name": "incompatible-core",
+    "manifest_overrides": {"core_abi": [2, 2]},
+    "payload_size": 1,
+    "error": "incompatible"
+  },
+  {
+    "name": "oversize-image",
+    "manifest_overrides": {},
+    "payload_size": 32641,
+    "error": "exceeds"
+  },
+  {
+    "name": "unsupported-capability",
+    "manifest_overrides": {"capabilities": 1},
+    "payload_size": 1,
+    "error": "zero flags and capabilities"
+  },
+  {
+    "name": "duplicate-claim",
+    "manifest_overrides": {},
+    "payload_size": 1,
+    "copies": 2,
+    "error": "duplicate provider"
+  }
+]

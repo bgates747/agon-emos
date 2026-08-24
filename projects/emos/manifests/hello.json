@@ -1,0 +1,12 @@
+{
+  "schema": 1,
+  "class": "star",
+  "namespace": "",
+  "name": "hello",
+  "version": [1, 0, 0],
+  "core_abi": [1, 1],
+  "entry_offset": 128,
+  "request_size": [24, 24],
+  "flags": 0,
+  "capabilities": 0
+}

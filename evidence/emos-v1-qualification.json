@@ -1,0 +1,76 @@
+{
+  "automated_evidence": {
+    "binary_compare": {
+      "generated": true,
+      "manual_review_entries": 27,
+      "maximum_priority": "medium",
+      "recorded_as_release_evidence": false
+    },
+    "contract_probe": "passed on candidate and official ZDS reference",
+    "environment": "passed with the canonical local host-library path",
+    "headless_boot": "shell, directory-backed hostfs mount, and directory command passed",
+    "host_tests": 144,
+    "linked_abi": "MOS API 0x51 and mos_getfunction 0x20 passed",
+    "linked_vdu": "RST 10, RST 18, and C putch fixed-dispatch checks passed",
+    "media": "three providers and all deterministic negative cases passed",
+    "target_emos_runtime": "eleven-command discovery, star/service, fake Dual, and final Legacy transcript passed without media mutation",
+    "shell_parity": "passed with only the reviewed EMOS HELP inventory addition",
+    "vdp_regression": "blocking GP wait and oversized lengths 17 through 255 passed"
+  },
+  "candidate": {
+    "binary_bytes": 113053,
+    "binary_sha256": "ae0432a84be4be2261095d449627af876c9662d40a08ac334981e12d6dda339f",
+    "flash_free_bytes": 18019,
+    "flash_limit_bytes": 131072,
+    "rom_end": "0x01B99D",
+    "source_base_commit": "8336409351ee5314e02801a7b72a4f1bb5282519",
+    "source_state": "tracked-dirty"
+  },
+  "c_probe": {
+    "bss_bytes": 4893,
+    "loadable_bytes": 98972,
+    "translation_units": 17
+  },
+  "emos_object": {
+    "bss_bytes": 3167,
+    "data_bytes": 0,
+    "rodata_bytes": 397,
+    "text_bytes": 9831
+  },
+  "human_gate": {
+    "approved": true,
+    "commit_approval": "approved by the Author after the clean cold-boot run on 2026-08-24",
+    "hardware_claim": false,
+    "interactive_profile_run": "passed by cold boot from the canonical generated wrapper with emos.commands copied to autoexec.txt; screenshot confirms the complete clean transcript without diagnostics or retries, final Legacy mode generation 2, and unchanged registry generation 1"
+  },
+  "internal_ram": {
+    "heap_bottom": "0x0BD747",
+    "heap_bytes": 8377,
+    "heap_limit": "0x0BF800",
+    "origin": "0x0BC000",
+    "stack_bottom": "0x0BF800",
+    "stack_reserve_bytes": 2048,
+    "static_bytes": 5959,
+    "total_bytes": 16384
+  },
+  "module_area": {
+    "base": "0x0B0000",
+    "bytes": 32768,
+    "payload_base": "0x0B0080"
+  },
+  "providers": {
+    "core.echo": {
+      "bytes": 575,
+      "sha256": "52ff905033f8de1e45a9d56270b85426c88ab13efaeb1a7efd49dcb2c47e5697"
+    },
+    "edu.probe": {
+      "bytes": 575,
+      "sha256": "3f6bd176442e551f7cbf64158b8bb509dbb5f8e98bb3529fa4222f1d51cce7c4"
+    },
+    "hello": {
+      "bytes": 161,
+      "sha256": "d3582aad169960091c07cbae76ef382d6c0c68d68c7b4bf66f3fb05c8ec9b4a8"
+    }
+  },
+  "schema": 1
+}

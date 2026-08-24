@@ -2,3 +2,10 @@ Debug/
 Release/
 .vscode/
 .DS_Store
+.venv/
+__pycache__/
+*.py[cod]
+projects/emos/build/
+emulator/
+toolchains/
+upstream/
