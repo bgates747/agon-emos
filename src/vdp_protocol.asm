@@ -2,7 +2,7 @@
 ; Title:	AGON MOS - VDP serial protocol
 ; Author:	Dean Belfield
 ; Created:	03/08/2022
-; Last Updated:	26/09/2023
+; Last Updated:	28/07/2026
 ;
 ; Modinfo:
 ; 09/08/2022:	Added vdp_protocol_CURSOR
@@ -19,6 +19,7 @@
 ; 03/08/2023:	Added user_kbvector in vdp_protocol_KEY
 ; 13/08/2023:	Moved keyboard handling to keyboard.asm
 ; 26/09/2023:	RTC packet length reduced to 6 bytes
+; 28/07/2026:	Fixed oversized-packet discard length
 
 			INCLUDE	"macros.inc"
 			INCLUDE	"equs.inc"
@@ -97,6 +98,7 @@ vdp_protocol_state0:	LD	A, C			; Wait for a header byte (bit 7 set)
 vdp_protocol_state1:	LD	A, C			; Fetch the length byte
 			CP	VDPP_BUFFERLEN + 1	; Check if it exceeds buffer length (16)
 			JR	C, $F			;
+			LD	(_vdp_protocol_len), A	; Preserve the number of bytes to discard
 			LD	A, 3			; If it does exceed buffer length, switch to state 3 (ignore packet)
 			LD	(_vdp_protocol_state), A
 			RET
