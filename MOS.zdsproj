@@ -6,6 +6,7 @@
 <file filter-key="">.\main.c</file>
 <file filter-key="">.\\src_startup\\globals.asm</file>
 <file filter-key="">.\\src\\mos.c</file>
+<file filter-key="">.\\src\\emos.c</file>
 <file filter-key="">.\\src\\mos_editor.c</file>
 <file filter-key="">.\\src\\mos_api.asm</file>
 <file filter-key="">.\\src\\misc.asm</file>

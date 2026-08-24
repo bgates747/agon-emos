@@ -55,6 +55,7 @@
 #include "umm_malloc.h"
 #include "mos_sysvars.h"
 #include "mos_file.h"
+#include "emos.h"
 #if DEBUG > 0
 # include "tests.h"
 #endif /* DEBUG */
@@ -102,6 +103,7 @@ static t_mosCommand mosCommands[] = {
 	{ "Disc",		&mos_cmdDISC,		false,	NULL,				NULL },
 	{ "Do",			&mos_cmdDO,			true,	HELP_DO_ARGS,		HELP_DO },
 	{ "Echo",		&mos_cmdECHO,		false,	HELP_ECHO_ARGS,		HELP_ECHO },
+	{ "EMOS",		&emos_cmd,			false,	HELP_EMOS_ARGS,		HELP_EMOS },
 	{ "Erase",		&mos_cmdDEL,		true,	HELP_DELETE_ARGS,	HELP_DELETE },
 	{ "Exec",		&mos_cmdEXEC,		true,	HELP_EXEC_ARGS,		HELP_EXEC },
 	{ "Help",		&mos_cmdHELP,		false,	HELP_HELP_ARGS,		HELP_HELP },
@@ -172,6 +174,16 @@ static char * mos_errors[] = {
 	"Load overlaps system area",
 	"Bad string",
 	"Too deep",
+	"EMOS provider not found",
+	"Invalid EMOS module",
+	"Incompatible EMOS module",
+	"EMOS provider conflict",
+	"EMOS dispatcher busy",
+	"Caller is not module safe",
+	"EMOS provider failed",
+	"EMOS module-area recovery failed",
+	"EMOS backend unavailable",
+	"EMOS registry full",
 };
 
 #define mos_errors_count (sizeof(mos_errors)/sizeof(char *))
@@ -269,17 +281,21 @@ char * mos_trim(char * s, bool removeLeadingAsterisks, bool removeTrailingSpaces
 
 int mos_runBin(UINT24 addr, char * args) {
 	UINT8 mode = mos_execMode((UINT8 *)addr);
+	BYTE previousPolicy = emos_application_enter((UINT8 *)addr, addr);
+	int result;
 	switch (mode) {
 		case 0:		// Z80 mode
-			return exec16(addr, args);
+			result = exec16(addr, args);
 			break;
 		case 1: 	// ADL mode
-			return exec24(addr, args);
-			break;	
+			result = exec24(addr, args);
+			break;
 		default:	// Unrecognised header
-			return MOS_INVALID_EXECUTABLE;
+			result = MOS_INVALID_EXECUTABLE;
 			break;
 	}
+	emos_application_leave(previousPolicy);
+	return result;
 }
 
 int mos_runBinFile(char * filepath, char * args) {
@@ -511,7 +527,6 @@ int mos_exec(char * buffer, BOOL in_mos) {
 		// printf("searching for command '%s' (cmdLen is %d)\n\r", command, cmdLen);
 
 		cmd = mos_getCommand(command, MATCH_COMMANDS);
-		umm_free(command);
 		func = cmd ? cmd->func : NULL;
 		if (cmd != NULL && func != 0) {
 			if (cmd->expandArgs) {
@@ -522,8 +537,13 @@ int mos_exec(char * buffer, BOOL in_mos) {
 			if (cmd->expandArgs) {
 				umm_free(args);
 			}
+			umm_free(command);
 			return result;
 		} else {
+			BOOL moduleMatched = FALSE;
+			result = emos_dispatch_command(command, ptr, &moduleMatched);
+			umm_free(command);
+			if (moduleMatched) return result;
 			// Command not built-in, so see if it's a file
 			char * path;
 			bool useWildcard = false;
@@ -3438,6 +3458,7 @@ void mos_setupSystemVariables() {
 	// Default paths
 	createOrUpdateSystemVariable("Moslet$Path", MOS_VAR_STRING, "/mos/");
 	createOrUpdateSystemVariable("Run$Path", MOS_VAR_MACRO, "<Moslet$Path>, ./, /bin/");
+	createOrUpdateSystemVariable("EMOS$Path", MOS_VAR_STRING, "/emos/modules");
 
 	// Keyboard and console settings
 	createOrUpdateSystemVariable("Keyboard", MOS_VAR_CODE, &keyboardVar);

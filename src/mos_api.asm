@@ -139,6 +139,7 @@
 			XREF	_getFilepathLeafname
 			XREF	_isDirectory
 			XREF	_resolveRelativePath
+			XREF	_emos_gateway		; Provisional resident EMOS Core gateway
 
 			XREF	_SD_getUnlockCode	; In sd.h
 			XREF	_SD_init_API
@@ -245,7 +246,7 @@ mos_api_block1_start:	DW	mos_api_getkey		; 0x00
 			DW	mos_api_not_implemented	; 0x4f
 
 			DW	mos_api_getfunction	; 0x50
-			DW	mos_api_not_implemented	; 0x51
+			DW	mos_api_emos_gateway	; 0x51
 			DW	mos_api_not_implemented	; 0x52
 			DW	mos_api_not_implemented	; 0x53
 			DW	mos_api_not_implemented	; 0x54
@@ -2214,6 +2215,21 @@ $$:			PUSH	DE		; DWORD * offset
 			POP	DE
 			RET
 
+; Call the provisional resident EMOS Core gateway.
+; HLU: Pointer to the fixed versioned t_emosGatewayRequest
+; Returns:
+; - A: EMOS/FatFS status
+; This gateway never returns a transient module pointer.
+;
+mos_api_emos_gateway:	LD	A, MB
+			OR	A, A
+			JP	NZ, mos_api_not_implemented	; EMOS v1 requests are ADL-only
+			PUSH	HL
+			CALL	_emos_gateway
+			LD	A, L
+			POP	HL
+			RET
+
 ; Expose raw SD card access APIs
 ;
 
@@ -2356,5 +2372,20 @@ mos_function_block_start:
 			DW24	_resolveRelativePath	; 0x0F
 			DW24	func_getsysvars	; 0x10
 			DW24	func_getkbmap	; 0x11
+			DW24	0		; 0x12 reserved (qsort development)
+			DW24	0		; 0x13
+			DW24	0		; 0x14
+			DW24	0		; 0x15
+			DW24	0		; 0x16
+			DW24	0		; 0x17
+			DW24	0		; 0x18
+			DW24	0		; 0x19
+			DW24	0		; 0x1A
+			DW24	0		; 0x1B
+			DW24	0		; 0x1C
+			DW24	0		; 0x1D
+			DW24	0		; 0x1E
+			DW24	0		; 0x1F
+			DW24	_emos_gateway	; 0x20 stable resident Core gateway
 
 mos_function_block_size:	EQU 	($ - mos_function_block_start) / 3

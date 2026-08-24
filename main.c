@@ -49,6 +49,7 @@
 #include "mos.h"
 #include "i2c.h"
 #include "umm_malloc.h"
+#include "emos.h"
 
 extern BYTE scrcolours, scrpixelIndex;	// In globals.asm
 
@@ -216,6 +217,7 @@ int main(void) {
 
 	mos_mount();									// Mount the SD card
 	mos_setupSystemVariables();						// Setup the system variables
+	emos_init();									// EMOS always starts in operational Legacy
 
 	putch(7);										// Startup beep
 	editHistoryInit();								// Initialise the command history

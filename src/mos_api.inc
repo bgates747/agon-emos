@@ -115,6 +115,11 @@ mos_waitforvdpflags:	EQU	41h
 ; Function and module APIs
 ;
 mos_getfunction:	EQU	50h
+mos_emos_gateway:	EQU	51h
+
+; Provisional EMOS C-function number returned through mos_getfunction.
+; 0x12 is deliberately left available for the separately developed qsort ABI.
+mos_function_emos_gateway:	EQU	20h
 
 ; Low-level SD card functions
 ;

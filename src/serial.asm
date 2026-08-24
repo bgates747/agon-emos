@@ -28,6 +28,7 @@
 			XDEF	UART1_serial_RX
 			XDEF	UART1_serial_GETCH
 			XDEF	UART1_serial_PUTCH 
+			XDEF	EMOS_vdu_PUTCH
 
 			XDEF	_putch
 			XDEF	_getch 
@@ -36,6 +37,7 @@
 			XDEF	getch 
 
 			XREF	_serialFlags	; In globals.asm
+			XREF	_emosVduBackend	; Core-owned committed VDU route
 				
 UART0_PORT		EQU	%C0		; UART0
 UART1_PORT		EQU	%D0		; UART1
@@ -230,6 +232,20 @@ $$:			CALL	UART1_serial_TX			; Send the character
 			JR	NC, $B				; Repeat until sent
 			RET
 
+; Core EMOS semantic VDU dispatcher. Snapshot the committed backend once for
+; this character. Backend 0 is the stock onboard VDP. Other values are
+; fail-closed until a qualified exclusive adapter is linked and committed.
+;
+EMOS_vdu_PUTCH:	PUSH	AF
+			LD	A, (_emosVduBackend)
+			OR	A, A
+			JR	NZ, $F
+			POP	AF
+			JP	UART0_serial_PUTCH
+$$:			POP	AF
+			OR	A, A				; Unsupported backend: clear carry
+			RET
+
 ; Called by UART0 and UART1 PUTCH and GETCH if the UART is not enabled
 ;
 UART_serial_NE:		POP	AF				; Tidy up the stack
@@ -255,7 +271,7 @@ putch:			PUSH	IY				; Standard C prologue
 			LD	A, (IY+6)			; INT ch (least significant byte)
 			LD	HL, 0				; HLU: The return value
 			LD	L, A 
-			CALL	UART0_serial_PUTCH		; Output the character
+			CALL	EMOS_vdu_PUTCH			; Output through fixed semantic dispatcher
 
 			LD 	SP, IY				; Standard epilogue
 			POP	IY

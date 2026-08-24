@@ -36,7 +36,7 @@
 			
 			XREF	_on_crash
 			XREF	mos_api
-			XREF	UART0_serial_PUTCH 
+			XREF	EMOS_vdu_PUTCH
 			XREF	SET_AHL24
 
 NVECTORS 		EQU 48			; Number of interrupt vectors
@@ -117,7 +117,7 @@ _rst_08_handler:	CALL	mos_api
 ; Parameters:
 ; - A: The character
 ;
-_rst_10_handler:	CALL	UART0_serial_PUTCH
+_rst_10_handler:	CALL	EMOS_vdu_PUTCH
 			RET.L
 
 ; Write a block of bytes out to the ESP32
@@ -137,7 +137,7 @@ _rst_18_handler:	LD	E, A 			; Preserve the delimiter
 ; Standard loop mode
 ;
 _rst_18_handler_0:	LD 	A, (HL)			; Fetch the character
-			CALL	UART0_serial_PUTCH	; Output
+			CALL	EMOS_vdu_PUTCH		; Output through fixed semantic dispatcher
 			INC 	HL 			; Increment the buffer pointer
 			DEC	BC 			; Decrement the loop counter
 			LD	A, B 			; Is it 0?
@@ -150,7 +150,7 @@ _rst_18_handler_0:	LD 	A, (HL)			; Fetch the character
 _rst_18_handler_1:	LD 	A, (HL)			; Fetch the character
 			CP 	E 			; Is it the delimiter?
 			RET.L	Z 			; Yes, so return
-			CALL	UART0_serial_PUTCH	; Output
+			CALL	EMOS_vdu_PUTCH		; Output through fixed semantic dispatcher
 			INC 	HL 			; Increment the buffer pointer
 			JR 	_rst_18_handler_1	; Loop
 
