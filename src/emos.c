@@ -59,6 +59,7 @@ volatile BYTE emosVduBackend = 0;
 #define EMOS_EDU_ACTIVE 1
 #define EMOS_ADAPTER_UNAVAILABLE 0
 #define EMOS_ADAPTER_FAKE 1
+#define EMOS_ADAPTER_PORT008_FORWARD 2
 
 typedef struct {
 	BYTE mode;
@@ -79,6 +80,14 @@ typedef struct {
 
 static t_emosModeState emosModeState;
 static t_emosEduState emosEduState;
+
+static BYTE emos_default_adapter(void) {
+#ifdef EMOS_PORT008_FORWARD
+	return EMOS_ADAPTER_PORT008_FORWARD;
+#else
+	return EMOS_ADAPTER_UNAVAILABLE;
+#endif
+}
 
 static UINT16 emos_read16(const BYTE *ptr) {
 	return (UINT16)ptr[0] | ((UINT16)ptr[1] << 8);
@@ -273,6 +282,7 @@ void emos_init(void) {
 	emosModeState.eduState = EMOS_EDU_INACTIVE;
 	emosModeState.generation = 0;
 	memset(&emosEduState, 0, sizeof(emosEduState));
+	emosEduState.selectedAdapter = emos_default_adapter();
 	emosVduBackend = EMOS_VDU_ONBOARD;
 	/* No application survives a cold boot, so an interrupted prior session's
 	 * private preservation file cannot describe live module-area ownership. */
@@ -587,17 +597,35 @@ static void emos_mode_shape(BYTE mode, t_emosModeState *state) {
 
 static int emos_adapter_prepare(BYTE mode) {
 	emosEduState.lastStatus = EMOS_UNAVAILABLE;
-	if (emosEduState.selectedAdapter != EMOS_ADAPTER_FAKE || mode != EMOS_MODE_DUAL)
-		return EMOS_UNAVAILABLE;
+	if (emosEduState.selectedAdapter == EMOS_ADAPTER_FAKE) {
+		if (mode != EMOS_MODE_DUAL) return EMOS_UNAVAILABLE;
+	}
+#ifdef EMOS_PORT008_FORWARD
+	else if (emosEduState.selectedAdapter == EMOS_ADAPTER_PORT008_FORWARD) {
+		/* PORT-008 is deliberately one-way: successful READY admission and
+		 * completion of the official General Poll request can prepare only the
+		 * Exclusive Extended route. Its discarded response is not readiness or
+		 * identity evidence. */
+		if (mode != EMOS_MODE_EXCLUSIVE_EXTENDED) return EMOS_UNAVAILABLE;
+		emosEduState.lastStatus = emos_port008_prepare();
+		if (emosEduState.lastStatus != FR_OK) return emosEduState.lastStatus;
+	}
+#endif
+	else return EMOS_UNAVAILABLE;
 	emosEduState.preparedMode = mode;
 	emosEduState.lastStatus = FR_OK;
 	return FR_OK;
 }
 
 static int emos_adapter_ready(BYTE mode) {
-	if (emosEduState.selectedAdapter != EMOS_ADAPTER_FAKE ||
-		emosEduState.preparedMode != mode) return EMOS_UNAVAILABLE;
-	return FR_OK;
+	if (emosEduState.preparedMode != mode) return EMOS_UNAVAILABLE;
+	if (emosEduState.selectedAdapter == EMOS_ADAPTER_FAKE)
+		return mode == EMOS_MODE_DUAL ? FR_OK : EMOS_UNAVAILABLE;
+#ifdef EMOS_PORT008_FORWARD
+	if (emosEduState.selectedAdapter == EMOS_ADAPTER_PORT008_FORWARD)
+		return mode == EMOS_MODE_EXCLUSIVE_EXTENDED ? FR_OK : EMOS_UNAVAILABLE;
+#endif
+	return EMOS_UNAVAILABLE;
 }
 
 static int emos_adapter_commit(BYTE mode) {
@@ -610,7 +638,12 @@ static int emos_adapter_commit(BYTE mode) {
 
 static int emos_adapter_recover(void) {
 	/* Both unavailable and fake adapters have bounded local recovery. A future
-	 * physical adapter must implement its own qualified quiesce transaction. */
+	 * production physical adapter must implement its own qualified quiesce
+	 * transaction. PORT-008 restores the exact pre-acquisition GPIO registers. */
+#ifdef EMOS_PORT008_FORWARD
+	if (emosEduState.selectedAdapter == EMOS_ADAPTER_PORT008_FORWARD)
+		emos_port008_recover();
+#endif
 	emosEduState.preparedMode = EMOS_MODE_LEGACY;
 	emosEduState.active = FALSE;
 	emosEduState.lastStatus = FR_OK;
@@ -621,7 +654,7 @@ static int emos_select_fake(BOOL enabled) {
 	if (emosBusy) return EMOS_BUSY;
 	if (emosModeState.mode != EMOS_MODE_LEGACY) return EMOS_UNAVAILABLE;
 	emos_adapter_recover();
-	emosEduState.selectedAdapter = enabled ? EMOS_ADAPTER_FAKE : EMOS_ADAPTER_UNAVAILABLE;
+	emosEduState.selectedAdapter = enabled ? EMOS_ADAPTER_FAKE : emos_default_adapter();
 	return FR_OK;
 }
 
@@ -663,6 +696,14 @@ static const char *emos_mode_name(BYTE mode) {
 		case EMOS_MODE_EXCLUSIVE_EXTENDED: return "Exclusive Extended";
 		default: return "Legacy";
 	}
+}
+
+static const char *emos_adapter_name(BYTE adapter) {
+	if (adapter == EMOS_ADAPTER_FAKE) return "fake";
+#ifdef EMOS_PORT008_FORWARD
+	if (adapter == EMOS_ADAPTER_PORT008_FORWARD) return "port008-forward";
+#endif
+	return "unavailable";
 }
 
 static int emos_call_service(char *args) {
@@ -734,7 +775,7 @@ int emos_cmd(char *args) {
 			emos_mode_name(emosModeState.mode), emosRegistry.count, emosRegistry.generation);
 		printf("  VDU route %d, EDU %s, adapter %s, mode generation %d\r\n",
 			emosModeState.vduRoute, emosModeState.eduState ? "active" : "inactive",
-			emosEduState.selectedAdapter == EMOS_ADAPTER_FAKE ? "fake" : "unavailable",
+			emos_adapter_name(emosEduState.selectedAdapter),
 			emosModeState.generation);
 		for (index = 0; index < emosRegistry.count; index++) {
 			t_emosRegistryEntry *entry = &emosRegistry.entries[index];

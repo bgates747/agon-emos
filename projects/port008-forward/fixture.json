@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "port008-visible-vdu-command",
+  "authority": {
+    "project": "agon-extender",
+    "commit": "c03656c",
+    "path": "docs/tasks/PORT-003/phase-f/fixtures/independent-fixtures.yaml",
+    "field": "visible_vdu_command"
+  },
+  "load_address": 262144,
+  "output_filename": "P8VDU.BIN",
+  "invocation": "ordinary RST.LIL 18h with BC=106",
+  "command_hex": "16091701000c110f455854454e4445521f0402110e5034205644501700c00012000919041000500019059600500019041000500019051000a00019041000a00019059600a00012000a1904b4005a001965040196001303380000001200031904b400aa0019650401d200",
+  "command_sha256": "b5d2757ebf1bdaf0132b8a2a6683e749aa57aeb265ad23a25368451860f65595",
+  "expected_rgb888_sha256": "d368967667b3eee2315e2bb86129e7f423d904abd203c93dd0810906d08783d8",
+  "expected_rgb888_bytes": 230400,
+  "reverse_transport": "disabled"
+}

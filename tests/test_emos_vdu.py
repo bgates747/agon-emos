@@ -21,9 +21,14 @@ class EmosVduTests(unittest.TestCase):
         image = bytearray(0x900)
         linked = {
             "EMOS_vdu_PUTCH": 0x100,
+            "EMOS_vdu_port008": 0x10F,
+            "EMOS_vdu_onboard": 0x114,
+            "EMOS_vdu_WRITE": 0x120,
+            "PORT008_vdu_PUTCH": 0x160,
+            "PORT008_send": 0x180,
             "UART0_serial_PUTCH": 0x500,
             "UART1_serial_PUTCH": 0x520,
-            "UART_serial_NE": 0x110,
+            "UART_serial_NE": 0x119,
             "_emosVduBackend": 0x700,
             "_putch": 0x200,
             "_getch": 0x220,
@@ -31,15 +36,19 @@ class EmosVduTests(unittest.TestCase):
             "_rst_18_handler": 0x320,
             "__rst_38_handler": 0x380,
         }
-        image[0x100:0x110] = (
-            b"\xf5\x3a\x00\x07\x00\xb7\x20\x05\xf1\xc3"
-            b"\x00\x05\x00\xf1\xb7\xc9"
+        image[0x100:0x119] = (
+            b"\xf5\x3a\x00\x07\x00\xb7\x28\x0c\xfe\x02\x28\x03"
+            b"\xf1\xb7\xc9\xf1\xc3\x60\x01\x00\xf1\xc3\x00\x05\x00"
         )
-        call = b"\xcd\x00\x01\x00"
-        image[0x208:0x20C] = call
-        image[0x308:0x30C] = call
-        image[0x338:0x33C] = call
-        image[0x360:0x364] = call
+        image[0x120:0x160] = b"\x00" * 0x40
+        image[0x128:0x12C] = b"\xcd\x00\x05\x00"
+        image[0x148:0x14C] = b"\xcd\x80\x01\x00"
+        putch = b"\xcd\x00\x01\x00"
+        write = b"\xcd\x20\x01\x00"
+        image[0x208:0x20C] = putch
+        image[0x308:0x30C] = putch
+        image[0x338:0x33C] = write
+        image[0x360:0x364] = putch
         return image, linked
 
     def test_accepts_fixed_dispatch_paths(self) -> None:
@@ -47,7 +56,7 @@ class EmosVduTests(unittest.TestCase):
         vdu.verify(image, linked)
 
     def test_rejects_route_and_callsite_drift(self) -> None:
-        for offset in (0x105, 0x10A, 0x208, 0x338):
+        for offset in (0x105, 0x10A, 0x208, 0x338, 0x148):
             image, linked = self.fixture()
             image[offset] ^= 1
             with self.subTest(offset=offset), self.assertRaises(vdu.VduError):

@@ -37,6 +37,7 @@
 			XREF	_on_crash
 			XREF	mos_api
 			XREF	EMOS_vdu_PUTCH
+			XREF	EMOS_vdu_WRITE
 			XREF	SET_AHL24
 
 NVECTORS 		EQU 48			; Number of interrupt vectors
@@ -134,15 +135,11 @@ _rst_18_handler:	LD	E, A 			; Preserve the delimiter
 			OR	C 			; Yes, so run in delimited mode?
 			JR	Z, _rst_18_handler_1
 ;
-; Standard loop mode
+; Standard loop mode. EMOS_vdu_WRITE preserves the stock byte stream and
+; register postcondition; a selected physical adapter may map the bounded block
+; to one transport record below that semantic boundary.
 ;
-_rst_18_handler_0:	LD 	A, (HL)			; Fetch the character
-			CALL	EMOS_vdu_PUTCH		; Output through fixed semantic dispatcher
-			INC 	HL 			; Increment the buffer pointer
-			DEC	BC 			; Decrement the loop counter
-			LD	A, B 			; Is it 0?
-			OR 	C 
-			JR	NZ, _rst_18_handler_0	; No, so loop
+_rst_18_handler_0:	CALL	EMOS_vdu_WRITE
 			RET.L
 ;
 ; Delimited mode

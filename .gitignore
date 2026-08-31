@@ -6,6 +6,7 @@ Release/
 __pycache__/
 *.py[cod]
 projects/emos/build/
+projects/port008-forward/build/
 emulator/
 toolchains/
 upstream/

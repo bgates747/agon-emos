@@ -4,6 +4,13 @@ This is the repository's single authoritative list of unfinished EMOS work.
 Cross-component Extender work remains in the `agon-extender` task list; generic
 port-infrastructure work remains in `mos-agondev`.
 
+## Extender integration
+
+- [ ] **INTEG-001 — Implement the PORT-008 forward-only EMOS adapter**
+  - Started: 2026-08-30 21:11 EDT
+  - Finished: --
+  - Details: [INTEG-001](docs/tasks/INTEG-001.md)
+
 ## MOS architecture
 
 - [ ] **MOS-001 — Develop a MOS Modules-aligned cooperative service architecture**

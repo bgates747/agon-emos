@@ -17,7 +17,12 @@ ROOT = Path(__file__).resolve().parents[1]
 MOS_AGONDEV_ROOT = Path(
     os.environ.get("MOS_AGONDEV_ROOT", ROOT.parent / "mos-agondev")
 ).expanduser().resolve()
-WORKTREE = MOS_AGONDEV_ROOT / "projects" / "mos-port" / "worktree"
+WORKTREE = Path(
+    os.environ.get(
+        "MOS_AGONDEV_WORKTREE",
+        MOS_AGONDEV_ROOT / "projects" / "mos-port" / "worktree",
+    )
+).expanduser().resolve()
 PORT = MOS_AGONDEV_ROOT / "projects" / "mos-port"
 PROFILE = ROOT / "port" / "mos-agondev.mk"
 
