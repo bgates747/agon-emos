@@ -11,6 +11,22 @@
 #include <ctype.h>
 
 #include "emos.h"
+
+/*
+ * Product/build identity is supplied by the selected maintained-source build
+ * profile. Keep fail-closed defaults so an exploratory or misconfigured build
+ * announces that it is not deployment authority instead of impersonating a
+ * reviewed candidate.
+ */
+#ifndef EMOS_SOURCE_IDENTITY
+#define EMOS_SOURCE_IDENTITY "UNVERSIONED-DO-NOT-DEPLOY"
+#endif
+#ifndef EMOS_BUILD_ID
+#define EMOS_BUILD_ID "UNVERSIONED-DO-NOT-DEPLOY"
+#endif
+#ifndef EMOS_ARTIFACT_STATUS
+#define EMOS_ARTIFACT_STATUS "UNVERSIONED-DO-NOT-DEPLOY"
+#endif
 #include "ff.h"
 #include "mos.h"
 #include "mos_sysvars.h"
@@ -758,6 +774,8 @@ int emos_cmd(char *args) {
 	char *operation;
 	int result = extractString(args, &args, NULL, &operation, EXTRACT_FLAG_AUTO_TERMINATE);
 	if (result == FR_INVALID_PARAMETER) {
+		printf("EMOS identity: %s, build %s, status %s\r\n",
+			EMOS_SOURCE_IDENTITY, EMOS_BUILD_ID, EMOS_ARTIFACT_STATUS);
 		printf("EMOS v1: %s, registry %d, generation %d\r\n",
 			emos_mode_name(emosModeState.mode), emosRegistry.count, emosRegistry.generation);
 		return FR_OK;
@@ -771,6 +789,8 @@ int emos_cmd(char *args) {
 	if (strcasecmp(operation, "clear") == 0) return emos_clear();
 	if (strcasecmp(operation, "status") == 0) {
 		BYTE index;
+		printf("EMOS identity: %s, build %s, status %s\r\n",
+			EMOS_SOURCE_IDENTITY, EMOS_BUILD_ID, EMOS_ARTIFACT_STATUS);
 		printf("EMOS v1: %s, registry %d, generation %d\r\n",
 			emos_mode_name(emosModeState.mode), emosRegistry.count, emosRegistry.generation);
 		printf("  VDU route %d, EDU %s, adapter %s, mode generation %d\r\n",

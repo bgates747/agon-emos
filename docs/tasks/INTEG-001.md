@@ -147,6 +147,14 @@ return packet, sysvar writer, or automatic activation path.
     under `docs/tasks/PORT-008.md`. It records all three source identities,
     fixture and build measurements, approved emulator observations, bounded
     non-physical claims, and the separately authorized physical gate.
+12. The subsequent physical-candidate preparation assigns source identity
+    `agon-emos-v0.1.0` and lifecycle state `candidate`. A UTC build identity is
+    supplied only by a controlled build; all other builds report
+    `UNVERSIONED-DO-NOT-DEPLOY`. On 2026-08-31 the Author visually confirmed
+    that the graphical Fab candidate reported that exact fail-closed identity,
+    completed Legacy--Dual--Legacy transitions and service calls, and remained
+    responsive at the MOS prompt, then explicitly approved the candidate for
+    commit.
 
 ## Gotchas and remedies
 
@@ -168,6 +176,13 @@ return packet, sysvar writer, or automatic activation path.
    The generated launcher correctly rejected the conflict. The reusable target
    now invokes that launcher without overriding its managed arguments, with a
    regression test preserving this ownership boundary.
+5. The outer `agon-emos make qualify` wrapper did not propagate its selected
+   prepared MOS worktree to the final repository-local Python test invocation.
+   Every preceding `mos-agondev` qualification gate passed, and all 51 local
+   tests passed when invoked directly with the same worktree through
+   `MOS_AGONDEV_WORKTREE`. This is wrapper-variable plumbing, not a firmware or
+   emulator failure; the exact direct invocation remains the qualification
+   evidence for this candidate.
 
 ## Known limits at review boundary
 

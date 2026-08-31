@@ -49,6 +49,19 @@ class Port008ForwardTests(unittest.TestCase):
         self.assertNotIn("EMOS_PORT008_FORWARD", ordinary)
         self.assertEqual(prototype.count("EMOS_PORT008_FORWARD"), 1)
 
+    def test_product_identity_is_shared_and_fail_closed(self) -> None:
+        identity = (ROOT / "port/identity.mk").read_text(encoding="utf-8")
+        ordinary = (ROOT / "port/mos-agondev.mk").read_text(encoding="utf-8")
+        prototype = (ROOT / "port/port008-forward.mk").read_text(encoding="utf-8")
+        core = (ROOT / "src/emos.c").read_text(encoding="utf-8")
+        self.assertIn("EMOS_SOURCE_IDENTITY := agon-emos-v0.1.0", identity)
+        self.assertIn("EMOS_ARTIFACT_STATUS := candidate", identity)
+        self.assertIn("EMOS_BUILD_ID ?= UNVERSIONED-DO-NOT-DEPLOY", identity)
+        self.assertIn("identity.mk", ordinary)
+        self.assertIn("identity.mk", prototype)
+        self.assertIn("EMOS identity: %s, build %s, status %s", core)
+        self.assertGreaterEqual(core.count("UNVERSIONED-DO-NOT-DEPLOY"), 3)
+
     def test_linked_sender_requires_compiled_falling_edge_order(self) -> None:
         disassembly = """
 00000100 <PORT008_send>:

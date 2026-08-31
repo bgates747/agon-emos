@@ -39,7 +39,8 @@ def validate_source(root: Path) -> None:
 
     if "EMOS_PORT008_FORWARD" in normal_profile:
         raise Port008Error("ordinary EMOS profile enables PORT-008")
-    require(prototype_profile, "CPPFLAGS_EXTRA := -DEMOS_PORT008_FORWARD=1", "prototype profile")
+    require(prototype_profile, "include $(dir $(lastword $(MAKEFILE_LIST)))identity.mk", "prototype identity")
+    require(prototype_profile, "-DEMOS_PORT008_FORWARD=1", "prototype profile")
     for expression in (
         "PORT008_READY_BIT\tEQU\t10h",
         "PORT008_CLOCK_BIT\tEQU\t20h",
