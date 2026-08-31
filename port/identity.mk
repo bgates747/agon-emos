@@ -1,6 +1,7 @@
 # Human-readable EMOS product identity. The source identity and lifecycle state
 # are committed; the UTC build ID is supplied by the controlled build. A build
 # that omits it remains visibly non-deployable.
+EMOS_PROFILE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 EMOS_SOURCE_IDENTITY := agon-emos-v0.1.0
 EMOS_ARTIFACT_STATUS := candidate
 EMOS_BUILD_ID ?= UNVERSIONED-DO-NOT-DEPLOY

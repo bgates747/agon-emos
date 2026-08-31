@@ -182,7 +182,8 @@ return packet, sysvar writer, or automatic activation path.
    tests passed when invoked directly with the same worktree through
    `MOS_AGONDEV_WORKTREE`. This is wrapper-variable plumbing, not a firmware or
    emulator failure; the exact direct invocation remains the qualification
-   evidence for this candidate.
+   evidence for this candidate. QUAL-001 subsequently corrected the wrapper so
+   the selected `MOS_WORKTREE` is automatically bound to those tests.
 
 ## Known limits at review boundary
 

@@ -18,3 +18,10 @@ Review official documentation before changing MOS APIs, ABIs, sysvars,
 executable formats, VDP packets, or hardware contracts. Record deviations,
 workarounds, and inherited defects beside affected code and in the active task.
 Every emulator-coupled change requires Author validation before commit or push.
+
+Build EMOS only through its repository wrappers or the `mos-agondev`
+repository-root targets with an EMOS source profile. Those paths must execute
+all profile-owned `FIRMWARE_LINK_CHECKS`, including the linked UART divisor
+guard. A direct low-level port build is not an EMOS-qualified build, and a Fab
+boot cannot validate physical baud because its VDP link exchanges complete
+bytes without an independent receiver clock.

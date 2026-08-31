@@ -62,7 +62,14 @@ void init_UART1() {
 //
 BYTE open_UART0(UART * pUART) {
 	UINT32	mc = MASTERCLOCK;										// UART baud rate calculation
-	UINT32	cb = CLOCK_DIVISOR_16 * pUART->baudRate;				// split to avoid eZ80 maths overflow error
+	/*
+	 * AgonDev evaluates the inherited product below at the eZ80 native
+	 * 24-bit width unless an operand is widened before multiplication. At
+	 * 1,152,000 baud that wrapped 0x01194000 to 0x00194000 and programmed
+	 * BRG divisor 11 instead of 1 on physical hardware. Keep the upstream
+	 * formula, but make its intended 32-bit intermediate explicit.
+	 */
+	UINT32	cb = (UINT32)CLOCK_DIVISOR_16 * (UINT32)pUART->baudRate;	// split to avoid eZ80 maths overflow error
 	UINT32	br = mc / cb;											// with larger baud rate values
 
 	UCHAR	pins = PORTPIN_ZERO | PORTPIN_ONE;						// The transmit and receive pins											
@@ -101,7 +108,7 @@ BYTE open_UART0(UART * pUART) {
 //
 BYTE open_UART1(UART * pUART) {
 	UINT32	mc = MASTERCLOCK;										// UART baud rate calculation
-	UINT32	cb = CLOCK_DIVISOR_16 * pUART->baudRate;				// split to avoid eZ80 maths overflow error
+	UINT32	cb = (UINT32)CLOCK_DIVISOR_16 * (UINT32)pUART->baudRate;	// preserve the same widened intermediate as UART0
 	UINT32	br = mc / cb;											// with larger baud rate values
 
 	UCHAR	pins = PORTPIN_ZERO | PORTPIN_ONE;						// The transmit and receive pins											

@@ -1,5 +1,6 @@
 PYTHON ?= python3
 MOS_AGONDEV_ROOT ?= ../mos-agondev
+MOS_WORKTREE ?= $(MOS_AGONDEV_ROOT)/projects/mos-port/worktree
 AGONDEV_TOOLCHAIN ?= $(MOS_AGONDEV_ROOT)/toolchains/agondev
 FAB_ROOT ?= $(MOS_AGONDEV_ROOT)/fab-agon-emulator
 SOURCE_PROFILE := $(abspath port/mos-agondev.mk)
@@ -7,7 +8,7 @@ PORT008_SOURCE_PROFILE := $(abspath port/port008-forward.mk)
 
 .DEFAULT_GOAL := help
 
-.PHONY: help test modules linked-check firmware-check port008-fixture \
+.PHONY: help test modules linked-check contract-linked-check uart-baud-check firmware-check port008-fixture \
 	port008-linked-check port008-firmware-check qualify
 
 help:
@@ -21,13 +22,16 @@ help:
 	@echo "qualify        run mos-agondev's complete configured-input gate"
 
 test:
-	$(PYTHON) -m unittest discover -s tests -v
+	MOS_AGONDEV_WORKTREE="$(abspath $(MOS_WORKTREE))" \
+		$(PYTHON) -m unittest discover -s tests -v
 
 modules:
 	$(MAKE) -C projects/emos TOOLCHAIN=$(abspath $(AGONDEV_TOOLCHAIN)) \
 		PYTHON=$(PYTHON) validate
 
-linked-check:
+linked-check: contract-linked-check uart-baud-check
+
+contract-linked-check:
 	$(PYTHON) -B projects/emos/verify_abi.py \
 		--elf $(MOS_AGONDEV_ROOT)/projects/mos-port/bin/MOS.elf \
 		--binary $(MOS_AGONDEV_ROOT)/projects/mos-port/bin/MOS.bin \
@@ -37,9 +41,16 @@ linked-check:
 		--binary $(MOS_AGONDEV_ROOT)/projects/mos-port/bin/MOS.bin \
 		--nm $(AGONDEV_TOOLCHAIN)/bin/ez80-none-elf-nm
 
+uart-baud-check:
+	$(PYTHON) -B projects/emos/verify_uart_baud.py \
+		--source . \
+		--elf $(MOS_AGONDEV_ROOT)/projects/mos-port/bin/MOS.elf \
+		--nm $(AGONDEV_TOOLCHAIN)/bin/ez80-none-elf-nm \
+		--objdump $(AGONDEV_TOOLCHAIN)/bin/ez80-none-elf-objdump
+
 firmware-check:
 	$(MAKE) -C $(MOS_AGONDEV_ROOT) SOURCE_PROFILE=$(SOURCE_PROFILE) firmware-check
-	$(MAKE) linked-check
+	$(MAKE) contract-linked-check
 
 port008-fixture:
 	$(MAKE) -C projects/port008-forward \
@@ -61,6 +72,6 @@ port008-firmware-check:
 qualify:
 	$(MAKE) -C $(MOS_AGONDEV_ROOT) SOURCE_PROFILE=$(SOURCE_PROFILE) \
 		FAB_ROOT=$(abspath $(FAB_ROOT)) verify
-	$(MAKE) linked-check
+	$(MAKE) contract-linked-check
 	$(MAKE) test
 	$(MAKE) modules

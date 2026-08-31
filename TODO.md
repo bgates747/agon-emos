@@ -21,6 +21,6 @@ port-infrastructure work remains in `mos-agondev`.
 ## Hardware qualification
 
 - [ ] **QUAL-001 — Qualify EMOS on physical Agon hardware**
-  - Started: --
+  - Started: 2026-08-31 18:32 EDT
   - Finished: --
   - Details: [QUAL-001](docs/tasks/QUAL-001.md)

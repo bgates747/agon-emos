@@ -62,9 +62,24 @@ class EmosPortTests(unittest.TestCase):
         sources = _make_variable(PROFILE, "C_SOURCES_EXTRA")
         objects = _make_variable(PROFILE, "C_OBJECT_RELATIVE_EXTRA")
         commands = _make_variable(PROFILE, "PARITY_EXPECTED_COMMANDS")
+        linked_checks = _make_variable(PROFILE, "FIRMWARE_LINK_CHECKS")
         self.assertEqual(sources, ["src/emos.c"])
         self.assertEqual(objects, ["src/emos.o"])
         self.assertEqual(commands, ["EMOS"])
+        self.assertEqual(
+            linked_checks,
+            ["$(EMOS_PROFILE_ROOT)/projects/emos/verify_uart_baud.py"],
+        )
+
+        port008 = ROOT / "port" / "port008-forward.mk"
+        self.assertEqual(
+            _make_variable(port008, "FIRMWARE_LINK_CHECKS"), linked_checks
+        )
+
+        product_make = (ROOT / "Makefile").read_text(encoding="utf-8")
+        self.assertIn(
+            'MOS_AGONDEV_WORKTREE="$(abspath $(MOS_WORKTREE))"', product_make
+        )
 
         generic_build = (PORT / "Makefile").read_text(encoding="utf-8")
         generic_runtime = (PORT / "runtime" / "Makefile").read_text(

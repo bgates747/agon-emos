@@ -59,6 +59,14 @@ The reviewed valid media is already staged in the isolated profile through the
 fail-closed `make stage-emos-media` path; staging is idempotent and refuses to
 overwrite divergent or unreviewed profile state.
 
+Fab's UART0 model applies the eZ80 BRG divisor only as an internal byte-delay
+and connects the VDP through a complete-byte channel with no independently
+clocked receiver. Emulator success therefore cannot detect an eZ80/VDP baud
+mismatch. Every supported EMOS source profile registers the product-owned
+`verify_uart_baud.py` checker through `FIRMWARE_LINK_CHECKS`; use only the
+repository-root `mos-agondev firmware-check` or an EMOS wrapper that invokes
+it. A direct low-level `projects/mos-port` build is not an EMOS-qualified build.
+
 ## Human checkpoint
 
 The completed human run used the canonical profile-local command:
