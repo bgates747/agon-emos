@@ -2,10 +2,10 @@
 
 ## State
 
-- Status: In progress — implementation and Author emulator validation complete;
-  exact Extender handoff remains
+- Status: Completed — implementation, Author emulator validation, and exact
+  Extender handoff recorded
 - Started: 2026-08-30 21:11 EDT
-- Finished: --
+- Finished: 2026-08-30 21:57 EDT
 
 ## Intent
 
@@ -143,6 +143,10 @@ return packet, sysvar writer, or automatic activation path.
     frozen in `mos-agondev` commit `5079d4c`. The launcher correction followed
     a safe first attempt that built and verified the candidate but stopped
     before Fab opened because duplicate managed arguments were rejected.
+11. The exact system handoff is frozen in `agon-extender` commit `da78d36`,
+    under `docs/tasks/PORT-008.md`. It records all three source identities,
+    fixture and build measurements, approved emulator observations, bounded
+    non-physical claims, and the separately authorized physical gate.
 
 ## Gotchas and remedies
 
