@@ -6,10 +6,10 @@ port-infrastructure work remains in `mos-agondev`.
 
 ## Extender integration
 
-- [x] **INTEG-001 — Implement the PORT-008 forward-only EMOS adapter**
-  - Started: 2026-08-30 21:11 EDT
-  - Finished: 2026-08-30 21:57 EDT
-  - Details: [INTEG-001](docs/tasks/INTEG-001.md)
+- [ ] **INTEG-002 — Implement the production forward-parallel data plane**
+  - Started: 2026-09-01
+  - Finished: --
+  - Details: [INTEG-002](docs/tasks/INTEG-002.md)
 
 ## MOS architecture
 

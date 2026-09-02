@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Verify the fixed-purpose PORT-008 source boundary and fixture artifact."""
+"""Verify the retained PORT-008 ordinary-VDU fixture as predecessor evidence.
+
+The PORT-008 GPIO sender and its EMOS build profile are superseded by INTEG-002.
+This checker deliberately makes no sender, activation, General Poll, mode, or
+qualification claim; it preserves only the deterministic 106-byte application
+fixture that still enters through the ordinary RST 18 surface.
+"""
 
 from __future__ import annotations
 
@@ -16,169 +22,50 @@ class Port008Error(ValueError):
     pass
 
 
-def require(source: str, expression: str, subject: str) -> None:
-    if expression not in source:
-        raise Port008Error(f"{subject} is missing {expression!r}")
-
-
-def ordered(source: str, expressions: tuple[str, ...], subject: str) -> None:
-    cursor = 0
-    for expression in expressions:
-        found = source.find(expression, cursor)
-        if found < 0:
-            raise Port008Error(f"{subject} lacks ordered expression {expression!r}")
-        cursor = found + len(expression)
-
-
 def validate_source(root: Path) -> None:
     serial = (root / "src/serial.asm").read_text(encoding="utf-8")
-    vectors = (root / "src_startup/vectors16.asm").read_text(encoding="utf-8")
     core = (root / "src/emos.c").read_text(encoding="utf-8")
-    normal_profile = (root / "port/mos-agondev.mk").read_text(encoding="utf-8")
-    prototype_profile = (root / "port/port008-forward.mk").read_text(encoding="utf-8")
-
-    if "EMOS_PORT008_FORWARD" in normal_profile:
-        raise Port008Error("ordinary EMOS profile enables PORT-008")
-    require(prototype_profile, "include $(dir $(lastword $(MAKEFILE_LIST)))identity.mk", "prototype identity")
-    require(prototype_profile, "-DEMOS_PORT008_FORWARD=1", "prototype profile")
-    for expression in (
-        "PORT008_READY_BIT\tEQU\t10h",
-        "PORT008_CLOCK_BIT\tEQU\t20h",
-        "PORT008_VALID_BIT\tEQU\t80h",
-        "PORT008_OUTPUT_DDR\tEQU\t5Fh",
-        "CP\t10h",
-        "_port008_general_poll:\tDB\t23, 0, 80h, 1",
+    obsolete_profile = (root / "port/port008-forward.mk").read_text(
+        encoding="utf-8"
+    )
+    fixed_profile = (root / "port/parallel-fixed-qualification.mk").read_text(
+        encoding="utf-8"
+    )
+    for obsolete in (
+        "EMOS_PORT008_FORWARD",
+        "PORT008_send",
+        "_emos_port008_prepare",
+        "_emos_port008_recover",
+        "_port008_general_poll",
     ):
-        require(serial, expression, "serial adapter")
-
-    for register in ("pc_dr", "pc_ddr", "pc_alt1", "pc_alt2", "pd_dr", "pd_ddr", "pd_alt1", "pd_alt2"):
-        require(serial, f"_port008_saved_{register}", "GPIO snapshot")
-
-    ordered(
-        serial[serial.index("PORT008_wait_ready:") : serial.index("PORT008_admitted:")],
-        ("(_port008_idle_high)", "OUT0\t(PD_DR), A", "(_port008_idle_low)", "OUT0\t(PD_DR), A", "(PD_DR)", "PORT008_READY_BIT"),
-        "READY admission loop",
-    )
-    ordered(
-        serial[serial.index("PORT008_byte_loop:") : serial.index("PORT008_wait_release:")],
-        ("OUT0\t(PC_DR), A", "(_port008_active_high)", "OUT0\t(PD_DR), A", "(_port008_active_low)", "OUT0\t(PD_DR), A"),
-        "falling-edge byte loop",
-    )
-    require(vectors, "_rst_18_handler_0:\tCALL\tEMOS_vdu_WRITE", "RST 18 block path")
-    require(vectors, "CALL\tEMOS_vdu_PUTCH", "RST 18 delimiter path")
-    require(core, "if (mode != EMOS_MODE_EXCLUSIVE_EXTENDED) return EMOS_UNAVAILABLE;", "mode gate")
-    require(core, "return EMOS_ADAPTER_PORT008_FORWARD;", "profile-selected adapter")
-    if "UART1_serial_TX" in serial[serial.index("PORT008_send:") : serial.index("UART_serial_NE:")]:
-        raise Port008Error("forward sender contains a reverse UART call")
+        if obsolete in serial + core:
+            raise Port008Error(
+                f"maintained production source retains predecessor {obsolete}"
+            )
+    if "SUPERSEDED" not in obsolete_profile or "$(error" not in obsolete_profile:
+        raise Port008Error("predecessor build profile is not visibly retired")
+    for required in (
+        "EMOS_PARALLEL_FIXED_QUALIFICATION=1",
+        "NONRELEASE-DO-NOT-DEPLOY",
+        "qualification-only",
+    ):
+        if required not in fixed_profile:
+            raise Port008Error(f"replacement fixed profile lacks {required!r}")
 
 
 def linked_symbols(nm: Path, elf: Path) -> dict[str, int]:
     output = subprocess.run(
-        [nm, "-an", elf], check=True, text=True, stdout=subprocess.PIPE
+        [str(nm), "-an", str(elf)],
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
     ).stdout
     result: dict[str, int] = {}
     for line in output.splitlines():
         fields = line.split()
-        if len(fields) == 3:
-            try:
-                result[fields[2]] = int(fields[0], 16)
-            except ValueError:
-                pass
+        if len(fields) == 3 and re.fullmatch(r"[0-9A-Fa-f]+", fields[0]):
+            result[fields[2]] = int(fields[0], 16)
     return result
-
-
-def disassembly_block(disassembly: str, symbol: str) -> str:
-    lines = disassembly.splitlines()
-    marker = f"<{symbol}>:"
-    start = next((index for index, line in enumerate(lines) if marker in line), None)
-    if start is None:
-        raise Port008Error(f"linked EMOS image lacks disassembly for {symbol}")
-    body: list[str] = []
-    for line in lines[start + 1 :]:
-        if re.match(r"^\s*[0-9a-fA-F]+ <[^>]+>:$", line):
-            break
-        body.append(line)
-    if not body:
-        raise Port008Error(f"linked EMOS disassembly for {symbol} is empty")
-    return "\n".join(body)
-
-
-def validate_sender_disassembly(disassembly: str) -> None:
-    admission = disassembly_block(disassembly, "PORT008_wait_ready")
-    ordered(
-        admission,
-        (
-            "out0 (0xa2),a",
-            "out0 (0xa2),a",
-            "in0 a,(0xa2)",
-            "and a,0x10",
-        ),
-        "linked READY-admission loop",
-    )
-
-    byte_loop = disassembly_block(disassembly, "PORT008_byte_loop")
-    ordered(
-        byte_loop,
-        (
-            "ld a,(hl)",
-            "out0 (0x9e),a",
-            "out0 (0xa2),a",
-            "out0 (0xa2),a",
-            "inc hl",
-            "dec bc",
-        ),
-        "linked falling-edge byte loop",
-    )
-    per_byte = byte_loop[: byte_loop.index("inc hl")]
-    if per_byte.count("out0 (0x9e),a") != 1:
-        raise Port008Error("linked byte loop must write Port C exactly once")
-    if per_byte.count("out0 (0xa2),a") != 2:
-        raise Port008Error("linked byte loop must make exactly two Port D writes")
-
-    release = disassembly_block(disassembly, "PORT008_wait_release")
-    ordered(
-        release,
-        (
-            "out0 (0xa2),a",
-            "out0 (0xa2),a",
-            "in0 a,(0xa2)",
-            "and a,0x10",
-        ),
-        "linked READY-release loop",
-    )
-
-    sender = disassembly_block(disassembly, "PORT008_send")
-    ordered(
-        sender,
-        ("ld a,b", "cp a,0x10", "ld a,c"),
-        "linked physical-record bound",
-    )
-
-
-def validate_linked_sender(
-    binary: Path, elf: Path, nm: Path, objdump: Path
-) -> None:
-    image = binary.read_bytes()
-    symbols = linked_symbols(nm, elf)
-    required = (
-        "_emos_port008_prepare",
-        "_emos_port008_recover",
-        "PORT008_send",
-        "PORT008_wait_ready",
-        "PORT008_byte_loop",
-        "PORT008_wait_release",
-        "_port008_general_poll",
-    )
-    missing = [name for name in required if name not in symbols]
-    if missing:
-        raise Port008Error("linked EMOS image lacks symbols: " + ", ".join(missing))
-    poll = symbols["_port008_general_poll"]
-    if poll + 4 > len(image) or image[poll : poll + 4] != bytes((23, 0, 0x80, 1)):
-        raise Port008Error("linked EMOS General Poll bytes differ from 23,0,0x80,1")
-    disassembly = subprocess.run(
-        [objdump, "-d", elf], check=True, text=True, stdout=subprocess.PIPE
-    ).stdout
-    validate_sender_disassembly(disassembly)
 
 
 def validate_binary(manifest: Path, binary: Path, elf: Path, nm: Path) -> None:
@@ -208,10 +95,6 @@ def main() -> int:
     parser.add_argument("--binary", type=Path)
     parser.add_argument("--elf", type=Path)
     parser.add_argument("--nm", type=Path)
-    parser.add_argument("--emos-binary", type=Path)
-    parser.add_argument("--emos-elf", type=Path)
-    parser.add_argument("--emos-nm", type=Path)
-    parser.add_argument("--emos-objdump", type=Path)
     args = parser.parse_args()
     try:
         validate_source(args.source)
@@ -221,30 +104,13 @@ def main() -> int:
             raise Port008Error("binary, ELF, and nm must be supplied together")
         if all(artifacts):
             validate_binary(args.manifest, args.binary, args.elf, args.nm)
-        sender_artifacts = (
-            args.emos_binary,
-            args.emos_elf,
-            args.emos_nm,
-            args.emos_objdump,
-        )
-        if any(sender_artifacts) and not all(sender_artifacts):
-            raise Port008Error(
-                "EMOS binary, ELF, nm, and objdump must be supplied together"
-            )
-        if all(sender_artifacts):
-            validate_linked_sender(
-                args.emos_binary,
-                args.emos_elf,
-                args.emos_nm,
-                args.emos_objdump,
-            )
     except (FixtureError, Port008Error, OSError, subprocess.CalledProcessError) as exc:
-        print(f"PORT-008 verification failed: {exc}")
+        print(f"PORT-008 predecessor-fixture verification failed: {exc}")
         return 2
-    result = "PORT-008 source and 106-byte ordinary-VDU fixture verified"
-    if all(sender_artifacts):
-        result += "; linked GPIO sender order and General Poll verified"
-    print(result)
+    print(
+        "PORT-008 predecessor fixture retained: 106 ordinary VDU bytes verified; "
+        "the obsolete GPIO sender/profile and all qualification claims are excluded"
+    )
     return 0
 
 

@@ -48,10 +48,12 @@ def verify(image: bytes, linked: dict[str, int]) -> None:
     required = (
         "EMOS_vdu_PUTCH",
         "EMOS_vdu_WRITE",
-        "EMOS_vdu_port008",
+        "EMOS_vdu_parallel",
         "EMOS_vdu_onboard",
-        "PORT008_vdu_PUTCH",
-        "PORT008_send",
+        "EMOS_vdu_parallel_PUTCH",
+        "EMOS_vdu_parallel_WRITE",
+        "_emos_parallel_route_write_byte",
+        "_emos_parallel_route_write_stream",
         "UART0_serial_PUTCH",
         "UART1_serial_PUTCH",
         "UART_serial_NE",
@@ -67,6 +69,10 @@ def verify(image: bytes, linked: dict[str, int]) -> None:
         raise VduError("linked image lacks symbols: " + ", ".join(missing))
 
     start = linked["EMOS_vdu_PUTCH"]
+    for obsolete in linked:
+        if obsolete.startswith(("PORT008_", "_port008_", "_emos_port008_")):
+            raise VduError(f"linked image retains predecessor symbol {obsolete}")
+
     dispatcher = image[start : linked["UART_serial_NE"]]
     expected = (
         b"\xf5\x3a"
@@ -74,9 +80,9 @@ def verify(image: bytes, linked: dict[str, int]) -> None:
         + b"\xb7"
         + _jr(0x28, start + 6, linked["EMOS_vdu_onboard"])
         + b"\xfe\x02"
-        + _jr(0x28, start + 10, linked["EMOS_vdu_port008"])
+        + _jr(0x28, start + 10, linked["EMOS_vdu_parallel"])
         + b"\xf1\xb7\xc9\xf1"
-        + _jump(linked["PORT008_vdu_PUTCH"])
+        + _jump(linked["EMOS_vdu_parallel_PUTCH"])
         + b"\xf1"
         + _jump(linked["UART0_serial_PUTCH"])
     )
@@ -96,11 +102,17 @@ def verify(image: bytes, linked: dict[str, int]) -> None:
         if actual != count:
             raise VduError(f"{name} has {actual} dispatcher calls, expected {count}")
 
-    write = image[linked["EMOS_vdu_WRITE"] : linked["PORT008_vdu_PUTCH"]]
+    byte_bridge = image[
+        linked["EMOS_vdu_parallel_PUTCH"] : linked["EMOS_vdu_WRITE"]
+    ]
+    if byte_bridge.count(_call(linked["_emos_parallel_route_write_byte"])) != 1:
+        raise VduError("byte dispatcher does not call one production route writer")
+
+    write = image[linked["EMOS_vdu_WRITE"] : linked["_putch"]]
     if write.count(_call(linked["UART0_serial_PUTCH"])) != 1:
         raise VduError("block dispatcher does not retain one onboard UART call")
-    if write.count(_call(linked["PORT008_send"])) != 1:
-        raise VduError("block dispatcher does not map the EDP block to one record")
+    if write.count(_call(linked["_emos_parallel_route_write_stream"])) != 1:
+        raise VduError("block dispatcher does not call one production route writer")
 
 
 def main() -> int:
@@ -114,7 +126,11 @@ def main() -> int:
     except (VduError, OSError, subprocess.CalledProcessError) as exc:
         print(f"EMOS VDU verification failed: {exc}", file=sys.stderr)
         return 2
-    print("EMOS VDU verified: RST 10/C putch use byte dispatch and RST 18 uses bounded block dispatch")
+    print(
+        "EMOS VDU verified: RST 10/C putch use byte dispatch, RST 18 uses "
+        "bounded block dispatch, and each parallel branch reaches only the "
+        "production route bridge"
+    )
     return 0
 
 

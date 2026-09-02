@@ -21,42 +21,45 @@ class EmosVduTests(unittest.TestCase):
         image = bytearray(0x900)
         linked = {
             "EMOS_vdu_PUTCH": 0x100,
-            "EMOS_vdu_port008": 0x10F,
+            "EMOS_vdu_parallel": 0x10F,
             "EMOS_vdu_onboard": 0x114,
-            "EMOS_vdu_WRITE": 0x120,
-            "PORT008_vdu_PUTCH": 0x160,
-            "PORT008_send": 0x180,
+            "UART_serial_NE": 0x119,
+            "EMOS_vdu_parallel_PUTCH": 0x11C,
+            "EMOS_vdu_WRITE": 0x170,
+            "EMOS_vdu_parallel_WRITE": 0x190,
+            "_emos_parallel_route_write_byte": 0x550,
+            "_emos_parallel_route_write_stream": 0x560,
             "UART0_serial_PUTCH": 0x500,
             "UART1_serial_PUTCH": 0x520,
-            "UART_serial_NE": 0x119,
             "_emosVduBackend": 0x700,
-            "_putch": 0x200,
-            "_getch": 0x220,
+            "_putch": 0x220,
+            "_getch": 0x240,
             "_rst_10_handler": 0x300,
             "_rst_18_handler": 0x320,
             "__rst_38_handler": 0x380,
         }
         image[0x100:0x119] = (
             b"\xf5\x3a\x00\x07\x00\xb7\x28\x0c\xfe\x02\x28\x03"
-            b"\xf1\xb7\xc9\xf1\xc3\x60\x01\x00\xf1\xc3\x00\x05\x00"
+            b"\xf1\xb7\xc9\xf1\xc3\x1c\x01\x00\xf1\xc3\x00\x05\x00"
         )
-        image[0x120:0x160] = b"\x00" * 0x40
-        image[0x128:0x12C] = b"\xcd\x00\x05\x00"
-        image[0x148:0x14C] = b"\xcd\x80\x01\x00"
+        image[0x130:0x134] = b"\xcd\x50\x05\x00"
+        image[0x170:0x220] = b"\x00" * 0xB0
+        image[0x180:0x184] = b"\xcd\x00\x05\x00"
+        image[0x1B0:0x1B4] = b"\xcd\x60\x05\x00"
         putch = b"\xcd\x00\x01\x00"
-        write = b"\xcd\x20\x01\x00"
-        image[0x208:0x20C] = putch
+        write = b"\xcd\x70\x01\x00"
+        image[0x228:0x22C] = putch
         image[0x308:0x30C] = putch
         image[0x338:0x33C] = write
         image[0x360:0x364] = putch
         return image, linked
 
-    def test_accepts_fixed_dispatch_paths(self) -> None:
+    def test_accepts_production_dispatch_paths(self) -> None:
         image, linked = self.fixture()
         vdu.verify(image, linked)
 
     def test_rejects_route_and_callsite_drift(self) -> None:
-        for offset in (0x105, 0x10A, 0x208, 0x338, 0x148):
+        for offset in (0x105, 0x10A, 0x130, 0x228, 0x338, 0x1B0):
             image, linked = self.fixture()
             image[offset] ^= 1
             with self.subTest(offset=offset), self.assertRaises(vdu.VduError):

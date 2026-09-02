@@ -27,6 +27,7 @@
 #include <defines.h>
 #include <gpio.h>
 
+#include "emos_parallel.h"
 #include "uart.h"
  
 // Set the Line Control Register for data, stop and parity bits
@@ -111,7 +112,13 @@ BYTE open_UART1(UART * pUART) {
 	UINT32	cb = (UINT32)CLOCK_DIVISOR_16 * (UINT32)pUART->baudRate;	// preserve the same widened intermediate as UART0
 	UINT32	br = mc / cb;											// with larger baud rate values
 
-	UCHAR	pins = PORTPIN_ZERO | PORTPIN_ONE;						// The transmit and receive pins											
+	UCHAR	pins = PORTPIN_ZERO | PORTPIN_ONE;						// The transmit and receive pins
+
+	/* EMOS and UART1 share Port C.  Reserve the production lifecycle lock
+	 * before the first flag, mux, or UART mutation; a committed parallel epoch
+	 * is indefinite, so contention is rejected rather than spun on. */
+	if (emos_parallel_uart1_guard_acquire() != EMOS_PARALLEL_OK)
+		return UART_ERR_FAILURE;
 
 	serialFlags &= 0x0F;
 
@@ -137,6 +144,10 @@ BYTE open_UART1(UART * pUART) {
 	serialFlags |= 0x10;
 	
 	SETREG_LCR1(pUART->dataBits, pUART->stopBits, pUART->parity);	// Set the line status register
+
+	/* Publish UART1 active before releasing the reservation.  An interrupting
+	 * epoch therefore observes either the held lock or serialFlags bit 4. */
+	emos_parallel_uart1_guard_release();
 	
 	return UART_ERR_NONE;
 }

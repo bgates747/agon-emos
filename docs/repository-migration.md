@@ -47,6 +47,7 @@ hardware claim.
 3. `agon-extender` owns cross-component requirements but not the EMOS
    implementation task queue.
 
-Verified recovery bundles made before ref rewriting are retained outside the
-repositories until the Author accepts the migration. They are recovery media,
-not project history or a continuing source of authority.
+Verified recovery bundles made before ref rewriting were migration-era
+recovery media outside the repositories. They are not project history or a
+continuing source of authority; this repository record neither requires their
+continued retention nor attests to their present existence.

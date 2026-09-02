@@ -7,6 +7,16 @@
 - Started: 2026-08-30 21:11 EDT
 - Finished: 2026-08-30 21:57 EDT
 
+## Supersession
+
+INTEG-002 subsequently replaced this prototype sender and adapter with the
+maintained production epoch, record engine, and semantic route bridge. The
+`port/port008-forward.mk` filename is now a fail-fast tombstone, and maintained
+normal and fixed source/link closures contain none of this task's sender or
+mode-adapter symbols. The ordinary 106-byte payload fixture remains runnable as
+predecessor evidence. Everything below records the completed historical task;
+it is not current build or qualification guidance.
+
 ## Intent
 
 Supply the eZ80-owned half of `agon-extender` PORT-008's bounded forward-only

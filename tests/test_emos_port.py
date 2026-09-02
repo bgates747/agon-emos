@@ -32,21 +32,56 @@ def _sha256(path: Path) -> str:
 
 
 def _make_variable(path: Path, name: str) -> list[str]:
-    text = path.read_text(encoding="utf-8")
-    match = re.search(
-        rf"^{re.escape(name)}\s*:=\s*(.*?)(?=^[A-Z][A-Z0-9_]*\s*:?=|^\S[^\n]*:|\Z)",
-        text,
-        flags=re.MULTILINE | re.DOTALL,
-    )
-    if match is None:
-        raise AssertionError(f"missing Make variable {name} in {path}")
-    return re.findall(r"(?:^|\s)([^\s\\]+)", match.group(1))
+    lines = path.read_text(encoding="utf-8").splitlines()
+    start = re.compile(rf"^{re.escape(name)}\s*:=\s*(.*)$")
+    for index, line in enumerate(lines):
+        match = start.match(line)
+        if match is None:
+            continue
+        logical = match.group(1)
+        while logical.rstrip().endswith("\\"):
+            logical = logical.rstrip()[:-1] + " "
+            index += 1
+            if index >= len(lines):
+                raise AssertionError(f"unterminated Make variable {name} in {path}")
+            logical += lines[index].split("#", 1)[0]
+        return logical.split()
+    raise AssertionError(f"missing Make variable {name} in {path}")
 
 
 class EmosPortTests(unittest.TestCase):
+    def test_zds_project_crlf_policy_is_explicit(self) -> None:
+        attributes = (ROOT / ".gitattributes").read_text(encoding="utf-8")
+        self.assertIn("MOS.zdsproj -text whitespace=cr-at-eol", attributes)
+        project = (ROOT / "MOS.zdsproj").read_bytes()
+        self.assertIn(b"\r\n", project)
+        self.assertEqual(project.replace(b"\r\n", b"").count(b"\n"), 0)
+
     def test_zds_project_owns_the_new_maintained_source_once(self) -> None:
         project = (WORKTREE / "MOS.zdsproj").read_text(encoding="utf-8")
-        self.assertEqual(project.count(r".\\src\\emos.c"), 1)
+        for relative in (
+            r".\\src\\emos.c",
+            r".\\src\\emos_parallel.c",
+            r".\\src\\emos_parallel_engine.c",
+            r".\\src\\emos_parallel_io.asm",
+        ):
+            with self.subTest(relative=relative):
+                self.assertEqual(project.count(relative), 1)
+
+    def test_uart1_parallel_guard_is_not_profile_optional(self) -> None:
+        uart = (ROOT / "src" / "uart.c").read_text(encoding="utf-8")
+        project = (ROOT / "MOS.zdsproj").read_text(encoding="utf-8")
+        self.assertNotIn("EMOS_PARALLEL_DATA_PLANE", uart)
+        self.assertEqual(uart.count("emos_parallel_uart1_guard_acquire()"), 1)
+        self.assertEqual(uart.count("emos_parallel_uart1_guard_release()"), 1)
+        for relative in (
+            r".\\src\\emos_parallel.c",
+            r".\\src\\emos_parallel_engine.c",
+            r".\\src\\emos_parallel_io.asm",
+            r".\\src\\uart.c",
+        ):
+            with self.subTest(relative=relative):
+                self.assertEqual(project.count(relative), 1)
 
     def test_prepared_snapshot_contains_exact_unpatched_emos_sources(self) -> None:
         metadata = json.loads(
@@ -55,7 +90,15 @@ class EmosPortTests(unittest.TestCase):
         files = {entry["path"]: entry for entry in metadata["files"]}
         self.assertIn("src/emos.c", files)
         self.assertIn("src/emos.h", files)
-        for relative in ("src/emos.c", "src/emos.h"):
+        for relative in (
+            "src/emos.c",
+            "src/emos.h",
+            "src/emos_parallel.c",
+            "src/emos_parallel_engine.c",
+            "src/emos_parallel.h",
+            "src/emos_parallel_io.asm",
+        ):
+            self.assertIn(relative, files)
             self.assertEqual(files[relative]["sha256"], _sha256(WORKTREE / relative))
 
     def test_product_profile_declares_emos_source_and_object_once(self) -> None:
@@ -63,23 +106,92 @@ class EmosPortTests(unittest.TestCase):
         objects = _make_variable(PROFILE, "C_OBJECT_RELATIVE_EXTRA")
         commands = _make_variable(PROFILE, "PARITY_EXPECTED_COMMANDS")
         linked_checks = _make_variable(PROFILE, "FIRMWARE_LINK_CHECKS")
-        self.assertEqual(sources, ["src/emos.c"])
-        self.assertEqual(objects, ["src/emos.o"])
+        self.assertEqual(
+            sources,
+            ["src/emos.c", "src/emos_parallel.c", "src/emos_parallel_engine.c"],
+        )
+        self.assertEqual(
+            objects,
+            ["src/emos.o", "src/emos_parallel.o", "src/emos_parallel_engine.o"],
+        )
+        self.assertEqual(
+            _make_variable(PROFILE, "ASM_SOURCES_EXTRA"),
+            ["src/emos_parallel_io.asm"],
+        )
+        self.assertEqual(
+            _make_variable(PROFILE, "ASM_OBJECT_RELATIVE_EXTRA"),
+            ["src/emos_parallel_io.o"],
+        )
         self.assertEqual(commands, ["EMOS"])
+        self.assertNotIn(
+            "EMOS_PARALLEL_DATA_PLANE",
+            " ".join(_make_variable(PROFILE, "CPPFLAGS_EXTRA")),
+        )
         self.assertEqual(
             linked_checks,
-            ["$(EMOS_PROFILE_ROOT)/projects/emos/verify_uart_baud.py"],
+            [
+                "$(EMOS_PROFILE_ROOT)/projects/emos/verify_uart_baud.py",
+                "$(EMOS_PROFILE_ROOT)/projects/emos/verify_parallel.py",
+            ],
         )
 
         port008 = ROOT / "port" / "port008-forward.mk"
+        predecessor = port008.read_text(encoding="utf-8")
+        self.assertIn("SUPERSEDED", predecessor)
+        self.assertIn("$(error", predecessor)
+        self.assertNotIn("EMOS_PORT008_FORWARD", predecessor)
+
+        fixed = ROOT / "port" / "parallel-fixed-qualification.mk"
         self.assertEqual(
-            _make_variable(port008, "FIRMWARE_LINK_CHECKS"), linked_checks
+            _make_variable(fixed, "C_SOURCES_EXTRA"),
+            [
+                "src/emos.c",
+                "src/emos_parallel.c",
+                "src/emos_parallel_engine.c",
+                "src/emos_parallel_fixed_backend.c",
+            ],
+        )
+        self.assertEqual(
+            _make_variable(fixed, "ASM_SOURCES_EXTRA"),
+            ["src/emos_parallel_io.asm"],
+        )
+        fixed_text = fixed.read_text(encoding="utf-8")
+        self.assertIn("NONRELEASE-DO-NOT-DEPLOY", fixed_text)
+        self.assertNotIn("EMOS_PARALLEL_DATA_PLANE", fixed_text)
+        self.assertIn("EMOS_PARALLEL_FIXED_QUALIFICATION=1", fixed_text)
+        self.assertNotIn("include $(dir", fixed_text)
+        self.assertEqual(
+            _make_variable(fixed, "FIRMWARE_LINK_CHECKS"),
+            [
+                "$(EMOS_PROFILE_ROOT)/projects/emos/verify_uart_baud.py",
+                "$(EMOS_PROFILE_ROOT)/projects/emos/verify_parallel_fixed.py",
+            ],
         )
 
         product_make = (ROOT / "Makefile").read_text(encoding="utf-8")
         self.assertIn(
             'MOS_AGONDEV_WORKTREE="$(abspath $(MOS_WORKTREE))"', product_make
         )
+        for target_name in (
+            "firmware-check",
+            "parallel-fixed-firmware-check",
+            "qualify",
+        ):
+            target = product_make.split(f"{target_name}:", 1)[1].split(
+                "\n\n", 1
+            )[0]
+            self.assertIn(
+                'MOS_WORKTREE="$(abspath $(MOS_WORKTREE))"',
+                target,
+                target_name,
+            )
+        fixed_target = product_make.split(
+            "parallel-fixed-firmware-check:", 1
+        )[1].split("\n\n", 1)[0]
+        self.assertIn("$(MAKE) contract-linked-check", fixed_target)
+        self.assertIn("non-release fixed data-plane composition", product_make)
+        self.assertNotIn("port008-firmware-check", product_make)
+        self.assertNotIn("port008-linked-check", product_make)
 
         generic_build = (PORT / "Makefile").read_text(encoding="utf-8")
         generic_runtime = (PORT / "runtime" / "Makefile").read_text(
@@ -87,6 +199,7 @@ class EmosPortTests(unittest.TestCase):
         )
         self.assertNotIn("src/emos.c", generic_build)
         self.assertNotIn("src/emos.o", generic_runtime)
+        self.assertNotIn("emos_parallel", generic_build + generic_runtime)
 
     def test_generated_assembly_is_manifest_owned_and_unmodified(self) -> None:
         prepared = json.loads(
@@ -123,7 +236,10 @@ class EmosPortTests(unittest.TestCase):
                 output = entry["output"]
                 outputs.add(output)
                 self.assertEqual(entry["output_sha256"], _sha256(generated / output))
-        expected = set(_make_variable(PORT / "Makefile", "ASM_SOURCES"))
+        expected = set(
+            _make_variable(PORT / "assembly-profile.mk", "ASM_SOURCES_BASE")
+        )
+        expected.update(_make_variable(PROFILE, "ASM_SOURCES_EXTRA"))
         self.assertEqual(outputs, expected)
 
 

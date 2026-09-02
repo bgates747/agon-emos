@@ -45,7 +45,7 @@ EXPECTED_SEQUENCE = (
     b"/ *EMOS DISCOVER",
     b"EMOS: discovered 3 provider(s)",
     b"/ *EMOS STATUS",
-    b"EMOS identity: agon-emos-v0.1.0, build UNVERSIONED-DO-NOT-DEPLOY, status candidate",
+    b"EMOS identity: UNVERSIONED-DO-NOT-DEPLOY, build UNVERSIONED-DO-NOT-DEPLOY, status UNVERSIONED-DO-NOT-DEPLOY",
     b"EMOS v1: Legacy, registry 3, generation 1",
     b"VDU route 0, EDU inactive, adapter unavailable, mode generation 0",
     b"hello 1.0.0 /emos/modules/hello.emo",

@@ -35,6 +35,7 @@ def verify(image: bytes, linked: dict[str, int]) -> None:
         "mos_api_block1_start",
         "mos_function_block_start",
         "mos_function_block_size",
+        "_open_UART1",
     )
     missing = [name for name in required if name not in linked]
     if missing:
@@ -48,6 +49,9 @@ def verify(image: bytes, linked: dict[str, int]) -> None:
         raise AbiError("MOS API 0x51 does not target the EMOS wrapper")
 
     table = linked["mos_function_block_start"]
+    uart_target = int.from_bytes(image[table + 0x08 * 3 : table + 0x09 * 3], "little")
+    if uart_target != linked["_open_UART1"]:
+        raise AbiError("mos_getfunction slot 0x08 does not target guarded UART1 open")
     reserved = image[table + 0x12 * 3 : table + 0x20 * 3]
     if any(reserved):
         raise AbiError("mos_getfunction slots 0x12 through 0x1f are not reserved")
@@ -88,7 +92,10 @@ def main() -> int:
     except (AbiError, OSError, subprocess.CalledProcessError) as exc:
         print(f"EMOS ABI verification failed: {exc}", file=sys.stderr)
         return 2
-    print("EMOS ABI verified: MOS API 0x51 and mos_getfunction 0x20 are resident")
+    print(
+        "EMOS ABI verified: MOS API 0x51, guarded UART1 slot 0x08, and resident "
+        "Core slot 0x20 are fixed"
+    )
     return 0
 
 

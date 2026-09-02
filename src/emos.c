@@ -11,6 +11,9 @@
 #include <ctype.h>
 
 #include "emos.h"
+#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+#include "emos_parallel.h"
+#endif
 
 /*
  * Product/build identity is supplied by the selected maintained-source build
@@ -75,7 +78,7 @@ volatile BYTE emosVduBackend = 0;
 #define EMOS_EDU_ACTIVE 1
 #define EMOS_ADAPTER_UNAVAILABLE 0
 #define EMOS_ADAPTER_FAKE 1
-#define EMOS_ADAPTER_PORT008_FORWARD 2
+#define EMOS_ADAPTER_PARALLEL_FIXED 2
 
 typedef struct {
 	BYTE mode;
@@ -98,8 +101,8 @@ static t_emosModeState emosModeState;
 static t_emosEduState emosEduState;
 
 static BYTE emos_default_adapter(void) {
-#ifdef EMOS_PORT008_FORWARD
-	return EMOS_ADAPTER_PORT008_FORWARD;
+#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+	return EMOS_ADAPTER_PARALLEL_FIXED;
 #else
 	return EMOS_ADAPTER_UNAVAILABLE;
 #endif
@@ -616,14 +619,15 @@ static int emos_adapter_prepare(BYTE mode) {
 	if (emosEduState.selectedAdapter == EMOS_ADAPTER_FAKE) {
 		if (mode != EMOS_MODE_DUAL) return EMOS_UNAVAILABLE;
 	}
-#ifdef EMOS_PORT008_FORWARD
-	else if (emosEduState.selectedAdapter == EMOS_ADAPTER_PORT008_FORWARD) {
-		/* PORT-008 is deliberately one-way: successful READY admission and
-		 * completion of the official General Poll request can prepare only the
-		 * Exclusive Extended route. Its discarded response is not readiness or
-		 * identity evidence. */
+	#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+	else if (emosEduState.selectedAdapter == EMOS_ADAPTER_PARALLEL_FIXED) {
+		/* The qualification procedure requires its operator/top-level to prepare
+		 * the peer's active parallel epoch first.  This explicit mode request is
+		 * the assertion that preparation is complete; EMOS does not receive a
+		 * separate attestation signal.  The request still owns route commitment,
+		 * and no activation or precommit General Poll is emitted here. */
 		if (mode != EMOS_MODE_EXCLUSIVE_EXTENDED) return EMOS_UNAVAILABLE;
-		emosEduState.lastStatus = emos_port008_prepare();
+		emosEduState.lastStatus = emos_parallel_fixed_enter(TRUE);
 		if (emosEduState.lastStatus != FR_OK) return emosEduState.lastStatus;
 	}
 #endif
@@ -637,9 +641,10 @@ static int emos_adapter_ready(BYTE mode) {
 	if (emosEduState.preparedMode != mode) return EMOS_UNAVAILABLE;
 	if (emosEduState.selectedAdapter == EMOS_ADAPTER_FAKE)
 		return mode == EMOS_MODE_DUAL ? FR_OK : EMOS_UNAVAILABLE;
-#ifdef EMOS_PORT008_FORWARD
-	if (emosEduState.selectedAdapter == EMOS_ADAPTER_PORT008_FORWARD)
-		return mode == EMOS_MODE_EXCLUSIVE_EXTENDED ? FR_OK : EMOS_UNAVAILABLE;
+	#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+	if (emosEduState.selectedAdapter == EMOS_ADAPTER_PARALLEL_FIXED)
+		return mode == EMOS_MODE_EXCLUSIVE_EXTENDED &&
+			emos_parallel_fixed_ready() ? FR_OK : EMOS_UNAVAILABLE;
 #endif
 	return EMOS_UNAVAILABLE;
 }
@@ -653,12 +658,18 @@ static int emos_adapter_commit(BYTE mode) {
 }
 
 static int emos_adapter_recover(void) {
-	/* Both unavailable and fake adapters have bounded local recovery. A future
-	 * production physical adapter must implement its own qualified quiesce
-	 * transaction. PORT-008 restores the exact pre-acquisition GPIO registers. */
-#ifdef EMOS_PORT008_FORWARD
-	if (emosEduState.selectedAdapter == EMOS_ADAPTER_PORT008_FORWARD)
-		emos_port008_recover();
+	/* A failed fixed-profile leave retains its live route lease and adapter
+	 * state.  The mode coordinator must not publish Legacy while a writer owns
+	 * the epoch or while deterministic electrical release has not completed. */
+	#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+	if (emosEduState.selectedAdapter == EMOS_ADAPTER_PARALLEL_FIXED &&
+		emos_parallel_fixed_ready()) {
+		int result = emos_parallel_fixed_leave();
+		if (result != FR_OK) {
+			emosEduState.lastStatus = result;
+			return result;
+		}
+	}
 #endif
 	emosEduState.preparedMode = EMOS_MODE_LEGACY;
 	emosEduState.active = FALSE;
@@ -666,10 +677,20 @@ static int emos_adapter_recover(void) {
 	return FR_OK;
 }
 
+static int emos_adapter_public_result(int result) {
+	/* Parallel lifecycle statuses are private 0xE0..0xE8 diagnostics.  MOS
+	 * commands accept only the FatFS/MOS 0..36 result domain; lastStatus retains
+	 * the exact private failure while the public caller gets a printable error. */
+	return result >= FR_OK && result <= EMOS_REGISTRY_FULL ?
+		result : EMOS_UNAVAILABLE;
+}
+
 static int emos_select_fake(BOOL enabled) {
+	int result;
 	if (emosBusy) return EMOS_BUSY;
 	if (emosModeState.mode != EMOS_MODE_LEGACY) return EMOS_UNAVAILABLE;
-	emos_adapter_recover();
+	result = emos_adapter_recover();
+	if (result != FR_OK) return emos_adapter_public_result(result);
 	emosEduState.selectedAdapter = enabled ? EMOS_ADAPTER_FAKE : emos_default_adapter();
 	return FR_OK;
 }
@@ -679,22 +700,38 @@ int emos_request_mode(BYTE mode) {
 	int result;
 	if (mode > EMOS_MODE_EXCLUSIVE_EXTENDED) return FR_INVALID_PARAMETER;
 	if (emosBusy) return EMOS_BUSY;
-	if (mode == emosModeState.mode) return FR_OK;
+	if (mode == emosModeState.mode) {
+		#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+		/* A failed entry cleanup can retain the fixed route while the published
+		 * logical mode is still Legacy.  A repeated Legacy request is the
+		 * deterministic recovery retry instead of a false no-op success. */
+		if (mode == EMOS_MODE_LEGACY &&
+			emosEduState.selectedAdapter == EMOS_ADAPTER_PARALLEL_FIXED &&
+			emos_parallel_fixed_ready()) {
+			result = emos_adapter_recover();
+			return emos_adapter_public_result(result);
+		}
+		#endif
+		return FR_OK;
+	}
 	if (mode != EMOS_MODE_LEGACY && emosModeState.mode != EMOS_MODE_LEGACY)
 		return EMOS_UNAVAILABLE;
 	if (mode == EMOS_MODE_LEGACY) {
 		result = emos_adapter_recover();
-		if (result != FR_OK) return result;
+		if (result != FR_OK) return emos_adapter_public_result(result);
 		emos_mode_shape(EMOS_MODE_LEGACY, &prepared);
 	} else {
+		int recoveryResult;
 		emos_mode_shape(mode, &prepared);
 		result = emos_adapter_prepare(mode);
 		if (result == FR_OK) result = emos_adapter_ready(mode);
 		if (result == FR_OK) result = emos_adapter_commit(mode);
 		if (result != FR_OK) {
-			emos_adapter_recover();
+			recoveryResult = emos_adapter_recover();
+			if (recoveryResult != FR_OK)
+				return emos_adapter_public_result(recoveryResult);
 			emosEduState.lastStatus = result;
-			return result;
+			return emos_adapter_public_result(result);
 		}
 	}
 	prepared.generation = emosModeState.generation + 1;
@@ -716,8 +753,9 @@ static const char *emos_mode_name(BYTE mode) {
 
 static const char *emos_adapter_name(BYTE adapter) {
 	if (adapter == EMOS_ADAPTER_FAKE) return "fake";
-#ifdef EMOS_PORT008_FORWARD
-	if (adapter == EMOS_ADAPTER_PORT008_FORWARD) return "port008-forward";
+	#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+	if (adapter == EMOS_ADAPTER_PARALLEL_FIXED)
+		return "parallel-fixed-qualification";
 #endif
 	return "unavailable";
 }

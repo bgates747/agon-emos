@@ -77,13 +77,19 @@ class EmosModuleTests(unittest.TestCase):
             "result = emos_adapter_prepare(mode);",
             "result = emos_adapter_ready(mode);",
             "result = emos_adapter_commit(mode);",
-            "emos_adapter_recover();",
+            "recoveryResult = emos_adapter_recover();",
+            "if (recoveryResult != FR_OK)",
+            "return emos_adapter_public_result(recoveryResult);",
+            "return result >= FR_OK && result <= EMOS_REGISTRY_FULL ?",
             "emosModeState = prepared;",
             "emosVduBackend = prepared.vduRoute;",
         ]
         for expression in required:
             with self.subTest(expression=expression):
                 self.assertIn(expression, source)
+        self.assertIsNone(
+            re.search(r"(?m)^\s*emos_adapter_recover\(\);", source)
+        )
         self.assertNotIn("mos_sysvars", source[source.index("typedef struct {\n\tBYTE mode;"):])
     @staticmethod
     def executable_header(

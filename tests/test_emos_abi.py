@@ -47,11 +47,15 @@ class EmosAbiTests(unittest.TestCase):
             "mos_api_block1_start": 0x100,
             "mos_function_block_start": 0x200,
             "mos_function_block_size": 0x21,
+            "_open_UART1": 0x700,
         }
         image[0x100 + 0x51 * 2 : 0x100 + 0x51 * 2 + 2] = (0x400).to_bytes(
             2, "little"
         )
         image[0x200 + 0x20 * 3 : 0x200 + 0x21 * 3] = (0x600).to_bytes(
+            3, "little"
+        )
+        image[0x200 + 0x08 * 3 : 0x200 + 0x09 * 3] = (0x700).to_bytes(
             3, "little"
         )
         image[0x400:0x40F] = bytes(
@@ -64,7 +68,12 @@ class EmosAbiTests(unittest.TestCase):
         abi.verify(image, linked)
 
     def test_rejects_slot_wrapper_and_reserved_drift(self) -> None:
-        for offset in (0x100 + 0x51 * 2, 0x200 + 0x12 * 3, 0x400 + 8):
+        for offset in (
+            0x100 + 0x51 * 2,
+            0x200 + 0x08 * 3,
+            0x200 + 0x12 * 3,
+            0x400 + 8,
+        ):
             image, linked = self.fixture()
             image[offset] ^= 1
             with self.subTest(offset=offset), self.assertRaises(abi.AbiError):

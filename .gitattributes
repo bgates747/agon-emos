@@ -1,0 +1,5 @@
+# ZDS owns this project file in CRLF form. Preserve its bytes and teach Git
+# that CR is part of the line ending, not added trailing whitespace.
+MOS.zdsproj -text whitespace=cr-at-eol
+src/serial.asm -text whitespace=cr-at-eol
+src/uart.c -text whitespace=cr-at-eol

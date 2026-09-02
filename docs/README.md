@@ -5,8 +5,8 @@ Repository ownership and reconstruction provenance are recorded in
 
 1. `emos-v1-contract.md` defines the provisional EMOS Core, module/service,
    application-safety, dispatcher, mode, and ownership contract.
-2. `emos-v1-qualification.md` records automated candidate evidence and its
-   limits.
+2. `emos-v1-qualification.md` preserves the superseded first candidate's
+   automated evidence and its limits; it is not a current qualification.
 3. `port-200-qualification.md` preserves the accepted emulator, ABI, parity,
    and reproducibility qualification of the first candidate.
 4. `port-203-hardware.md` defines the outstanding physical gate.

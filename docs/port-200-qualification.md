@@ -1,5 +1,10 @@
 # PORT-200 qualification record
 
+> **Historical snapshot — superseded for current qualification.** This record
+> preserves the first EMOS candidate's accepted local evidence and its stated
+> boundaries. It does not describe or qualify the current production-integration
+> source or any current deployable candidate.
+
 This document freezes the locally executable qualification matrix for the
 AgonDev EMOS candidate. It distinguishes observed behavior from structural
 evidence and from work that requires real hardware. `make verify` is the local
@@ -90,6 +95,7 @@ compiler and path differences can change it without changing the pinned source
 or firmware assets. `scripts/verify_emulator.py` still hashes the exact
 executable used in each configured profile. `audit_source.py` ignores
 untracked build products and submodule worktree dirt while rejecting tracked
-superproject changes. Thus `baseline-check` is reproducible from documented
-public Git inputs and still fails closed on source, toolchain, or stock
-firmware drift.
+superproject changes. Thus the historical `baseline-check` was reproducible
+from documented public Git inputs and failed closed on source, toolchain, or
+stock firmware drift. The current repository wrapper is the `qualify` target
+named by `docs/port-203-hardware.md`.

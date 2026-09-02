@@ -1,13 +1,19 @@
 # EMOS v1 candidate qualification
 
+> **Historical snapshot — superseded for current qualification.** This report
+> preserves evidence for the first 113,053-byte EMOS candidate. That image is
+> not the current maintained-source output and does not qualify the current
+> production-integration work or a current deployable candidate.
+
 This report separates automated candidate evidence from the mandatory human
 emulator and later physical-hardware gates. Machine-readable measurements are
 in `evidence/emos-v1-qualification.json`.
 
 ## Automated result
 
-The current maintained-source snapshot prepares, converts, compiles, links,
-and verifies as a 113,053-byte MOS image. The host suite, toolchain proof,
+The maintained-source snapshot captured by this historical report prepared,
+converted, compiled, linked, and verified as a 113,053-byte MOS image. The host
+suite, toolchain proof,
 sixteen established C units plus `src/emos.c`, all fifteen assembly units,
 restricted runtime, linker rejection cases, resident EMOS ABI, fixed VDU
 dispatcher, deterministic integration media, target MOS API/formatter probe,
@@ -86,7 +92,7 @@ active EDU, and adapter `fake`; and the final transition returns cleanly to
 Legacy at mode generation 2 after the fake is disabled. The transcript contains
 no diagnostics, retries, or unexpected output; the registry correctly remains
 at generation 1. The runtime and commit portions of this checkpoint are
-satisfied. Preserve the current profile `autoexec.txt` as Author-owned test
+satisfied. The then-reviewed profile `autoexec.txt` was Author-owned test
 state.
 
 The Author approved the commit checkpoint on 2026-08-24. The originally

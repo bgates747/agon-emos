@@ -4,7 +4,8 @@ This is an author-operated gate. Emulator success does not complete it.
 
 ## Preparation and rollback
 
-1. Run `make FAB_ROOT=PATH baseline-check` and retain the complete log.
+1. Run `make MOS_WORKTREE=PATH FAB_ROOT=PATH qualify` and retain the complete
+   log.
 2. Record SHA-256 for the candidate
    `mos-agondev/projects/mos-port/bin/MOS.bin`, the VDP firmware, the
    recovery MOS image, and the test SD image. Copy the candidate and recovery
@@ -53,4 +54,4 @@ python3 scripts/verify_hardware_capture.py \
 ```
 
 Only an author-approved capture produced by real supported hardware may close
-PORT-203B or support a hardware-qualified/replacement-release claim.
+QUAL-001 or support a hardware-qualified/replacement-release claim.

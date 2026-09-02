@@ -94,12 +94,4 @@ void emos_application_leave(BYTE previousPolicy);
 BYTE emos_get_mode(void);
 int emos_request_mode(BYTE mode);
 
-#ifdef EMOS_PORT008_FORWARD
-/* Fixed-purpose PORT-008 prototype hooks. The implementation is resident in
- * serial.asm so ordinary VDU dispatch and physical GPIO ownership share one
- * bounded authority. Production EMOS builds do not select this adapter. */
-int emos_port008_prepare(void);
-void emos_port008_recover(void);
-#endif
-
 #endif /* EMOS_H */

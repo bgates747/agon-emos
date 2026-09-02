@@ -2,10 +2,12 @@
 
 ## State
 
-- Status: In progress — UART divisor correction passes machine, Author
-  graphical emulator, and dirty-source physical boot/smoke checks against
-  official VDP v2.16.0; commit, clean candidate identity, and full physical
-  qualification pending
+- Status: In progress — the UART divisor correction is committed in canonical
+  EMOS commit `0e24b06abdb322fdb4e681a21242ccfebfc8ea65`; its earlier dirty-source
+  physical boot/smoke check against official VDP v2.16.0 passed. The former
+  v0.1.0/fixed-forward predecessor is rejected. Current production-integration
+  work is deliberately `UNVERSIONED-DO-NOT-DEPLOY`; a clean identified
+  candidate and full physical qualification remain pending.
 - Started: 2026-08-31 18:32 EDT
 - Finished: --
 
@@ -32,7 +34,7 @@ hash-bound capture. Emulator success does not satisfy this task.
 3. Raw artifacts and hashes validate with the maintained capture validator.
 4. The Author accepts the evidence and release claim.
 
-## Active boot-blocker correction
+## Historical boot-blocker correction
 
 ### Physical evidence
 
@@ -92,7 +94,11 @@ hash-bound capture. Emulator success does not satisfy this task.
    keyboardless procedure, and repeat the physical boot gate before resuming
    broader PORT-008 transport work.
 
-### Corrective execution record
+### Corrective execution record (2026-08-31 historical snapshot)
+
+This subsection records the state of the boot-blocker correction when its
+dirty-source diagnostic image was exercised. Later status is stated explicitly
+where the original execution record is no longer current.
 
 1. The inherited expression is changed only by widening both operands before
    multiplication in UART0 and UART1. No UART control flow, register sequence,
@@ -114,6 +120,9 @@ hash-bound capture. Emulator success does not satisfy this task.
    `MOS_WORKTREE` into product provenance tests; this closes an earlier wrapper
    defect that could build one prepared tree while those tests inspected the
    default tree. The corrected end-to-end `qualify` invocation passes.
+   This is historical predecessor evidence: INTEG-002 subsequently retired that
+   source profile, and the same filename is now a fail-fast tombstone rather
+   than a current qualification path.
 4. The final scratch linked artifacts are `MOS.bin` (114,069 bytes, SHA-256
    `bf7633f9853e812d806a6528450d268db68541b12df0dcb47b4f68b15a130478`)
    and `MOS.elf` (247,284 bytes, SHA-256
@@ -123,9 +132,13 @@ hash-bound capture. Emulator success does not satisfy this task.
    prompt, reported the expected EMOS identity and three providers, completed
    deterministic echo and separate EDU-result calls, and completed Legacy to
    Dual to Legacy mode transitions. This passes the required emulator gate.
-6. The correction remains uncommitted and the scratch image remains
-   unversioned. Explicit commit approval, replacement identity assignment, and
-   a clean-source rebuild remain required before formal candidate qualification.
+6. At the time of this execution, the correction was uncommitted and the
+   scratch image was unversioned. The correction was subsequently committed in
+   canonical EMOS commit `0e24b06abdb322fdb4e681a21242ccfebfc8ea65`; the
+   scratch image was never promoted into an identified candidate. The current
+   production-integration work is deliberately `UNVERSIONED-DO-NOT-DEPLOY`, so
+   a clean-source build with a reviewed identity remains required before formal
+   candidate qualification.
 7. Authorized `agon-extender` run `PORT-008-2026-08-31-23-11-18Z` used the P4
    as a temporary external ZDI programmer. It uploaded the exact 114,069-byte
    scratch image, executed the upstream `agon-recovery` flash agent, received
