@@ -1,8 +1,11 @@
 PYTHON ?= python3
 MOS_AGONDEV_ROOT ?= ../mos-agondev
+MOS_SOURCE ?= .
 MOS_WORKTREE ?= $(MOS_AGONDEV_ROOT)/projects/mos-port/worktree
 AGONDEV_TOOLCHAIN ?= $(MOS_AGONDEV_ROOT)/toolchains/agondev
 FAB_ROOT ?= $(MOS_AGONDEV_ROOT)/fab-agon-emulator
+PROVENANCE_DIR ?=
+PROVENANCE_DIR_ABS := $(if $(strip $(PROVENANCE_DIR)),$(abspath $(PROVENANCE_DIR)))
 SOURCE_PROFILE := $(abspath port/mos-agondev.mk)
 PARALLEL_FIXED_SOURCE_PROFILE := $(abspath port/parallel-fixed-qualification.mk)
 
@@ -18,6 +21,7 @@ help:
 	@echo "linked-check   verify EMOS ABI and VDU dispatch in the built image"
 	@echo "firmware-check build EMOS through the configured mos-agondev checkout"
 	@echo "parallel-fixed-firmware-check build the non-release fixed data-plane composition"
+	@echo "PROVENANCE_DIR=PATH capture one fresh target-build provenance session"
 	@echo "port008-fixture retain the superseded run's ordinary-VDU payload evidence"
 	@echo "qualify        run mos-agondev's complete configured-input gate"
 
@@ -57,13 +61,19 @@ parallel-linked-check:
 
 firmware-check:
 	$(MAKE) -C $(MOS_AGONDEV_ROOT) \
+		TOOLCHAIN="$(abspath $(AGONDEV_TOOLCHAIN))" \
+		MOS_MAINTAINED_SOURCE="$(abspath $(MOS_SOURCE))" \
 		MOS_WORKTREE="$(abspath $(MOS_WORKTREE))" \
+		PROVENANCE_DIR="$(PROVENANCE_DIR_ABS)" \
 		SOURCE_PROFILE=$(SOURCE_PROFILE) firmware-check
 	$(MAKE) contract-linked-check
 
 parallel-fixed-firmware-check:
 	$(MAKE) -C $(MOS_AGONDEV_ROOT) \
+		TOOLCHAIN="$(abspath $(AGONDEV_TOOLCHAIN))" \
+		MOS_MAINTAINED_SOURCE="$(abspath $(MOS_SOURCE))" \
 		MOS_WORKTREE="$(abspath $(MOS_WORKTREE))" \
+		PROVENANCE_DIR="$(PROVENANCE_DIR_ABS)" \
 		SOURCE_PROFILE=$(PARALLEL_FIXED_SOURCE_PROFILE) firmware-check
 	$(MAKE) contract-linked-check
 
@@ -73,7 +83,10 @@ port008-fixture:
 
 qualify:
 	$(MAKE) -C $(MOS_AGONDEV_ROOT) \
+		TOOLCHAIN="$(abspath $(AGONDEV_TOOLCHAIN))" \
+		MOS_MAINTAINED_SOURCE="$(abspath $(MOS_SOURCE))" \
 		MOS_WORKTREE="$(abspath $(MOS_WORKTREE))" \
+		PROVENANCE_DIR="$(PROVENANCE_DIR_ABS)" \
 		SOURCE_PROFILE=$(SOURCE_PROFILE) \
 		FAB_ROOT=$(abspath $(FAB_ROOT)) verify
 	$(MAKE) contract-linked-check

@@ -218,19 +218,26 @@ def main() -> int:
                 f"linked fixed entry directly references {forbidden}"
             )
     image = elf.read_bytes()
-    for identity in (
-        b"PORT008-D002-FIXED-QUALIFICATION\0",
-        b"NONRELEASE-DO-NOT-DEPLOY\0",
-        b"qualification-only\0",
-    ):
-        if identity not in image:
-            raise FixedParallelError(
-                f"linked image lacks required nonrelease identity {identity[:-1]!r}"
-            )
+    if b"EMOS qualification composition: %s (non-release)\r\n\0" not in image:
+        raise FixedParallelError(
+            "linked image lacks the explicit non-release composition diagnostic"
+        )
+    composition_identities = set(
+        re.findall(
+            rb"(?:UNVERSIONED-PORT008-FORWARD-QUALIFICATION-DO-NOT-DEPLOY|"
+            rb"port-008-forward-qualification-r[0-9]+)\0",
+            image,
+        )
+    )
+    if len(composition_identities) != 1:
+        raise FixedParallelError(
+            "linked image lacks one unambiguous qualification-composition identity"
+        )
     print(
         "EMOS non-release fixed-composition linked-image checks passed: "
         "the fixed-adapter initialization store and pinned structural coordinator "
-        "call-edge counts match; common route calls and nonrelease marker strings "
+        "call-edge counts match; common route calls and the separately identified "
+        "nonrelease composition diagnostic "
         "are present; ordinary VDU routing reaches the common production route; "
         "and the adapter has no direct production-write reference; coordinator "
         "branch/path execution, object origin, runtime peer preparation, target "

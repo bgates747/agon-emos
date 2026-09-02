@@ -176,6 +176,73 @@ only the EMOS/eZ80 implementation.
    existing generic UART failure when a parallel entry, writer, or live epoch
    owns the transition. This correction is project integration behavior, not
    an upstream MOS defect.
+9. The Work 2.e provenance audit exposed `PORT008-PROV-P022`, a second local
+   build-orchestration defect. The generic `mos-agondev` root preflight ignored
+   the caller-selected maintained source and prepared tree, checked its default
+   stock pair, and then compiled the selected EMOS tree. EMOS now forwards its
+   maintained repository root together with `MOS_WORKTREE`, and generic
+   `mos-agondev` checks that exact pair before any object recipe. The paired
+   regressions preserve this source-to-prepared-tree authority. This defect was
+   created in project build integration, not inherited from official MOS; the
+   remedy may be removed only if the generic build interface replaces it with
+   an equally fail-closed authenticated source/prepared-tree binding.
+10. The same audit exposed `PORT008-PROV-P024`: the ordinary and fixed EMOS
+    profiles supplied identity and qualification-role definitions through the
+    component-wide `CPPFLAGS_EXTRA` channel even though only `src/emos.c`
+    consumes them. The five production equality units therefore carried
+    role-specific command inputs and depended on those unused definitions not
+    affecting their bytes. Official MOS has no EMOS profile or corresponding
+    role boundary; this was created during project integration. Generic
+    `mos-agondev` now accepts one explicitly selected C source for scoped
+    profile flags, and both EMOS profiles select only `src/emos.c`. A fresh
+    ordinary/fixed capture must prove that every equality-unit command and
+    object is now identical; this source correction alone is not evidence.
+11. Work 2.e exposed `PORT008-PROV-P026`: the fixed profile had substituted a
+    qualification label for the EMOS firmware source/build identity and had no
+    independent procedure revision input. The ordinary and fixed images now
+    share the `agon-emos` firmware source identity and lifecycle status, but
+    each produced image requires its own immutable firmware build ID. The fixed
+    image additionally carries the separately revisioned
+    `port-008-forward-qualification` composition identity. These role-owned
+    values are scoped to `src/emos.c`; the five equality units consume none of
+    them. Until the Author approves successors to the rejected identities, the
+    profile defaults remain visibly unversioned and non-deployable. A
+    mechanical two-build rehearsal may supply distinct explicit unversioned
+    build markers, but those markers remain ineligible for equivalence or
+    deployment. The repository wrapper forwards a fresh `PROVENANCE_DIR` to
+    generic `mos-agondev`; this enables capture but does not itself authenticate
+    or qualify a build.
+12. The same audit exposed `PORT008-PROV-P028`, a local EMOS build-wrapper
+    provenance defect. The
+    wrapper advertised `AGONDEV_TOOLCHAIN` and used it for linked-image
+    inspection, but its recursive generic firmware and qualification
+    invocations did not forward that selection as `TOOLCHAIN`. A caller could
+    therefore compile and link with generic `mos-agondev`'s default toolchain
+    and then inspect the image with the caller-selected toolchain. Generic
+    target-step provenance records the producer that actually ran, so this was
+    not an authenticated-capture false green, but it silently ignored a
+    controlled wrapper input and split producer from inspector authority. This
+    defect was created in project build-wrapper integration and has no official
+    MOS counterpart. All three recursive targets now forward the exact absolute
+    toolchain root, with a repository-local regression. The remedy may be
+    removed only if the generic build interface adopts the wrapper variable or
+    another fail-closed interface guarantees identical producer and inspector
+    tool authority.
+13. `PORT008-PROV-P029` groups defects caught adversarially before the new
+    generic recorder had any retained baseline: a Make-pattern selector could
+    spread role-local flags to every C source, a constant session marker and
+    incomplete producer binding admitted cross-run association, nested
+    response indirection was outside the record, and the compiler driver's
+    selected assembler/effective invocation was underbound. These defects were
+    created in new `mos-agondev` evidence infrastructure, not inherited from
+    official MOS or introduced into EMOS runtime code. Generic commits
+    `7e00798` and `64bbf34` now require a literal selected source, unique
+    recorder sessions, exact recorder/session/kind producer chains, one-level
+    non-nested response handling, and authenticated driver selection. The
+    initial rehearsal is invalid and was not retained. Product gate defect
+    `PORT008-PROV-P031` remains owned by PORT-008; its deliberate null command
+    fingerprints prevent any current EMOS record from being eligible before a
+    clean rehearsal.
 
 ### Superseded pre-reconciliation integration boundary
 

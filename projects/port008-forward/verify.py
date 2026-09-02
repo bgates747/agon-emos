@@ -46,8 +46,8 @@ def validate_source(root: Path) -> None:
         raise Port008Error("predecessor build profile is not visibly retired")
     for required in (
         "EMOS_PARALLEL_FIXED_QUALIFICATION=1",
-        "NONRELEASE-DO-NOT-DEPLOY",
-        "qualification-only",
+        "EMOS_IDENTITY_CPPFLAGS",
+        "EMOS_QUALIFICATION_COMPOSITION_IDENTITY",
     ):
         if required not in fixed_profile:
             raise Port008Error(f"replacement fixed profile lacks {required!r}")

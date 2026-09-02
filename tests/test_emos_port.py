@@ -123,10 +123,15 @@ class EmosPortTests(unittest.TestCase):
             ["src/emos_parallel_io.o"],
         )
         self.assertEqual(commands, ["EMOS"])
-        self.assertNotIn(
-            "EMOS_PARALLEL_DATA_PLANE",
-            " ".join(_make_variable(PROFILE, "CPPFLAGS_EXTRA")),
+        profile_text = PROFILE.read_text(encoding="utf-8")
+        self.assertNotRegex(profile_text, r"(?m)^CPPFLAGS_EXTRA\s*:=")
+        self.assertEqual(
+            _make_variable(PROFILE, "C_SOURCE_CPPFLAGS_RELATIVE"),
+            ["src/emos.c"],
         )
+        scoped_flags = _make_variable(PROFILE, "C_SOURCE_CPPFLAGS_EXTRA")
+        self.assertTrue(scoped_flags)
+        self.assertNotIn("EMOS_PARALLEL_DATA_PLANE", " ".join(scoped_flags))
         self.assertEqual(
             linked_checks,
             [
@@ -156,10 +161,22 @@ class EmosPortTests(unittest.TestCase):
             ["src/emos_parallel_io.asm"],
         )
         fixed_text = fixed.read_text(encoding="utf-8")
-        self.assertIn("NONRELEASE-DO-NOT-DEPLOY", fixed_text)
+        self.assertNotRegex(fixed_text, r"(?m)^CPPFLAGS_EXTRA\s*:=")
+        self.assertIn(
+            "include $(dir $(lastword $(MAKEFILE_LIST)))identity.mk",
+            fixed_text,
+        )
+        self.assertIn("EMOS_IDENTITY_CPPFLAGS", fixed_text)
+        self.assertIn("EMOS_QUALIFICATION_COMPOSITION_IDENTITY", fixed_text)
         self.assertNotIn("EMOS_PARALLEL_DATA_PLANE", fixed_text)
         self.assertIn("EMOS_PARALLEL_FIXED_QUALIFICATION=1", fixed_text)
-        self.assertNotIn("include $(dir", fixed_text)
+        self.assertEqual(
+            _make_variable(fixed, "C_SOURCE_CPPFLAGS_RELATIVE"),
+            ["src/emos.c"],
+        )
+        self.assertTrue(
+            _make_variable(fixed, "C_SOURCE_CPPFLAGS_EXTRA")
+        )
         self.assertEqual(
             _make_variable(fixed, "FIRMWARE_LINK_CHECKS"),
             [
@@ -182,6 +199,21 @@ class EmosPortTests(unittest.TestCase):
             )[0]
             self.assertIn(
                 'MOS_WORKTREE="$(abspath $(MOS_WORKTREE))"',
+                target,
+                target_name,
+            )
+            self.assertIn(
+                'MOS_MAINTAINED_SOURCE="$(abspath $(MOS_SOURCE))"',
+                target,
+                target_name,
+            )
+            self.assertIn(
+                'PROVENANCE_DIR="$(PROVENANCE_DIR_ABS)"',
+                target,
+                target_name,
+            )
+            self.assertIn(
+                'TOOLCHAIN="$(abspath $(AGONDEV_TOOLCHAIN))"',
                 target,
                 target_name,
             )

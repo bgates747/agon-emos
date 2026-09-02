@@ -30,6 +30,11 @@
 #ifndef EMOS_ARTIFACT_STATUS
 #define EMOS_ARTIFACT_STATUS "UNVERSIONED-DO-NOT-DEPLOY"
 #endif
+#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+#ifndef EMOS_QUALIFICATION_COMPOSITION_IDENTITY
+#error "The fixed qualification profile requires its separate composition identity"
+#endif
+#endif
 #include "ff.h"
 #include "mos.h"
 #include "mos_sysvars.h"
@@ -814,6 +819,10 @@ int emos_cmd(char *args) {
 	if (result == FR_INVALID_PARAMETER) {
 		printf("EMOS identity: %s, build %s, status %s\r\n",
 			EMOS_SOURCE_IDENTITY, EMOS_BUILD_ID, EMOS_ARTIFACT_STATUS);
+		#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+		printf("EMOS qualification composition: %s (non-release)\r\n",
+			EMOS_QUALIFICATION_COMPOSITION_IDENTITY);
+		#endif
 		printf("EMOS v1: %s, registry %d, generation %d\r\n",
 			emos_mode_name(emosModeState.mode), emosRegistry.count, emosRegistry.generation);
 		return FR_OK;
@@ -829,6 +838,10 @@ int emos_cmd(char *args) {
 		BYTE index;
 		printf("EMOS identity: %s, build %s, status %s\r\n",
 			EMOS_SOURCE_IDENTITY, EMOS_BUILD_ID, EMOS_ARTIFACT_STATUS);
+		#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+		printf("EMOS qualification composition: %s (non-release)\r\n",
+			EMOS_QUALIFICATION_COMPOSITION_IDENTITY);
+		#endif
 		printf("EMOS v1: %s, registry %d, generation %d\r\n",
 			emos_mode_name(emosModeState.mode), emosRegistry.count, emosRegistry.generation);
 		printf("  VDU route %d, EDU %s, adapter %s, mode generation %d\r\n",
