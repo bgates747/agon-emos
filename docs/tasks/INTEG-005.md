@@ -1,7 +1,7 @@
 # INTEG-005 — Bounded UART flow-control diagnostic
 
-Status: implemented; automated and Author-supplied graphical checks passed;
-source freeze and candidate deployment approved.
+Status: reviewed candidate built and staged on SD; awaiting Author physical
+installation and subsequent flow-control qualification.
 Started: 2026-09-08.
 Coordinator: [PORT-011](../../../agon-extender/docs/tasks/PORT-011.md).
 
@@ -57,3 +57,13 @@ The Author approved source freeze and candidate deployment on 2026-09-08.
 Promote v0.4.0 lifecycle metadata to candidate with the reviewed implementation
 unchanged, commit, and build through the existing complete gate. The previous
 v0.3.0 and v0.2.0 images remain available for rollback.
+
+Candidate `agon-emos-v0.4.0-b2026-09-08-05-51-31Z` from clean source
+`3d8e09d` and builder `cf24304` passed all configured/linked/runtime
+checks, 68 host tests, ordinary/bad-SD smoke and combined no-peer return. The
+119863-byte firmware has SHA256
+`552f7a22b06e84771e81def293f1127d5278d8fc5f17cefb32187fac881491f8` and CRC32
+`1C40FDD0`. Extender's design-adjacent PORT-011-2026-09-08-05-55-02Z
+record owns the verified installation media and rollback backups. SD is
+unmounted; physical Agon installation is pending. P4 candidate deployment
+passed separately, without establishing a physical flow-control result.
