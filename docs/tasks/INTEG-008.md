@@ -1,7 +1,7 @@
 # INTEG-008 — EMOS-owned visible-text diagnostic
 
-Status: active; paced graphical review accepted and SD deployment requested.
-Candidate freeze/preparation in progress; physical counting pending.
+Status: complete — coordinator hardware count and repeat runs passed.
+Completed: 2026-09-08.
 Started: 2026-09-08.
 Coordinator: [PORT-014](../../../agon-extender/docs/tasks/PORT-014.md).
 
@@ -16,8 +16,8 @@ in the fixture; autoexec owns VDU 22 3.
 1. [x] Implement bounded command and meaningful positive/negative checks.
 2. [x] Run full configured/linked/runtime/host gates and same-build graphical
    ordinary/no-peer review before source freeze.
-3. [ ] Consume the coordinator's accepted hardware/browser evidence.
-4. [ ] Add the bounded resident `edu.text-probe` gateway for the coordinator's
+3. [x] Consume the coordinator's accepted hardware/browser evidence.
+4. [x] Add the bounded resident `edu.text-probe` gateway for the coordinator's
    SD-loaded C sample, preserving Legacy routing and the original VDPTEXT
    command. Validate buffers/grammar before UART access, retain finite waits
    and release, and complete ordinary/no-peer emulator review before freeze.
@@ -72,3 +72,23 @@ to candidate in registry r34. The required clean-source freeze precedes new
 candidate builds, automatic same-build review, then guarded MOS-only install
 media. Physical counting and P4 deployment remain separate later steps. No
 historical identity or result is relabelled.
+
+
+## Completed — coordinator hardware evidence
+
+PORT-014 run `PORT-014-2026-09-08-21-22-24Z` passes the SD-loaded application's EMOS gateway path,
+11 exact retained-parser request/reply transactions at 1152000 baud, framing
+and flow permission. The analyzer retained all 288M samples (12 seconds at
+24 MHz), including 6.287879 seconds of final quiet; serial tail is 6.008467
+seconds. The Author supplied the rendered banner/count screenshot and confirmed
+SD/CLOCK, sample PASS and final MOS prompt for the captured run plus two
+additional Agon-only resets. Only the first run is waveform-captured.
+
+Installed EMOS is `agon-emos-v0.1.7-b2026-09-08-20-53-57Z` from clean `026ac46`.
+The coordinating sample and P4 receiver are the clean r03 candidates from
+`18024d8`. INTEG-008 is complete; the coordinator retains the authoritative
+cross-component evidence at
+`../agon-extender/hardware/designs/light2-harness-r03/tests/PORT-014-2026-09-08-21-22-24Z/`.
+Historical r01/r02 limitations are unchanged. This proves bounded Legacy
+qualification traffic; it does not activate Exclusive Compatible or alter
+ordinary VDU routing. No EMOS source or artifact identity changed in closeout.
