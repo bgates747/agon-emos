@@ -453,6 +453,15 @@ def verify_linked(
             + ", ".join(forbidden)
         )
 
+    # INTEG-005: Core-owned RTS adds only PC_DR/PC_DDR writes. Keep the
+    # whole-image owner inventory and bound each new writer to its exact
+    # register sequence; real-driver host tests check PC2 masking/ownership.
+    rts_portc_writes = {
+        "_uart1_claim_rts": [0x9E, 0x9F],
+        "_uart1_receive_ready": [0x9E],
+        "_close_UART1": [0x9E, 0x9F],
+    }
+    observed_rts_writes = {name: [] for name in rts_portc_writes}
     allowed_portc_writers = {
         "__init",
         "_init_UART1",
@@ -460,6 +469,7 @@ def verify_linked(
         "_emos_parallel_epoch_enter",
         "_emos_parallel_release_local_pins",
         "_emos_parallel_ez80_write_data",
+        *rts_portc_writes,
     }
     text_names_by_address: dict[int, set[str]] = {}
     for name, records in symbols.items():
@@ -495,6 +505,8 @@ def verify_linked(
                 + ", ".join(sorted(owner_names))
             )
         observed_portc_writers.update(admitted)
+        for name in admitted & rts_portc_writes.keys():
+            observed_rts_writes[name].append(port)
     if observed_portc_writers != allowed_portc_writers:
         missing = allowed_portc_writers - observed_portc_writers
         unexpected = observed_portc_writers - allowed_portc_writers
@@ -504,6 +516,8 @@ def verify_linked(
             + " unexpected="
             + ",".join(sorted(unexpected))
         )
+    if observed_rts_writes != rts_portc_writes:
+        raise ParallelError("linked UART1 RTS register-write inventory changed")
     if addresses["__init"] >= addresses["_main"]:
         raise ParallelError("startup Port C defaults are not linked before main")
 

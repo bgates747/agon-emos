@@ -1,8 +1,7 @@
-# Author-approved v0.3.0 candidate for the INTEG-004 UART hardware test.
-# v0.2.0 remains the installed Legacy boot candidate; v0.1.0 remains rejected.
-# Candidate preparation follows the accepted graphical review and source freeze.
+# Author-reviewed v0.4.0 candidate for INTEG-005 UART flow-control qualification.
+# The passing v0.3.0 candidate remains the working rollback.
 EMOS_PROFILE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-EMOS_SOURCE_IDENTITY := agon-emos-v0.3.0
+EMOS_SOURCE_IDENTITY := agon-emos-v0.4.0
 EMOS_ARTIFACT_STATUS := candidate
 # Expand once and export so nested Make invocations retain the same build ID.
 # A reviewed build wrapper may supply an already recorded UTC identity.

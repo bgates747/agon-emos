@@ -12,6 +12,7 @@
 
 #include "emos.h"
 #include "emos_uart_probe.h"
+#include "emos_uart_flow.h"
 #ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
 #include "emos_parallel.h"
 #endif
@@ -836,6 +837,15 @@ int emos_cmd(char *args) {
 		return FR_OK;
 	}
 	if (result != FR_OK) return result;
+    if (strcasecmp(operation, "uartflow") == 0) {
+        if (args && *args) return FR_INVALID_PARAMETER;
+        if (emosModeState.mode != EMOS_MODE_LEGACY) {
+            printf("UART FLOW FAIL: EMOS must be in Legacy\r\n");
+            return FR_INVALID_PARAMETER;
+        }
+        emos_print_identity();
+        return emos_uart_flow() ? FR_OK : FR_TIMEOUT;
+    }
 	if (strcasecmp(operation, "uarttest") == 0) {
         if (args && *args) return FR_INVALID_PARAMETER;
         if (emosModeState.mode != EMOS_MODE_LEGACY) {

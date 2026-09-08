@@ -29,6 +29,8 @@
 
 #include "emos_parallel.h"
 #include "uart.h"
+
+static BYTE uart1_rts_owned;
  
 // Set the Line Control Register for data, stop and parity bits
 //
@@ -155,6 +157,12 @@ BYTE open_UART1(UART * pUART) {
 // Close UART1
 //
 void close_UART1() {
+    if (uart1_rts_owned) {
+        SETREG(PC_DR, PORTPIN_TWO);  /* Stop peer before abandoning receive. */
+        UART1_FCTL = 0x07;          /* Cancel queued data owned by this probe. */
+        SETREG(PC_DDR, PORTPIN_TWO); /* Return added RTS driver to GPIO input. */
+        uart1_rts_owned = 0;
+    }
 	UART1_IER = 0x00;												// Disable UART1 interrupts
 	UART1_LCTL = 0x00; 												// Bring line control register to reset value.
 	UART1_MCTL = 0x00;												// Bring modem control register to reset value.
@@ -163,14 +171,36 @@ void close_UART1() {
 }
 
 
-/* Nonblocking Core operations for an open, polling, no-flow-control UART.
- * Reject other configurations instead of competing with an interrupt reader
- * or silently bypassing CTS. Reading LSR acknowledges receive error flags;
+/* INTEG-005: explicit Core ownership of PC2, separate from stock UART1's
+ * CTS-only FCTL_HW option. Never seize an output/alternate-function pin.
+ * Active-low ready is preloaded HIGH (stop) before enabling the driver.
+ */
+BYTE uart1_claim_rts(void) {
+    if (uart1_rts_owned || (serialFlags & 0x30) != 0x30 || UART1_IER != 0 ||
+        !(PC_DDR & PORTPIN_TWO) || ((PC_ALT1 | PC_ALT2) & PORTPIN_TWO))
+        return UART_POLL_UNAVAILABLE;
+    SETREG(PC_DR, PORTPIN_TWO);
+    RESETREG(PC_DDR, PORTPIN_TWO);
+    uart1_rts_owned = 1;
+    return UART_POLL_READY;
+}
+
+BYTE uart1_receive_ready(BYTE ready) {
+    if (!uart1_rts_owned || (serialFlags & 0x30) != 0x30 || UART1_IER != 0)
+        return UART_POLL_UNAVAILABLE;
+    if (ready) RESETREG(PC_DR, PORTPIN_TWO);
+    else SETREG(PC_DR, PORTPIN_TWO);
+    return UART_POLL_READY;
+}
+
+/* Nonblocking Core operations for an open polling UART.
+ * Reject interrupt readers; honor active-low GPIO CTS when FCTL_HW is set.
+ * The stock blocking APIs retain their existing behavior. Reading LSR acknowledges receive error flags;
  * report errors before consuming data, and never return stale data as valid.
  */
 BYTE uart1_try_get(BYTE *value) {
     BYTE status;
-    if (!value || (serialFlags & 0x30) != 0x10 || UART1_IER != 0)
+    if (!value || !(serialFlags & 0x10) || UART1_IER != 0)
         return UART_POLL_UNAVAILABLE;
     status = UART1_LSR;
     if (status & (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE | UART_LSR_BI | UART_LSR_ERR))
@@ -182,12 +212,14 @@ BYTE uart1_try_get(BYTE *value) {
 
 BYTE uart1_try_put(BYTE value) {
     BYTE status;
-    if ((serialFlags & 0x30) != 0x10 || UART1_IER != 0)
+    if (!(serialFlags & 0x10) || UART1_IER != 0)
         return UART_POLL_UNAVAILABLE;
     status = UART1_LSR;
     /* LSR reads also clear RX error flags: do not silently lose them here. */
     if (status & (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE | UART_LSR_BI | UART_LSR_ERR))
         return UART_POLL_ERROR;
+    if ((serialFlags & 0x20) && (PC_DR & PORTPIN_THREE))
+        return UART_POLL_BLOCKED;
     if (!(status & UART_LSR_THRE)) return UART_POLL_EMPTY;
     UART1_THR = value;
     return UART_POLL_READY;

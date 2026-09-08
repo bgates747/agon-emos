@@ -179,8 +179,11 @@ BYTE open_UART1(UART * pUART);
 #define UART_POLL_READY 1
 #define UART_POLL_ERROR 2
 #define UART_POLL_UNAVAILABLE 3
+#define UART_POLL_BLOCKED 4
 BYTE uart1_try_get(BYTE *value);
 BYTE uart1_try_put(BYTE value);
+BYTE uart1_claim_rts(void);
+BYTE uart1_receive_ready(BYTE ready);
 
 void close_UART1();
 

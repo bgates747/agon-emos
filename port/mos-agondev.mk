@@ -1,8 +1,8 @@
 # Explicit product profile consumed by mos-agondev. EMOS owns these additions;
 # the generic port must not hard-code them.
 include $(dir $(lastword $(MAKEFILE_LIST)))identity.mk
-C_SOURCES_EXTRA := src/emos_uart_probe.c src/emos.c src/emos_parallel.c src/emos_parallel_engine.c
-C_OBJECT_RELATIVE_EXTRA := src/emos_uart_probe.o src/emos.o src/emos_parallel.o src/emos_parallel_engine.o
+C_SOURCES_EXTRA := src/emos_uart_flow.c src/emos_uart_probe.c src/emos.c src/emos_parallel.c src/emos_parallel_engine.c
+C_OBJECT_RELATIVE_EXTRA := src/emos_uart_flow.o src/emos_uart_probe.o src/emos.o src/emos_parallel.o src/emos_parallel_engine.o
 ASM_SOURCES_EXTRA := src/emos_parallel_io.asm
 ASM_OBJECT_RELATIVE_EXTRA := src/emos_parallel_io.o
 C_SOURCE_CPPFLAGS_RELATIVE := src/emos.c

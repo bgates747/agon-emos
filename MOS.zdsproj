@@ -7,6 +7,7 @@
 <file filter-key="">.\\src_startup\\globals.asm</file>
 <file filter-key="">.\\src\\mos.c</file>
 <file filter-key="">.\\src\\emos.c</file>
+<file filter-key="">.\\src\\emos_uart_flow.c</file>
 <file filter-key="">.\\src\\emos_uart_probe.c</file>
 <file filter-key="">.\\src\\emos_parallel.c</file>
 <file filter-key="">.\\src\\emos_parallel_engine.c</file>

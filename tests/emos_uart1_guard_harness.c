@@ -199,7 +199,7 @@ static int test_nonblocking_operations(void) {
     CHECK(uart1_try_get(NULL) == UART_POLL_UNAVAILABLE);
     hostUart1Lsr = UART_LSR_DR | UART_LSR_THRE;
     for (unsigned flags = 0; flags <= 0x30; flags += 0x10) {
-        if (flags == 0x10) continue;
+        if (flags == 0x10 || flags == 0x30) continue;
         serialFlags = flags;
         CHECK(uart1_try_get(&value) == UART_POLL_UNAVAILABLE);
         CHECK(uart1_try_put(0x33) == UART_POLL_UNAVAILABLE);
@@ -210,10 +210,43 @@ static int test_nonblocking_operations(void) {
     return 0;
 }
 
+static int test_cts_and_explicit_rts_ownership(void) {
+    BYTE value = 0;
+    serialFlags = 0x30; hostUart1Ier = 0;
+    hostUart1Lsr = UART_LSR_DR | UART_LSR_THRE;
+    hostUart1Rbr = 0x42; hostUart1Thr = 0x99;
+    hostPcDr = 0xFF; hostPcDdr = 0xFF; hostPcAlt1 = 0; hostPcAlt2 = 0;
+    CHECK(uart1_try_get(&value) == UART_POLL_READY && value == 0x42);
+    CHECK(uart1_try_put(0x33) == UART_POLL_BLOCKED && hostUart1Thr == 0x99);
+    hostPcDr &= ~PORTPIN_THREE;
+    CHECK(uart1_try_put(0x33) == UART_POLL_READY && hostUart1Thr == 0x33);
+    CHECK(uart1_receive_ready(1) == UART_POLL_UNAVAILABLE);
+    hostPcDdr &= ~PORTPIN_TWO;
+    CHECK(uart1_claim_rts() == UART_POLL_UNAVAILABLE);
+    hostPcDdr |= PORTPIN_TWO; hostPcAlt2 |= PORTPIN_TWO;
+    CHECK(uart1_claim_rts() == UART_POLL_UNAVAILABLE);
+    hostPcAlt2 = 0;
+    CHECK(uart1_claim_rts() == UART_POLL_READY);
+    CHECK(!(hostPcDdr & PORTPIN_TWO) && (hostPcDr & PORTPIN_TWO));
+    CHECK(uart1_claim_rts() == UART_POLL_UNAVAILABLE);
+    CHECK(uart1_receive_ready(1) == UART_POLL_READY && !(hostPcDr & PORTPIN_TWO));
+    CHECK(uart1_receive_ready(0) == UART_POLL_READY && (hostPcDr & PORTPIN_TWO));
+    CHECK((hostPcDr & 0xF3) == 0xF3 && (hostPcDdr & 0xFB) == 0xFB);
+    close_UART1();
+    CHECK((hostPcDdr & PORTPIN_TWO) && (hostPcDr & PORTPIN_TWO));
+    CHECK(!(serialFlags & 0x30));
+    CHECK(uart1_receive_ready(1) == UART_POLL_UNAVAILABLE);
+    serialFlags = 0x30;
+    CHECK(uart1_claim_rts() == UART_POLL_READY);
+    close_UART1();
+    return 0;
+}
+
 int main(void) {
 	if (test_busy_rejection_changes_nothing()) return 1;
 	if (test_success_holds_guard_through_final_mutation()) return 1;
 	if (test_nonblocking_operations()) return 1;
+	if (test_cts_and_explicit_rts_ownership()) return 1;
 	puts("EMOS UART1 guard and nonblocking host checks passed");
 	return 0;
 }
