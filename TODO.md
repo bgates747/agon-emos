@@ -6,6 +6,11 @@ port-infrastructure work remains in `mos-agondev`.
 
 ## Extender integration
 
+- [ ] **INTEG-003 — Exercise the installed EMOS UART1 driver**
+  - Started: 2026-09-07
+  - Finished: --
+  - Details: [INTEG-003](docs/tasks/INTEG-003.md)
+
 - [ ] **INTEG-002 — Implement the production forward-parallel data plane**
   - Started: 2026-09-01
   - Finished: --
