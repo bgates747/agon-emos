@@ -6,10 +6,6 @@ port-infrastructure work remains in `mos-agondev`.
 
 ## Extender integration
 
-- [ ] **INTEG-007 — EMOS-owned General Poll diagnostic**
-  - Started: 2026-09-08
-  - Details: [INTEG-007](docs/tasks/INTEG-007.md)
-
 - [ ] **INTEG-002 — Implement the production forward-parallel data plane**
   - Started: 2026-09-01
   - Finished: --

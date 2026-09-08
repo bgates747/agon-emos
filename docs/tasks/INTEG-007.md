@@ -1,6 +1,6 @@
 # INTEG-007 — EMOS-owned General Poll diagnostic
 
-Status: active; EMOS installed, paired hardware test pending. Started: 2026-09-08.
+Status: complete; Author accepted analyzer exceptions. Started: 2026-09-08. Completed: 2026-09-08.
 Coordinator: [PORT-013](../../../agon-extender/docs/tasks/PORT-013.md).
 
 Author-approved v0.6.0 adds Legacy-only EMOS VDPPOLL at 1152000/8N1 with
@@ -13,7 +13,7 @@ The coordinator records official docs, tagged references and physical scope.
    test real command success/failure/cleanup paths.
 2. [x] Run full configured/linked/runtime gates, host tests and same-build
    smoke/no-peer review; obtain Author graphical acceptance before commit.
-3. [ ] Consume the coordinator's physical evidence before closing this task.
+3. [x] Consume the coordinator's physical evidence before closing this task.
 
 Implementation gotchas: the private driver distinguishes UART_POLL_BLOCKED
 (CTS stop) from UART_POLL_EMPTY (FIFO wait); both must remain bounded waits.
@@ -80,3 +80,16 @@ The Author reported successful v0.6.0 installation. The consumed SD payload
 matches the candidate hash and EMNEW.BIN is absent. Coordinator record
 PORT-013-2026-09-08-18-06-37Z retains verified same-build smoke/VDPPOLL media
 preparation and safe unmount. The paired General Poll result remains pending.
+
+## Accepted General Poll milestone — 2026-09-08
+
+The Author explicitly approved the bounded General Poll milestone with the
+analyzer exception. PORT-013-2026-09-08-18-20-21Z is accepted PASS for the
+exact retained-parser request/reply, framing, flow-control permission and
+Agon return to MOS. Acquisition remains FAIL (4.978390/10 seconds), and
+waveform quiet tail remains below the five-second requirement (4.655861
+seconds). These are accepted exceptions, not repaired or passing checks.
+P4 serial monitoring remained clean for 6.005568 seconds after PASS.
+PORT-013 and INTEG-007 are complete and removed from their TODOs. No
+sustained-load, analog-margin or complete-startup qualification is implied.
+Artifact identities and installed firmware remain unchanged.
