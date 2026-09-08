@@ -9,6 +9,13 @@
 - Started: 2026-09-01
 - Finished: --
 
+## Scheduling hold — 2026-09-08
+
+The Author selected focused browser keyboard input over UART as the next
+increment. INTEG-009 now has priority. This parallel task's implementation,
+provenance and physical gates remain open; the keyboard plan does not resume
+or require them. Retain the existing code and checkpoints unchanged.
+
 ## Intent
 
 Replace the fixed-purpose INTEG-001 sender with maintained production EMOS

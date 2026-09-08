@@ -4,19 +4,21 @@ This is the repository's single authoritative list of unfinished EMOS work.
 Cross-component Extender work remains in the `agon-extender` task list; generic
 port-infrastructure work remains in `mos-agondev`.
 
-## Extender integration
+## Current priority — browser keyboard
+
+- [ ] **INTEG-009 — Receive stock keyboard packets over UART1**
+  - Started: --
+  - Finished: --
+  - Status: Plan accepted for freeze, 2026-09-08; implementation pending.
+  - Details: [INTEG-009](docs/tasks/INTEG-009.md)
+
+## Other Extender integration
 
 - [ ] **INTEG-002 — Implement the production forward-parallel data plane**
   - Started: 2026-09-01
   - Finished: --
+  - Status: On hold while the UART keyboard increment takes priority.
   - Details: [INTEG-002](docs/tasks/INTEG-002.md)
-
-## MOS architecture
-
-- [ ] **MOS-001 — Develop a MOS Modules-aligned cooperative service architecture**
-  - Started: --
-  - Finished: --
-  - Details: [MOS-001](docs/tasks/MOS-001.md)
 
 ## Hardware qualification
 
