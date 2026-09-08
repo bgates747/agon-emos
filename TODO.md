@@ -6,11 +6,6 @@ port-infrastructure work remains in `mos-agondev`.
 
 ## Extender integration
 
-- [ ] **INTEG-005 — Bounded UART flow-control diagnostic**
-  - Started: 2026-09-08
-  - Finished: --
-  - Details: [INTEG-005](docs/tasks/INTEG-005.md)
-
 - [ ] **INTEG-002 — Implement the production forward-parallel data plane**
   - Started: 2026-09-01
   - Finished: --

@@ -1,8 +1,9 @@
 # INTEG-005 — Bounded UART flow-control diagnostic
 
-Status: reviewed candidate built and staged on SD; awaiting Author physical
-installation and subsequent flow-control qualification.
+Status: complete. Author accepted the physical UART flow test as PASS with
+the coordinator's explicit shortened-acquisition exception.
 Started: 2026-09-08.
+Finished: 2026-09-08.
 Coordinator: [PORT-011](../../../agon-extender/docs/tasks/PORT-011.md).
 
 1. [x] Extend internal polling helpers to honor CTS when configured. Add
@@ -16,10 +17,11 @@ Coordinator: [PORT-011](../../../agon-extender/docs/tasks/PORT-011.md).
    bytes, peer silence, errors, blocked waits, occupied pins/UART and cleanup.
 4. [x] Run the complete configured build gate and same-build ordinary/bad-SD
    and UARTFLOW no-peer reviews. Obtain Author visual review before committing.
-5. [ ] Build/install reviewed clean candidates and consume physical evidence
+5. [x] Build/install reviewed clean candidates and consume physical evidence
    from the coordinator before completing this task.
 
-The Author approved v0.4.0 for draft review. Existing v0.3.0 remains installed.
+The Author approved v0.4.0 for draft review and subsequent candidate deployment.
+The candidate is now installed; v0.3.0 remains available for rollback.
 Official MOS API docs describe the settings struct but not a complete four-wire
 UART1 implementation. Stock uart.c selects PC3 as GPIO CTS and serial.asm waits
 without a deadline. EMOS's private helper supplies the bounded CTS poll and
@@ -67,3 +69,26 @@ checks, 68 host tests, ordinary/bad-SD smoke and combined no-peer return. The
 record owns the verified installation media and rollback backups. SD is
 unmounted; physical Agon installation is pending. P4 candidate deployment
 passed separately, without establishing a physical flow-control result.
+
+The Author subsequently reported a successful flash and authorized continuation.
+Extender verified the renamed EMDONE.BIN against this exact candidate and
+confirmed both rollback images. Preparation PORT-011-2026-09-08-06-05-59Z
+replaced the installer with same-build EMBOOT/check.txt and autoexec
+`VDU 22 3`, `LOAD /bin/EMBOOT.BIN`, `RUN`, `EMOS UARTFLOW`; the SD was safely
+unmounted. No new firmware build or physical smoke/flow result is claimed.
+Two measurement-only analyzer preflights stopped early after USB timeouts;
+PORT-011 owns that capture issue and the subsequent powered-reset handover.
+
+Run PORT-011-2026-09-08-16-16-36Z now passes the P4 stage checker and all
+retained-waveform checks, with exact forward/return bytes and both deliberate
+pauses. The Author independently confirmed Agon SD/CLOCK PASS, UART FLOW PASS
+and final normal MOS prompt. The analyzer retained the complete exchange and
+11.526723 seconds after the final stop but only 27.57632 of 60 requested
+seconds overall. The coordinator retains the acquisition FAIL and partial
+outcome pending Author disposition. No EMOS implementation or identity changed.
+
+The Author subsequently approved this as a passed test. The coordinator
+recorded acceptance of the 27.57632-second acquisition because it contains
+the complete exchange and required quiet tail, retaining the raw acquisition
+FAIL and the original measurements. INTEG-005 is complete and removed from
+the authoritative TODO. Firmware identities and the bounded scope are unchanged.
