@@ -18,7 +18,7 @@ class VisibleTextTests(unittest.TestCase):
                             "-o", str(executable)], check=True)
             result = subprocess.run([str(executable)], check=True, text=True, capture_output=True)
             self.assertEqual(result.stdout.count("VDP TEXT PASS: parser ACK - confirm browser text; returning to MOS"), 2)
-            self.assertIn("14 visible text command scenarios passed", result.stdout)
+            self.assertIn("42 visible text transport scenarios and invalid-input checks passed", result.stdout)
             self.assertIn("transmit timeout", result.stdout)
             self.assertIn("MOS clock stalled", result.stdout)
 

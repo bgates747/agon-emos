@@ -63,6 +63,11 @@ call target is the resident Core gateway; it never contains an external-module
 entry point. EMOS v1 accepts only operation `2` (service) through this gateway
 and requires a nonempty canonical service namespace.
 
+The resident qualification-only `edu.text-probe` service is resolved by Core
+without loading a module; its bounds and behavior are specified in
+[the EMOS contract](../../docs/emos-v1-contract.md#resident-text-qualification-service).
+The following header restrictions apply to transient-provider calls.
+
 Advanced-header ADL applications declaring bit 0 are module-safe. Those
 declaring bit 1 are module-compatible and require writable storage for Core's
 private `/.emos-swap.bin` full-area save/restore transaction. Invalid inverse

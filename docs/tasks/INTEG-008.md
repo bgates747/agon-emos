@@ -1,7 +1,7 @@
 # INTEG-008 — EMOS-owned visible-text diagnostic
 
-Status: active; Author accepted graphical review and approved source freeze
-and clean candidate preparation; physical text/browser qualification pending.
+Status: active; paced graphical review accepted and SD deployment requested.
+Candidate freeze/preparation in progress; physical counting pending.
 Started: 2026-09-08.
 Coordinator: [PORT-014](../../../agon-extender/docs/tasks/PORT-014.md).
 
@@ -17,6 +17,16 @@ in the fixture; autoexec owns VDU 22 3.
 2. [x] Run full configured/linked/runtime/host gates and same-build graphical
    ordinary/no-peer review before source freeze.
 3. [ ] Consume the coordinator's accepted hardware/browser evidence.
+4. [ ] Add the bounded resident `edu.text-probe` gateway for the coordinator's
+   SD-loaded C sample, preserving Legacy routing and the original VDPTEXT
+   command. Validate buffers/grammar before UART access, retain finite waits
+   and release, and complete ordinary/no-peer emulator review before freeze.
+
+Author-approved continuation: EMOS v0.1.7 is the deliberate early-development
+numbering reset after historical v0.7.0, not a binary rename. The sample now
+owns the banner and C decimal conversion. Core accepts a bounded text buffer
+through existing API 0x51 and owns the entire transport/completion exchange;
+the coordinator records the exact grammar, hardware and procedure identities.
 
 Official reference contracts and exact release commits are recorded in PORT-014.
 
@@ -37,3 +47,28 @@ expected transmit timeout and final MOS prompt. The Author explicitly approved
 source freeze and clean candidate preparation on 2026-09-08. The coordinator
 separately requires retained-parser UART acceptance and browser-visible text;
 physical installation remains pending.
+
+
+The v0.1.7 b2026-09-08-20-34-02Z draft passes configured qualification,
+linked/runtime gates and all 74 host tests. The coordinator's SD-loaded C
+program exercises actual API 0x51 rejections and bounded no-peer return in the
+emulated eZ80, plus count preview and same-build SD/CLOCK smoke. Graphical
+review has been launched; no new commit or physical deployment is authorized
+by these automated results. PORT-014 records the complete paired build IDs.
+
+
+The Author requested 250 ms between visible count increments. The application
+now sends each line separately; EMOS suppresses per-call success chatter on
+its gateway path while retaining failure output and old VDPTEXT diagnostics.
+The refreshed v0.1.7 b20-46-22Z draft again passes all 74 tests and complete
+configured/linked/runtime gates. Coordinator's paced application passes actual
+eZ80 gateway/no-peer, preview and SD/CLOCK checks. Fresh graphical pacing
+review remains pending.
+
+
+The Author confirmed the paced graphical result and requested deployment to
+the mounted SD card. Reviewed implementation is unchanged; v0.1.7/r03 advance
+to candidate in registry r34. The required clean-source freeze precedes new
+candidate builds, automatic same-build review, then guarded MOS-only install
+media. Physical counting and P4 deployment remain separate later steps. No
+historical identity or result is relabelled.

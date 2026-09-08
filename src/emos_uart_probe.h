@@ -5,5 +5,8 @@
 int emos_uart_probe(void);
 int emos_general_poll(void);
 int emos_visible_text(void);
+#define EMOS_TEXT_LIMIT 1024
+int emos_text_valid(const BYTE *text, UINT16 length);
+int emos_text_probe(const BYTE *text, UINT16 length);
 
 #endif

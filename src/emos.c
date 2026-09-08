@@ -553,6 +553,25 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
 		!emos_zero(request->namespaceName + request->namespaceLength, EMOS_NAMESPACE_SIZE - request->namespaceLength) ||
 		!emos_zero(request->providerName + request->nameLength, EMOS_NAME_SIZE - request->nameLength))
 		return FR_INVALID_PARAMETER;
+    /* Qualification-only resident service: no module load, public VDU route
+     * change or application-owned transport. Reserved ahead of discovery.
+     * The request and input must be wholly in ordinary application RAM;
+     * static application buffers meet this even when MOS owns the stack. */
+    if (strcmp(namespaceName, "edu") == 0 && strcmp(providerName, "text-probe") == 0) {
+        UINT24 address = emos_read24(request->input);
+        UINT24 length = emos_read24(request->inputLength);
+        if ((UINT24)request < 0x040000 || (UINT24)request > 0x0B0000 - sizeof(*request) ||
+            !length || length > EMOS_TEXT_LIMIT || address < 0x040000 ||
+            address >= 0x0B0000 || length > 0x0B0000 - address ||
+            !emos_zero(request->output, 9)) return FR_INVALID_PARAMETER;
+        if (emosBusy || emosRecoveryRequired) return EMOS_BUSY;
+        if (emosModeState.mode != EMOS_MODE_LEGACY) return EMOS_UNAVAILABLE;
+        if (!emos_text_valid((const BYTE *)address, (UINT16)length)) return FR_INVALID_PARAMETER;
+        emosBusy = TRUE;
+        result = emos_text_probe((const BYTE *)address, (UINT16)length) ? FR_OK : FR_TIMEOUT;
+        emosBusy = FALSE;
+        return result;
+    }
 	entry = emos_find(EMOS_PROVIDER_SERVICE, namespaceName, providerName);
 	memset(&providerRequest, 0, sizeof(providerRequest));
 	emos_write16(providerRequest.size, EMOS_PROVIDER_REQUEST_SIZE);

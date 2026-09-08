@@ -322,10 +322,27 @@ def verify_source(source: Path) -> None:
         if branch.count(call) != 1 or "emosModeState.mode != EMOS_MODE_LEGACY" not in branch:
             raise ParallelError("Visible text diagnostic lost its Core/Legacy guard")
         checked_core = checked_core[:text_branch.start()] + branch.replace(call, "") + checked_core[text_branch.end():]
+    # Only the resident, Legacy-guarded diagnostic gateway may submit text.
+    probe_branch = re.search(
+        r'if \(strcmp\(namespaceName, "edu"\) == 0 && strcmp\(providerName, "text-probe"\) == 0\) \{(.*?)'
+        r'(?=\s*entry = emos_find)', checked_core, re.DOTALL)
+    if probe_branch:
+        branch = probe_branch.group(0)
+        for required in ("emosModeState.mode != EMOS_MODE_LEGACY", "emosBusy || emosRecoveryRequired",
+                         "length > EMOS_TEXT_LIMIT", "length > 0x0B0000 - address",
+                         "address < 0x040000", "address >= 0x0B0000",
+                         "!emos_zero(request->output, 9)", "emosBusy = TRUE;", "emosBusy = FALSE;"):
+            if required not in branch:
+                raise ParallelError("Text gateway lost guard: " + required)
+        call = "emos_text_probe((const BYTE *)address, (UINT16)length)"
+        if branch.count(call) != 1:
+            raise ParallelError("Text gateway lost its single Core call")
+        checked_core = checked_core[:probe_branch.start()] + branch.replace(call, "") + checked_core[probe_branch.end():]
     for forbidden in (
         "EMOS_PORT008_FORWARD",
         "general_poll",
         "visible_text",
+        "emos_text_probe",
         "PORT008_",
         "_port008_",
         "_emos_port008_",

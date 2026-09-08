@@ -136,3 +136,22 @@ and unsafe callers receive bounded errors rather than partial activation.
 The design cannot protect against arbitrary privileged eZ80 machine code.
 Safety statements apply to EMOS firmware, its supported gateways, shipped
 providers, tools, and examples only.
+
+
+## Resident text qualification service
+
+The Author-approved SD sample uses `edu.text-probe` through the existing
+66-byte gateway, ABI 1.0 and service operation 2. Core resolves this reserved
+name before transient provider discovery. It loads no module and therefore
+permits an ordinary ADL application without a module-safe header; the request
+and payload must nevertheless lie wholly in ordinary application RAM
+040000..0AFFFF. Output pointer/capacity/length must be zero.
+
+EMOS rejects a busy/recovery state or non-Legacy mode, invalid buffer bounds,
+zero/over-1024-byte lengths, unsupported commands or incomplete parameters
+before UART access. The admitted qualification grammar is printable ASCII,
+VDU 8..13, 30 and 31,x,y. EMOS alone supplies the UART1 settings/ownership,
+RTS/CTS, flush/General Poll A7, bounded reply/quiet validation and cleanup.
+The old VDPTEXT command retains its fixed A6 exchange. Neither path changes
+ordinary VDU routing, committed mode or canonical VDP sysvars. The sample
+changes its text independently; this is not an ordinary printf-to-EDP API.
