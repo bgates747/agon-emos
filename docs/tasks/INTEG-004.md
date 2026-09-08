@@ -1,6 +1,6 @@
 # INTEG-004 — Bounded EMOS UART round-trip diagnostic
 
-Status: implementation authorized, in progress. Started: 2026-09-07.
+Status: complete. Started: 2026-09-07. Finished: 2026-09-08.
 Coordinator: [PORT-010](../../../agon-extender/docs/tasks/PORT-010.md).
 
 1. [x] Add internal nonblocking UART1 read/write helpers without changing stock
@@ -13,9 +13,9 @@ Coordinator: [PORT-010](../../../agon-extender/docs/tasks/PORT-010.md).
 3. [x] Test exact reply, silence, truncation, corruption, extra bytes, UART
    errors, busy ownership, clock wrap/stall and cleanup using actual C logic.
    Build through the required profile and linked checks.
-4. [ ] Prepare reviewed firmware/emulator and physical qualification artifacts.
-   Author approved agon-emos-v0.3.0 for draft review builds; no
-   flash before the concrete replacement and recovery path are reviewed.
+4. [x] Complete Author emulator review, clean candidate build and approved
+   physical installation. Hardware SD/clock smoke, intentional missing-reply
+   failure and acknowledged UART round trip pass, including prompt return.
 
 Official MOS API 0x17 explicitly blocks; serial.asm confirms it never checks
 a deadline. MOS C-function slots contain no nonblocking read. Implement this
@@ -102,3 +102,13 @@ failure and final prompt. The Extender
 retains the observation and its limits: no measured elapsed time or archived
 photo file. The installed candidate requires no rebuild or SD change for the
 ACK test. Physical reply receipt remains pending the P4 acknowledgement image.
+
+## Completed hardware round trip — 2026-09-08
+
+The [acknowledged run](../../../agon-extender/hardware/designs/light2-harness-r03/tests/PORT-010-2026-09-08-04-39-39Z/README.md)
+passes exact P4 request/ACK capture. The Author confirmed that the installed
+v0.3.0 candidate reported round-trip success and returned to the normal prompt.
+The same installed EMOS previously passed the deliberate no-reply case.
+This completes the bounded diagnostic and INTEG-004; remove it from TODO.
+EMOS owns the UART operation throughout. Flow control, production EDP traffic
+and mode activation are outside this result. No new code or image was needed.
