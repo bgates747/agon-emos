@@ -6,10 +6,6 @@ port-infrastructure work remains in `mos-agondev`.
 
 ## Extender integration
 
-- [ ] **INTEG-006 — UARTFLOW at 1,152,000 baud**
-  - Started: 2026-09-08
-  - Details: [INTEG-006](docs/tasks/INTEG-006.md)
-
 - [ ] **INTEG-002 — Implement the production forward-parallel data plane**
   - Started: 2026-09-01
   - Finished: --
