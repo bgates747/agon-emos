@@ -11,6 +11,7 @@
 #include <ctype.h>
 
 #include "emos.h"
+#include "emos_uart_probe.h"
 #ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
 #include "emos_parallel.h"
 #endif
@@ -835,6 +836,15 @@ int emos_cmd(char *args) {
 		return FR_OK;
 	}
 	if (result != FR_OK) return result;
+	if (strcasecmp(operation, "uarttest") == 0) {
+        if (args && *args) return FR_INVALID_PARAMETER;
+        if (emosModeState.mode != EMOS_MODE_LEGACY) {
+            printf("UART ROUND TRIP FAIL: EMOS must be in Legacy\r\n");
+            return FR_INVALID_PARAMETER;
+        }
+        emos_print_identity();
+        return emos_uart_probe() ? FR_OK : FR_TIMEOUT;
+    }
 	if (strcasecmp(operation, "discover") == 0) {
 		result = emos_discover();
 		if (result == FR_OK) printf("EMOS: discovered %d provider(s)\r\n", emosRegistry.count);

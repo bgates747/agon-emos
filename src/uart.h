@@ -174,6 +174,14 @@ void init_UART1();
 BYTE open_UART0(UART * pUART);
 BYTE open_UART1(UART * pUART);
 
+/* Internal EMOS nonblocking operations; not new public MOS API numbers. */
+#define UART_POLL_EMPTY 0
+#define UART_POLL_READY 1
+#define UART_POLL_ERROR 2
+#define UART_POLL_UNAVAILABLE 3
+BYTE uart1_try_get(BYTE *value);
+BYTE uart1_try_put(BYTE value);
+
 void close_UART1();
 
 extern volatile BYTE serialFlags;		// In globals.asm

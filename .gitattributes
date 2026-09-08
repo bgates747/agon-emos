@@ -3,3 +3,4 @@
 MOS.zdsproj -text whitespace=cr-at-eol
 src/serial.asm -text whitespace=cr-at-eol
 src/uart.c -text whitespace=cr-at-eol
+src/uart.h -text whitespace=cr-at-eol

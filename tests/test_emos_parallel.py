@@ -127,7 +127,7 @@ class EmosParallelTests(unittest.TestCase):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-        self.assertEqual(result.stdout, "EMOS UART1 guard host checks passed\n")
+        self.assertEqual(result.stdout, "EMOS UART1 guard and nonblocking host checks passed\n")
         self.assertEqual(result.stderr, "")
 
     def test_engine_has_no_test_or_circuit_specific_product_branch(self) -> None:

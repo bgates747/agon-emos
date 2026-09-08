@@ -24,6 +24,7 @@ volatile BYTE hostUart1Mctl;
 volatile BYTE hostUart1Fctl;
 volatile BYTE hostUart1Ier;
 volatile BYTE serialFlags;
+volatile BYTE hostUart1Lsr, hostUart1Rbr, hostUart1Thr;
 
 typedef struct {
 	BYTE pcDr;
@@ -180,9 +181,39 @@ static int test_success_holds_guard_through_final_mutation(void) {
 	return 0;
 }
 
+static int test_nonblocking_operations(void) {
+    BYTE value = 0xA5;
+    serialFlags = 0x10; hostUart1Ier = 0; hostUart1Lsr = 0;
+    hostUart1Rbr = 0x42; hostUart1Thr = 0x99;
+    CHECK(uart1_try_get(&value) == UART_POLL_EMPTY && value == 0xA5);
+    CHECK(uart1_try_put(0x33) == UART_POLL_EMPTY && hostUart1Thr == 0x99);
+    hostUart1Lsr = UART_LSR_DR | UART_LSR_THRE;
+    CHECK(uart1_try_get(&value) == UART_POLL_READY && value == 0x42);
+    CHECK(uart1_try_put(0x33) == UART_POLL_READY && hostUart1Thr == 0x33);
+    for (unsigned error = 2; error <= 128; error <<= 1) {
+        if (error == 32 || error == 64) continue;
+        value = 0xA5; hostUart1Lsr = UART_LSR_DR | error;
+        CHECK(uart1_try_get(&value) == UART_POLL_ERROR && value == 0xA5);
+        CHECK(uart1_try_put(0x77) == UART_POLL_ERROR && hostUart1Thr == 0x33);
+    }
+    CHECK(uart1_try_get(NULL) == UART_POLL_UNAVAILABLE);
+    hostUart1Lsr = UART_LSR_DR | UART_LSR_THRE;
+    for (unsigned flags = 0; flags <= 0x30; flags += 0x10) {
+        if (flags == 0x10) continue;
+        serialFlags = flags;
+        CHECK(uart1_try_get(&value) == UART_POLL_UNAVAILABLE);
+        CHECK(uart1_try_put(0x33) == UART_POLL_UNAVAILABLE);
+    }
+    serialFlags = 0x10; hostUart1Ier = 1;
+    CHECK(uart1_try_get(&value) == UART_POLL_UNAVAILABLE);
+    CHECK(uart1_try_put(0x33) == UART_POLL_UNAVAILABLE);
+    return 0;
+}
+
 int main(void) {
 	if (test_busy_rejection_changes_nothing()) return 1;
 	if (test_success_holds_guard_through_final_mutation()) return 1;
-	puts("EMOS UART1 guard host checks passed");
+	if (test_nonblocking_operations()) return 1;
+	puts("EMOS UART1 guard and nonblocking host checks passed");
 	return 0;
 }

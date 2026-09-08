@@ -61,6 +61,7 @@ class EmosPortTests(unittest.TestCase):
         project = (WORKTREE / "MOS.zdsproj").read_text(encoding="utf-8")
         for relative in (
             r".\\src\\emos.c",
+            r".\\src\\emos_uart_probe.c",
             r".\\src\\emos_parallel.c",
             r".\\src\\emos_parallel_engine.c",
             r".\\src\\emos_parallel_io.asm",
@@ -93,6 +94,8 @@ class EmosPortTests(unittest.TestCase):
         for relative in (
             "src/emos.c",
             "src/emos.h",
+            "src/emos_uart_probe.c",
+            "src/emos_uart_probe.h",
             "src/emos_parallel.c",
             "src/emos_parallel_engine.c",
             "src/emos_parallel.h",
@@ -108,11 +111,11 @@ class EmosPortTests(unittest.TestCase):
         linked_checks = _make_variable(PROFILE, "FIRMWARE_LINK_CHECKS")
         self.assertEqual(
             sources,
-            ["src/emos.c", "src/emos_parallel.c", "src/emos_parallel_engine.c"],
+            ["src/emos_uart_probe.c", "src/emos.c", "src/emos_parallel.c", "src/emos_parallel_engine.c"],
         )
         self.assertEqual(
             objects,
-            ["src/emos.o", "src/emos_parallel.o", "src/emos_parallel_engine.o"],
+            ["src/emos_uart_probe.o", "src/emos.o", "src/emos_parallel.o", "src/emos_parallel_engine.o"],
         )
         self.assertEqual(
             _make_variable(PROFILE, "ASM_SOURCES_EXTRA"),
@@ -150,6 +153,7 @@ class EmosPortTests(unittest.TestCase):
         self.assertEqual(
             _make_variable(fixed, "C_SOURCES_EXTRA"),
             [
+                "src/emos_uart_probe.c",
                 "src/emos.c",
                 "src/emos_parallel.c",
                 "src/emos_parallel_engine.c",

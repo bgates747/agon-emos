@@ -161,3 +161,34 @@ void close_UART1() {
 	UART1_FCTL = 0x00;												// Bring FIFO control register to reset value.	
 	serialFlags &= 0x0F;
 }
+
+
+/* Nonblocking Core operations for an open, polling, no-flow-control UART.
+ * Reject other configurations instead of competing with an interrupt reader
+ * or silently bypassing CTS. Reading LSR acknowledges receive error flags;
+ * report errors before consuming data, and never return stale data as valid.
+ */
+BYTE uart1_try_get(BYTE *value) {
+    BYTE status;
+    if (!value || (serialFlags & 0x30) != 0x10 || UART1_IER != 0)
+        return UART_POLL_UNAVAILABLE;
+    status = UART1_LSR;
+    if (status & (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE | UART_LSR_BI | UART_LSR_ERR))
+        return UART_POLL_ERROR;
+    if (!(status & UART_LSR_DR)) return UART_POLL_EMPTY;
+    *value = UART1_RBR;
+    return UART_POLL_READY;
+}
+
+BYTE uart1_try_put(BYTE value) {
+    BYTE status;
+    if ((serialFlags & 0x30) != 0x10 || UART1_IER != 0)
+        return UART_POLL_UNAVAILABLE;
+    status = UART1_LSR;
+    /* LSR reads also clear RX error flags: do not silently lose them here. */
+    if (status & (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE | UART_LSR_BI | UART_LSR_ERR))
+        return UART_POLL_ERROR;
+    if (!(status & UART_LSR_THRE)) return UART_POLL_EMPTY;
+    UART1_THR = value;
+    return UART_POLL_READY;
+}

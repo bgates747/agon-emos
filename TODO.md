@@ -6,6 +6,11 @@ port-infrastructure work remains in `mos-agondev`.
 
 ## Extender integration
 
+- [ ] **INTEG-004 — Bounded EMOS UART round-trip diagnostic**
+  - Started: 2026-09-07
+  - Finished: --
+  - Details: [INTEG-004](docs/tasks/INTEG-004.md)
+
 - [ ] **INTEG-002 — Implement the production forward-parallel data plane**
   - Started: 2026-09-01
   - Finished: --

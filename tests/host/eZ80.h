@@ -15,6 +15,9 @@ extern volatile BYTE hostUart1Lctl;
 extern volatile BYTE hostUart1Mctl;
 extern volatile BYTE hostUart1Fctl;
 extern volatile BYTE hostUart1Ier;
+extern volatile BYTE hostUart1Lsr;
+extern volatile BYTE hostUart1Rbr;
+extern volatile BYTE hostUart1Thr;
 
 #define UART0_BRG_L hostUart0BrgL
 #define UART0_BRG_H hostUart0BrgH
@@ -28,6 +31,9 @@ extern volatile BYTE hostUart1Ier;
 #define UART1_MCTL hostUart1Mctl
 #define UART1_FCTL hostUart1Fctl
 #define UART1_IER hostUart1Ier
+#define UART1_LSR hostUart1Lsr
+#define UART1_RBR hostUart1Rbr
+#define UART1_THR hostUart1Thr
 
 #define PORTC_DRVAL_DEF ((BYTE)0xFF)
 #define PORTC_DDRVAL_DEF ((BYTE)0xFF)
