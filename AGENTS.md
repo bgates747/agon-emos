@@ -19,6 +19,11 @@ executable formats, VDP packets, or hardware contracts. Record deviations,
 workarounds, and inherited defects beside affected code and in the active task.
 Every emulator-coupled change requires Author validation before commit or push.
 
+For test fixtures, select the video mode only in `/autoexec.txt`, before the
+fixture runs; never switch modes inside the fixture program. Use the MOS
+command `VDU 22 n` with spaces. The ordinary boot smoke selects mode 3 using
+`VDU 22 3`; keep that setup in the generated boot script.
+
 Build EMOS only through its repository wrappers or the `mos-agondev`
 repository-root targets with an EMOS source profile. Those paths must execute
 all profile-owned `FIRMWARE_LINK_CHECKS`, including the linked UART divisor

@@ -1,8 +1,9 @@
 # Author-approved developmental identity (QUAL-002). The v0.1.0 predecessor
-# remains rejected. Draft builds are for review, not physical deployment.
+# remains rejected. Candidate scope is the ordinary Legacy boot procedure;
+# passing that procedure does not qualify UART1/P4 or parallel operation.
 EMOS_PROFILE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 EMOS_SOURCE_IDENTITY := agon-emos-v0.2.0
-EMOS_ARTIFACT_STATUS := draft
+EMOS_ARTIFACT_STATUS := candidate
 # Expand once and export so nested Make invocations retain the same build ID.
 # A reviewed build wrapper may supply an already recorded UTC identity.
 ifndef EMOS_BUILD_ID

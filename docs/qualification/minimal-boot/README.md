@@ -1,15 +1,16 @@
-# Ordinary EMOS boot — draft test sheet
+# Ordinary EMOS boot — emos-ordinary-boot-r01
 
 Scope: the `agon-emos-v0.2.0` bundle prepared under
-[QUAL-002](../../tasks/QUAL-002.md). This draft is for emulator review, not an
-instruction to flash the current dirty build. The Author must review the
-emulator, approve freezing the inputs and the procedure's revision identity,
-and authorize physical deployment before W3. Preserve completed results in a
+[QUAL-002](../../tasks/QUAL-002.md). Artifact: `emos-ordinary-boot`;
+revision: `r01`. The Author approved this candidate freeze in QUAL-002-Q003
+on 2026-09-07. Only a clean committed candidate with passing final-image
+checks may be selected for the MOS-only install. Preserve completed results in a
 `runs/<QUAL-002-UTC-timestamp>/` directory beside this sheet.
 
 The Author accepted the first graphical emulator pass and authorized the
 reviewed source checkpoint on 2026-09-07. Its exact image and results are in
-QUAL-002; deployment-candidate freeze and physical approval remain pending.
+QUAL-002. The Author subsequently reported the mode-3 stock hardware smoke
+passed and approved the candidate freeze and MOS-only flash preparation.
 
 The eZ80 runs EMOS in Legacy. Its UART0 talks to the unchanged onboard VDP;
 the onboard VDP supplies PB1 VSync. The ordinary SD program uses `mos_fopen`,
@@ -35,6 +36,8 @@ tests/module checks and the existing separate EMOS runtime regression. It
 produces identified binary/ELF/map/smoke files and `build-manifest.yaml` with
 hashes, source/build-tool revisions and dirty-state evidence. A dirty review
 bundle cannot qualify hardware. Never select the fixed parallel profile here.
+For candidate status, the helper refuses dirty EMOS or builder inputs and
+rejects a source-commit or dirty-state change during the build.
 
 The second command checks the same smoke on stock MOS v3.0.2 and the identified
 EMOS image, including deliberately incorrect SD contents. It creates two
@@ -52,6 +55,12 @@ must separately report divisor **1** with 32-bit arithmetic in the final ELF.
 
 ## Exact smoke media and expected output
 
+Select video mode only in autoexec, before the fixture runs. Use the built-in
+MOS command `VDU 22 n` with spaces; this smoke selects **mode 3**, 640×240,
+64 colours, 60 Hz in the current VDP mode table. The EMBOOT program must not
+switch modes. The mode's nominal refresh does not replace a physical timing
+measurement.
+
 Both media trees contain only these test files:
 
 | File | Contents |
@@ -63,6 +72,7 @@ Both media trees contain only these test files:
 Stock MOS script:
 
 ```text
+VDU 22 3
 LOAD /bin/EMBOOT.BIN
 RUN
 ```
@@ -70,6 +80,7 @@ RUN
 EMOS script:
 
 ```text
+VDU 22 3
 EMOS STATUS
 LOAD /bin/EMBOOT.BIN
 RUN
@@ -92,7 +103,8 @@ EMOS v1: Legacy, registry 0, generation 0
 VDU route 0, EDU inactive, adapter unavailable, mode generation 0
 ```
 
-No mode-setting utility, module discovery, fake adapter or keypress is needed.
+The built-in VDU command needs no external mode-setting utility. No module
+discovery, fake adapter or keypress is needed.
 A nonzero smoke result stops autoexec before the final status. Any `BOOT SMOKE
 FAIL`, boot-script error or unexpected mode is a failure, even if a prompt
 appears afterward. Clock progress is required, not a particular increment;

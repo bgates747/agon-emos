@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a draft EMOS/ordinary-app review bundle. Never touch physical media.
+"""Build an identified EMOS/ordinary-app bundle. Never touch physical media.
 
 The maintained source is prepared and built only by the repository wrappers.
 The smoke binary shares this bundle's EMOS identity; it is an ordinary MOS
@@ -52,8 +52,13 @@ def main() -> None:
         return match.group(1)
     identity = identity_value("EMOS_SOURCE_IDENTITY")
     status = identity_value("EMOS_ARTIFACT_STATUS")
-    if status != "draft":
-        parser.error("this wrapper prepares draft review builds only")
+    if status not in ("draft", "candidate"):
+        parser.error("this wrapper prepares draft or candidate builds only")
+    source_commit = git(ROOT, "rev-parse", "HEAD")
+    builder_commit = git(builder, "rev-parse", "HEAD")
+    if status == "candidate" and any(git(root, "status", "--porcelain")
+                                     for root in (ROOT, builder)):
+        parser.error("candidate builds require clean committed EMOS and builder inputs")
     now = datetime.now(timezone.utc)
     build_id = identity + now.strftime("-b%Y-%m-%d-%H-%M-%SZ")
     output.mkdir(parents=True)
@@ -84,6 +89,12 @@ def main() -> None:
                       f'#define EMOS_ARTIFACT_STATUS "{status}"\n')
     run(["make", "clean"], "smoke-clean.log", SMOKE)
     run(["make", f"AGONDEV_TOOLCHAIN={toolchain}", "all"], "smoke-build.log", SMOKE)
+    if status == "candidate" and (
+        any(git(root, "status", "--porcelain") for root in (ROOT, builder))
+        or git(ROOT, "rev-parse", "HEAD") != source_commit
+        or git(builder, "rev-parse", "HEAD") != builder_commit
+    ):
+        raise SystemExit("candidate inputs changed during the build; no bundle frozen")
     outputs = []
     for source, name, role in [
         (builder / "projects/mos-port/bin/MOS.bin", build_id + ".bin", "firmware"),
@@ -119,7 +130,7 @@ def main() -> None:
                        "preparation_sha256": digest(worktree / ".mos-agondev-worktree.json"),
                        "compiler_sha256": digest(toolchain / "bin/ez80-none-elf-clang")},
         "outputs": outputs,
-        "notes": ["Draft review build; no physical deployment or qualification claim.",
+        "notes": ["Build and automated checks only; no physical qualification claim.",
                   "Registered linked UART and parallel checks retained.",
                   "BOOT smoke is an ordinary MOS application in the same identified build bundle."]}
     (output / "build-manifest.yaml").write_text(yaml.safe_dump(manifest, sort_keys=False))
@@ -129,7 +140,8 @@ def main() -> None:
         (sdcard / "emos-boot").mkdir()
         shutil.copyfile(output / outputs[3]["filename"], sdcard / "bin/EMBOOT.BIN")
         (sdcard / "emos-boot/check.txt").write_bytes(b"EMOS SD CHECK\r\n")
-        commands = []
+        # Author convention: display setup belongs in autoexec, never EMBOOT.
+        commands = ["VDU 22 3"]
         if kind == "emos": commands.append("EMOS STATUS")
         commands.extend(["LOAD /bin/EMBOOT.BIN", "RUN"])
         if kind == "emos": commands.append("EMOS STATUS")

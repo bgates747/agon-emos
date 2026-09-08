@@ -13,9 +13,10 @@ Repository ownership and reconstruction provenance are recorded in
 5. `prior-art-rainbow-mos.md` records the prior-art review.
 6. `tasks/` contains detailed unfinished-work authorities indexed by
    `TODO.md`.
-7. [Ordinary boot test sheet](qualification/minimal-boot/README.md) is the
-   draft automatic Legacy-boot and MOS-only installation procedure for
-   QUAL-002; emulator review passed, with candidate freeze pending.
+7. [Ordinary boot test sheet](qualification/minimal-boot/README.md),
+   `emos-ordinary-boot-r01`, is the approved candidate procedure for automatic
+   Legacy boot and MOS-only installation under QUAL-002. Emulator review and
+   the preliminary stock hardware smoke passed; EMOS installation is pending.
 
 Repository ownership is defined by the root `OWNERSHIP.md`. Historical
 reasoning and chronological implementation records are under `research/`.

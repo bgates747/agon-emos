@@ -4,7 +4,8 @@
 
 - Status: W2 build, automatic checks and graphical emulator pass accepted;
   the Author authorized the reviewed checkpoint commit. Deployment-candidate
-  freeze and physical deployment approval remain pending. W3 has not started.
+  freeze is approved for commit/build and MOS-only flash preparation. W3's stock hardware smoke
+  passed by Author report; EMOS installation remains pending.
   WROOM recovery remains a contingency only.
 - Started: 2026-09-07
 - Finished: --
@@ -338,6 +339,7 @@ source was modified or copied into the recovery implementation.
 | --- | --- |
 | QUAL-002-Q001 | Accepted by the Author, 2026-09-07: `agon-emos-v0.2.0` for the ordinary developmental source replacing the rejected predecessor. Start at draft and freeze candidate status only with its reviewed test scope. This does not claim an operational Exclusive mode. W2 stamped the ordinary source and draft registry record; clean candidate freeze remains pending. |
 | QUAL-002-Q002 | Resolved for the contingency: use the documented ESP32-WROOM-32D DevKitC with upstream `agon-recovery` if independent recovery is needed. The Author directs no WROOM wiring or firmware preparation/writing beforehand; no recovery demonstration is required before normal EMOS deployment. Keep final candidate checks and a reviewed keyboardless stock-MOS update path as the pre-flash gates. No P4 recovery replacement or onboard VDP change is planned. |
+| QUAL-002-Q003 | Accepted by the Author, 2026-09-07: freeze the current mode-3 test sheet as `emos-ordinary-boot-r01`, promote the already approved `agon-emos-v0.2.0` to candidate status, record registry r22, commit the controlled inputs, then build/check and stage the MOS-only one-shot flash. This introduces no transport or fixture-program behavior change. The helper gains clean-input guards; the physical procedure remains the reviewed stock preflight, normal FLASH MOS -f path and three cold boots. |
 
 W1 stops at these findings. No firmware source, build/profile/identity,
 emulator, SD contents, device firmware, wiring or power state changed. No
@@ -422,8 +424,9 @@ one-shot guard. After reset stops at the consumed filename, the workstation
 replaces autoexec with the smoke script while the Agon is off. No custom
 flasher, live script rewrite, WROOM preparation or onboard VDP update is needed.
 
-W2.4's emulator and checkpoint approval gates are satisfied. Its clean
-deployment-candidate freeze and physical deployment approval remain pending.
+W2.4's emulator, checkpoint and candidate-freeze approval gates are satisfied.
+The clean candidate build and final-image checks precede the authorized
+MOS-only flash preparation.
 No physical SD mutation, serial operation, reset, wiring change or firmware
 deployment occurred during preparation or review.
 
@@ -454,3 +457,41 @@ the next preparation boundary before any physical deployment.
 The matching generic boot-identity comparison is committed in mos-agondev
 `b0ed60f39e103a1d697094356aa0b4a2ca1909e5`. Use that reviewed builder change
 with this EMOS source checkpoint when preparing the next build.
+
+## Physical preflight preparation — 2026-09-07
+
+After pushing the checkpoint, the Author reported both boards powered and the
+SD mounted for EMOS preparation. Built and checked the committed inputs with
+both dirty flags false, preserved the existing card contents, and staged only
+the ordinary stock-MOS smoke. The card was synced and unmounted. Exact hashes,
+files and pending observations live beside the test sheet in the
+[stock preflight record](../qualification/minimal-boot/stock-preflight-2026-09-07.md).
+
+The new firmware remains draft and is retained on the workstation; no flash
+autoexec or new install payload was put on the card. Operator confirmation of
+powered-off harness isolation and a physical stock-smoke pass are pending.
+Candidate status/procedure freeze still precede EMOS installation. No WROOM
+preparation, processor flash, remote reset or power control was performed.
+
+The Author subsequently directed that video mode selection belong exclusively
+to autoexec, using `VDU 22 n`; mode 3 is selected for this smoke. Updated the
+agent instructions, test sheet and future media generation to prepend
+`VDU 22 3`. The fixture program remains unchanged and does not select a mode.
+The already unmounted card and retained review media have not been rewritten;
+the preflight record preserves their actual LOAD/RUN contents.
+
+After the Author remounted the card, prepended `VDU 22 3` to its stock-smoke
+autoexec, preserving a separate backup and operation record. Verified, synced
+and unmounted successfully. The preflight record now contains the updated
+script and hash; no fixture binary or flash command changed.
+
+## Candidate freeze preparation — 2026-09-07
+
+The Author reports the ordinary mode-3 stock hardware test passed and remounted
+the SD. The preflight record preserves that operator report and its limits.
+Prepared Q003's narrow freeze: v0.2.0 candidate diagnostics, the revisioned
+current test sheet and candidate-build guards requiring clean, unchanged EMOS
+and builder commits. The C smoke and MOS/UART/VDU behavior are unchanged.
+The registry revision is r22. The Author approved Q003, including the new
+procedure identity and candidate freeze, so commit/build/check and one-shot
+MOS flash preparation may proceed without another identity approval.
