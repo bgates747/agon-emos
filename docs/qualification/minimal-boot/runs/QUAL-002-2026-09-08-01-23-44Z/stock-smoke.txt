@@ -1,0 +1,16 @@
+Tom's Fake VDP Version 1.03
+unknown packet VDU 0x17, 0, 0xf8
+unknown packet VDU 0x17, 0, 0x99
+uunknown packet VDU 0x17, 0, 0x94
+
+Agon Platform MOS Version 3.0.2 Arthur
+
+Unknown packet VDU 0x16
+Unknown packet VDU 0x3
+EMOS BOOT SMOKE agon-emos-v0.2.0-b2026-09-08-01-20-50Z (candidate)
+BOOT SMOKE SD PASS
+BOOT SMOKE CLOCK PASS
+BOOT SMOKE PASS - returning to MOS
+/ *echo BOOT REVIEW PROMPT RETURNED
+BOOT REVIEW PROMPT RETURNED
+/ *

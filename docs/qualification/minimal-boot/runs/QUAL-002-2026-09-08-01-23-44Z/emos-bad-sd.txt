@@ -1,0 +1,22 @@
+Tom's Fake VDP Version 1.03
+unknown packet VDU 0x17, 0, 0xf8
+unknown packet VDU 0x17, 0, 0x99
+uunknown packet VDU 0x17, 0, 0x94
+
+Agon Platform MOS Version 3.0.2 Arthur
+
+EMOS identity: agon-emos-v0.2.0, build agon-emos-v0.2.0-b2026-09-08-01-20-50Z, status candidate
+Unknown packet VDU 0x16
+Unknown packet VDU 0x3
+EMOS identity: agon-emos-v0.2.0, build agon-emos-v0.2.0-b2026-09-08-01-20-50Z, status candidate
+EMOS v1: Legacy, registry 0, generation 0
+  VDU route 0, EDU inactive, adapter unavailable, mode generation 0
+EMOS BOOT SMOKE agon-emos-v0.2.0-b2026-09-08-01-20-50Z (candidate)
+BOOT SMOKE FAIL: SD contents
+
+Error executing autoexec.txt at line 4
+
+Error accessing SD card
+/ *echo BOOT REVIEW PROMPT RETURNED
+BOOT REVIEW PROMPT RETURNED
+/ *

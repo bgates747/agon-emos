@@ -14,9 +14,12 @@ Repository ownership and reconstruction provenance are recorded in
 6. `tasks/` contains detailed unfinished-work authorities indexed by
    `TODO.md`.
 7. [Ordinary boot test sheet](qualification/minimal-boot/README.md),
-   `emos-ordinary-boot-r01`, is the approved candidate procedure for automatic
-   Legacy boot and MOS-only installation under QUAL-002. Emulator review and
-   the preliminary stock hardware smoke passed; EMOS installation is pending.
+   `emos-ordinary-boot-r02`, is the corrected candidate procedure for automatic
+   Legacy boot and MOS-only installation under QUAL-002. The
+   [ordinary hardware smoke passed on three cold boots](qualification/minimal-boot/runs/QUAL-002-2026-09-08-01-23-44Z/hardware-result.md).
+   Revision r02 corrects the case-sensitive updater argument and retains the
+   rename guard; original r01 evidence is archived. The Author accepted and
+   froze the bounded milestone. Artifact status remains candidate.
 
 Repository ownership is defined by the root `OWNERSHIP.md`. Historical
 reasoning and chronological implementation records are under `research/`.

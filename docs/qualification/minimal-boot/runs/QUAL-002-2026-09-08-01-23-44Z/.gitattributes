@@ -1,0 +1,2 @@
+# Evidence is byte-preserved, including MOS CRLF scripts and existing blank lines.
+*.txt -text -whitespace

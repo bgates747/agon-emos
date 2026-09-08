@@ -2,13 +2,15 @@
 
 ## State
 
-- Status: W2 build, automatic checks and graphical emulator pass accepted;
-  the Author authorized the reviewed checkpoint commit. Deployment-candidate
-  freeze is approved for commit/build and MOS-only flash preparation. W3's stock hardware smoke
-  passed by Author report; EMOS installation remains pending.
-  WROOM recovery remains a contingency only.
+- Status: Complete and accepted. The Author confirmed successful flash and
+  the expected smoke result across three cold restarts, then authorized
+  correction and freeze. The [run record](../qualification/minimal-boot/runs/QUAL-002-2026-09-08-01-23-44Z/README.md)
+  preserves the bounded pass and observation limits. The corrected reusable
+  procedure is emos-ordinary-boot-r02; the original r01 and its operator
+  deviation remain historical evidence. Broader qualification and transport
+  integration remain separate work.
 - Started: 2026-09-07
-- Finished: --
+- Finished: 2026-09-07
 
 The Author requested this small deployment milestone after accepting the
 simplified harness pinwalk, and specifically required that the earlier EMOS
@@ -119,10 +121,10 @@ deferred unless recovery becomes necessary.
    for MOS 3's `!boot.obey` and `autoexec.obey` precedence so the test actually
    runs from `/autoexec.txt` under
    [BC-001](../../../agon-extender/docs/qualification/bench-constraints.md).
-   Eliminate automatic pinwalk, mode-change or repeated-flash execution from
+   Eliminate automatic pinwalk, fixture-owned video-mode changes or repeated-flash execution from
    the selected boot path. Prepare a stock-compatible invocation of the smoke
    for W3's baseline comparison; reserve EMOS status commands for EMOS.
-4. [ ] Complete required Author emulator validation for emulator-coupled
+4. [x] Complete required Author emulator validation for emulator-coupled
    changes. Prepare the keyboardless update path through working stock MOS;
    do not use the WROOM as the routine programmer. Present the concrete
    candidate procedure and recovery contingency, including
@@ -135,13 +137,13 @@ deferred unless recovery becomes necessary.
 
 ### W3 — Deploy and prove the baseline
 
-1. [ ] With the Author's authorization, verify stock boot and the ordinary
+1. [x] With the Author's authorization, verify stock boot and the ordinary
    smoke through its stock-compatible invocation. Confirm the exact candidate,
    passing checks, controlled autoexec and reviewed keyboardless update path.
    Retain the identified stock image and recovery reference. Leave the WROOM
    unwired and its firmware unchanged; do not rehearse recovery. Follow current
    local bench instructions for the actual Agon deployment.
-2. [ ] Install only the frozen candidate using the reviewed method; verify
+2. [x] Install only the frozen candidate using the reviewed method; verify
    programmed bytes through its supported readback/checksum operation. The
    Author cold-boots the Agon and observes the test. Stop on missing MOS
    startup, timeout, unexpected reset, incorrect mode/route or unexpected
@@ -149,11 +151,22 @@ deferred unless recovery becomes necessary.
    candidate. If the Agon cannot boot sufficiently to restore stock MOS by
    its normal update path, present the concrete WROOM recovery operation;
    prepare and use it only when needed and authorized.
-3. [ ] Record three successful cold boots, exact EMOS/VDP identities, automatic
+3. [x] Record three successful cold boots, exact EMOS/VDP identities, automatic
    SD-program execution, visible output, advancing MOS clock, final
    Legacy/inactive-EDU status and prompt return. Keep raw evidence and hashes
-   beside the EMOS test record. Obtain the Author's acceptance of this bounded
-   baseline and stop before beginning UART1 integration.
+   beside the EMOS test record. Dispose the recorded installation-command
+   deviation and obtain approval for the corrected procedure revision before
+   reusing its installation steps. Obtain the Author's acceptance of this
+   bounded baseline and stop before beginning UART1 integration.
+
+**W3 result:** The Author confirmed successful flash and reported the pictured
+PASS result across all three cold boots. The hardware checks in item 3 are
+recorded; the Author subsequently accepted correction and evidence freeze,
+completing closeout. Exact physical
+VDP version, harness isolation and measured startup durations were not visible
+in the supplied image and remain explicitly unverified in the result record.
+The pass covers observed ordinary boot behavior, not a claim that every
+procedural observation or the original installation script was validated.
 
 ## Completion and evidence limits
 
@@ -495,3 +508,98 @@ and builder commits. The C smoke and MOS/UART/VDU behavior are unchanged.
 The registry revision is r22. The Author approved Q003, including the new
 procedure identity and candidate freeze, so commit/build/check and one-shot
 MOS flash preparation may proceed without another identity approval.
+
+## Candidate committed and installation card ready — 2026-09-07
+
+EMOS commit `e8fd3797e18f77ab2e35d8e66176098af1f668d9` freezes the candidate
+inputs and emos-ordinary-boot-r01. Extender commit
+`5cf9c018b7ad0305f05b6f42b1685d1e7f2e4f30` records registry r22. Both commits
+are local; no push was performed. The unchanged reviewed builder is
+`b0ed60f39e103a1d697094356aa0b4a2ca1909e5`.
+
+Built `agon-emos-v0.2.0-b2026-09-08-01-20-50Z` with both source dirty flags
+false. Complete configured gates, final linked checks, EMOS runtime regression,
+and stock/EMOS positive and bad-SD controls passed. Both UARTs use linked
+32-bit arithmetic and divisor 1. The binary is 116,556 bytes, SHA-256
+`076a9c359591b1beecf4716b9dc41648b8cf3122bf6fd4a1b6dbe56e187c44ba`.
+Candidate status length changes the diagnostic bytes; the ordinary MOS and
+smoke-program behavior remains as reviewed. Headless smoke does not validate
+physical video mode or UART timing.
+
+The [in-progress run](../qualification/minimal-boot/runs/QUAL-002-2026-09-08-01-23-44Z/README.md)
+owns the full manifest, exact installation script, automated evidence and
+pending physical results. Reverified the saved stock-test card backup, official
+flasher/stock payload and absent boot overrides. Staged the frozen image as
+EMNEW.BIN and the reviewed rename-before-FLASH script, verified their hashes,
+synced and unmounted successfully. The previous stock smoke remains on the
+card but is not invoked by the installation script. After the operator reports
+successful flash CRC/reset and remounts the card, stage the candidate smoke
+and its mode-3 EMOS autoexec from the same frozen bundle.
+
+W2 is complete. W3 remains open for physical identity/isolation observations,
+programmed-flash CRC and three cold boots. No processor was flashed, reset or
+power-controlled by the agent; onboard VDP and WROOM remain untouched. The
+run's outcome remains null until physical results arrive.
+
+## Flash-command defect and smoke handover
+
+The Author reported that changing the updater argument to lowercase `mos` and
+removing the payload's leading slash worked. The remounted card contained
+exactly `FLASH mos EMDONE.BIN -f` with CRLF, with EMNEW.BIN absent and
+EMDONE.BIN matching the frozen candidate hash. The run retains that observed
+script separately from the original staged two-line script. No count of flash
+attempts or specific CRC/reset output is inferred from the report.
+
+Source inspection confirms an agent-authored procedure defect, not an upstream
+flasher defect: pinned agon-flash v1.9, commit
+`e670b5bd910dfe372c29aa9e896e6c24cc8530ec`, `src/main.c:getCommand` compares
+`mos` with case-sensitive `memcmp`; `parseCommands` rejects uppercase MOS,
+and `main` returns before opening a payload or flashing. The earlier claim to
+have verified the uppercase invocation was wrong. Filenames are copied to
+`fopen` unchanged; the report does not isolate whether removing `/` was
+necessary. The verified working form is `FLASH mos EMDONE.BIN -f` from the
+card root. It is recorded as an operator deviation; the committed r01
+definition and original staging evidence remain unchanged. Resolve the
+procedure correction before reuse; no firmware rebuild or reflash is needed
+to correct this host-side command error.
+
+Preserved the operator's one-line flash autoexec, prior stock-smoke program
+and installed-payload file outside the card. Replaced only EMBOOT.BIN and
+autoexec with the same frozen candidate bundle's smoke program and mode-3
+EMOS status/LOAD/RUN/status script. This removes the unguarded flash command
+from the next boot. Verified hashes, synced and unmounted. The physical run
+remains open for the flash observations and three cold boots; no processor
+operation, firmware build, commit or push accompanied this correction.
+
+## Three cold boots passed — 2026-09-07
+
+The Author supplied a physical-display photograph and reported that, as far as
+they could tell, it was the result of all three cold restarts; they also
+confirmed the original flash was successful. The image shows the exact frozen
+candidate build in the EMOS status and smoke banners, SD PASS, CLOCK PASS,
+final PASS, Legacy/inactive-EDU status before and after, and the MOS prompt.
+The [hardware result](../qualification/minimal-boot/runs/QUAL-002-2026-09-08-01-23-44Z/hardware-result.md)
+and run manifest record **ordinary hardware smoke PASS**, distinguishing the
+one conversation photograph from the operator's report covering three boots.
+
+The minimal firmware deployment works on hardware; no recovery was needed.
+The uppercase-MOS procedure defect remains recorded and does not alter the
+tested firmware. This result does not promote the firmware or procedure to
+qualified/released status, change registry r22, rebuild or reflash EMOS, or
+start UART1/P4 integration. The evidence and procedure closeout remains in
+this task; broader qualification remains in QUAL-001.
+
+## Accepted closeout — 2026-09-07
+
+The Author instructed “yes correct and freeze.” Recorded that acceptance,
+closed W3 and removed this completed milestone from TODO. Preserved r01
+byte-for-byte and issued the corrected emos-ordinary-boot-r02 procedure, using
+`FLASH mos EMDONE.BIN -f` from the card root after the original rename guard.
+Registry r23 records the new procedure and the accepted bounded hardware pass.
+
+The firmware version/build/status and all completed evidence hashes remain
+unchanged. The completed run retains r01 plus its installation deviation; no
+r02 hardware run, measured startup timing, verified harness isolation or full
+compatibility claim is inferred. The lowercase command defect is resolved for
+future use without another flash. The [closeout record](../qualification/minimal-boot/runs/QUAL-002-2026-09-08-01-23-44Z/closeout.md)
+records the acceptance without rewriting the completed run manifest.

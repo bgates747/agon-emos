@@ -1,22 +1,16 @@
-# Ordinary EMOS boot — emos-ordinary-boot-r02
+# Ordinary EMOS boot — emos-ordinary-boot-r01
 
 Scope: the `agon-emos-v0.2.0` bundle prepared under
 [QUAL-002](../../tasks/QUAL-002.md). Artifact: `emos-ordinary-boot`;
-revision: `r02`. The Author authorized correction and freeze after the successful
-three-cold-boot hardware smoke on 2026-09-07. Revision r02 corrects the
-updater's case-sensitive `mos` argument and uses the operator-confirmed bare
-payload filename from the card root. It retains the rename-before-flash guard
-and the unchanged mode-3 smoke. Only a clean committed candidate with passing
-final-image checks may be selected for MOS-only installation.
+revision: `r01`. The Author approved this candidate freeze in QUAL-002-Q003
+on 2026-09-07. Only a clean committed candidate with passing final-image
+checks may be selected for the MOS-only install. Preserve completed results in a
+`runs/<QUAL-002-UTC-timestamp>/` directory beside this sheet.
 
-The [original r01 procedure](emos-ordinary-boot-r01.md) is preserved byte-for-byte
-for historical evidence; its uppercase MOS flash argument is invalid and must
-not be executed. The [completed hardware result](runs/QUAL-002-2026-09-08-01-23-44Z/hardware-result.md)
-records the exact candidate, operator-corrected installation and three cold
-boots. That run used r01 with a documented deviation; it is not retrospectively
-renamed as an r02 run. The r02 combined installation script has not itself been
-rerun on hardware. Preserve future results in a `runs/<QUAL-002-UTC-timestamp>/`
-directory beside this sheet.
+The Author accepted the first graphical emulator pass and authorized the
+reviewed source checkpoint on 2026-09-07. Its exact image and results are in
+QUAL-002. The Author subsequently reported the mode-3 stock hardware smoke
+passed and approved the candidate freeze and MOS-only flash preparation.
 
 The eZ80 runs EMOS in Legacy. Its UART0 talks to the unchanged onboard VDP;
 the onboard VDP supplies PB1 VSync. The ordinary SD program uses `mos_fopen`,
@@ -145,18 +139,12 @@ the finite polling limit is a stalled-clock escape, not a calibrated timer.
 5. On the workstation, require `/EMNEW.BIN` and `/EMDONE.BIN` both to be absent;
    preserve/conflict-resolve existing files before proceeding. Copy the exact
    frozen firmware as `/EMNEW.BIN`, verify its hash after copying, and write
-   this two-line CRLF `/autoexec.txt`, executed from the card root:
+   this two-line CRLF `/autoexec.txt`:
 
    ```text
    RENAME /EMNEW.BIN /EMDONE.BIN
-   FLASH mos EMDONE.BIN -f
+   FLASH MOS /EMDONE.BIN -f
    ```
-
-   The flasher matches `mos` case-sensitively; uppercase `MOS` is invalid.
-   The bare filename is the operator-confirmed form from the root directory.
-   Removing the leading slash was not independently proved necessary. Keep
-   the rename line: the successful operator retry used an unguarded one-line
-   script, which is evidence of that retry, not a reusable boot script.
 
 6. Sync/unmount before the operator inserts the card and powers on. Observe
    the flash utility's `Checking CRC... OK`, `Done` and automatic reset.

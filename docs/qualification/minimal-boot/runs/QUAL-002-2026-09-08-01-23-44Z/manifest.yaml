@@ -1,0 +1,219 @@
+schema_version: 1
+run:
+  run_id: QUAL-002-2026-09-08-01-23-44Z
+  task_id: QUAL-002
+  started_at: '2026-09-08T01:23:44Z'
+  ended_at: '2026-09-08T01:52:42Z'
+  outcome: pass
+  summary: 'Ordinary Legacy hardware boot smoke passed: Author reports the pictured result on three cold
+    restarts and confirms successful flash. Photograph shows the exact candidate identity, SD/CLOCK/final
+    PASS, Legacy/inactive EDU and prompt return. Installation deviation and observation limits retained;
+    artifact status remains candidate.'
+  end_time_basis: Evidence record closed after operator report; individual physical boot times were not
+    supplied.
+procedure:
+  artifact_id: emos-ordinary-boot
+  identity: emos-ordinary-boot-r01
+  commit: e8fd3797e18f77ab2e35d8e66176098af1f668d9
+  deviations:
+  - recorded_at: '2026-09-08T01:43:03Z'
+    description: 'Original FLASH MOS argument is invalid: upstream v1.9 matches lowercase mos case-sensitively
+      and rejects uppercase before flashing. Author used FLASH mos EMDONE.BIN -f and reported success.
+      Remounted autoexec contains that one command without the rename guard; slash removal is not independently
+      established as necessary.'
+    evidence: operator-flash-autoexec.txt
+    firmware_changed: false
+    qualification_disposition: Supports the unchanged candidate ordinary runtime smoke result. Does not
+      validate the original installation command or automatically promote artifact status; procedure correction
+      remains for closeout.
+artifacts_under_test:
+- artifact_id: agon-emos
+  identity: agon-emos-v0.2.0
+  build_id: agon-emos-v0.2.0-b2026-09-08-01-20-50Z
+  status: candidate
+  variant: null
+  sha256: 076a9c359591b1beecf4716b9dc41648b8cf3122bf6fd4a1b6dbe56e187c44ba
+provenance:
+  source_commit: e8fd3797e18f77ab2e35d8e66176098af1f668d9
+  source_dirty: false
+  builder_commit: b0ed60f39e103a1d697094356aa0b4a2ca1909e5
+  builder_dirty: false
+  registry_commit: 5cf9c018b7ad0305f05b6f42b1685d1e7f2e4f30
+  registry_revision: r22
+base_hardware:
+- role: target
+  manufacturer: Olimex
+  model: Agon Light 2
+  manufacturer_revision: null
+  specimen_alias: null
+external_dependencies:
+- name: agon-flash
+  identity: v1.9
+  role: MOS-only updater
+  commit: e670b5bd910dfe372c29aa9e896e6c24cc8530ec
+  sha256: 480b476703b798cf8d93294cac42d77cad93f7747003b061520b86685c75eb57
+- name: Agon Platform MOS
+  identity: v3.0.2
+  role: retained stock recovery payload
+  sha256: d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae
+- name: onboard VDP
+  identity: null
+  role: unchanged UART0 display and PB1 VSync source; exact physical version observation pending
+preparation:
+  stock_smoke: pass_by_author_report
+  candidate_checks: pass
+  final_uart_divisor: 1
+  card_files:
+    EMNEW.BIN:
+      size_bytes: 116556
+      sha256: 076a9c359591b1beecf4716b9dc41648b8cf3122bf6fd4a1b6dbe56e187c44ba
+    autoexec.txt:
+      size_bytes: 57
+      sha256: 4addc50265a428ec25900a46730c50efd5bad9c90c5478c75414e22c43cb56b4
+  backup_record: Local build/media-backups/2026-09-08-01-11-58Z/; private mount/device details omitted.
+  synced_at: '2026-09-08T01:23:44Z'
+  unmounted_at: '2026-09-08T01:25:08Z'
+  boot_overrides_absent: true
+  consumed_payload_absent_before_handover: true
+  ordinary_smoke_on_card: Preserved earlier stock-smoke bytes; candidate smoke is staged after successful
+    installation.
+  smoke_handover:
+    started_at: '2026-09-08T01:40:42Z'
+    files:
+      bin/EMBOOT.BIN:
+        size_bytes: 1783
+        sha256: db5d1b8b1bdb2c99738d8eb2fc193ab682272115aac0f29ac7662e4353e1b058
+      autoexec.txt:
+        size_bytes: 63
+        sha256: f93eb392975dada1cc90a6626422dd5b42e33a21d354366fc0ea2ec8a7b73c7f
+    backup_record: Local build/media-backups/2026-09-08-01-40-42Z/; private mount/device details omitted.
+    preserved_payload_sha256: 076a9c359591b1beecf4716b9dc41648b8cf3122bf6fd4a1b6dbe56e187c44ba
+    observed_operator_autoexec_sha256: 9b151308b812b3fcce13dd0d2a7dab7ac196ceca741f652742c9e9f5faaf38be
+    synced_at: '2026-09-08T01:40:42Z'
+    unmounted_at: '2026-09-08T01:43:03Z'
+    flash_command_removed: true
+physical_observations:
+  harness_isolated: null
+  previous_mos_identity: null
+  onboard_vdp_identity: null
+  programmed_flash_crc_ok: true
+  flash_done_and_reset: null
+  one_shot_stop_observed: null
+  boots:
+  - boot: 1
+    identity_correct: true
+    sd_pass: true
+    clock_pass: true
+    legacy_inactive_edu: true
+    prompt_within_limit: null
+    evidence: 'hardware-result.md: Author reports the pictured result on all three cold boots; the single
+      photograph is not assigned to an individual boot.'
+    final_pass: true
+    prompt_returned: true
+  - boot: 2
+    identity_correct: true
+    sd_pass: true
+    clock_pass: true
+    legacy_inactive_edu: true
+    prompt_within_limit: null
+    evidence: 'hardware-result.md: Author reports the pictured result on all three cold boots; the single
+      photograph is not assigned to an individual boot.'
+    final_pass: true
+    prompt_returned: true
+  - boot: 3
+    identity_correct: true
+    sd_pass: true
+    clock_pass: true
+    legacy_inactive_edu: true
+    prompt_within_limit: null
+    evidence: 'hardware-result.md: Author reports the pictured result on all three cold boots; the single
+      photograph is not assigned to an individual boot.'
+    final_pass: true
+    prompt_returned: true
+  operator_flash_success_reported: true
+  operator_flash_report: i think it wanted mos in lowercase. i also elimiated the leading / from the filename,
+    and that worked.
+  flash_evidence_basis: Author confirmed successful original flash in response to the CRC OK/Done/automatic
+    reset request. The unmodified updater checks programmed-flash CRC before success. No separate flasher
+    transcript or numeric CRC was supplied; the automatic-reset observation is not individually documented.
+  cold_boot_report: as far as i can tell this was the result of all three cold restarts. and yes, the
+    original flash was successful.
+  reported_cold_boot_count: 3
+  conversation_photo:
+    local_filename: null
+    sha256: null
+    individual_boot_number: null
+    observations: Exact candidate identity in before/after status and smoke banner; SD PASS, CLOCK PASS,
+      final PASS; Legacy, registry/generation 0, VDU route 0, inactive EDU, unavailable adapter, mode
+      generation 0; MOS prompt.
+    record: hardware-result.md
+compatibility_checked:
+  requirements: []
+  result: pass
+  scope: Ordinary Legacy boot, onboard-VDP text output, automatic SD application, clock progress, unchanged
+    Legacy/inactive-EDU state and prompt return.
+raw_local_log_integrity:
+- filename: prepare.log
+  sha256: 5de9b19a4f19b684c3114cd7e0076f4ec56a5931c551bebe7b3c35a92403b0c2
+- filename: qualify.log
+  sha256: 898bcf13ac696b03b5e7c504ea79dcb4e39b2447f9bc4ba5d62ae91e89301d3f
+- filename: linked-check.log
+  sha256: 02173d86db32e85abe6d7d9cd149c364873df3ebc7c6b1af81cdee3ce2652d57
+- filename: smoke-build.log
+  sha256: 20fbf8603e44e18c033a09df41eb9d3bc0326b51e5476e616c20d926a3f8f01a
+- filename: emos-runtime.log
+  sha256: 58a87b3b08e59a9bedb3a9b1dca779b1fddeb9341c2fc3d1533a541046630c81
+evidence:
+- filename: automated-checks.txt
+  media_type: text/plain
+  size_bytes: 1798
+  sha256: 9b4eb9793c30a2f7c793bf6a95293fa2582bf730809a9f0d7c086c4029615db5
+- filename: build-manifest.yaml
+  media_type: application/yaml
+  size_bytes: 28480
+  sha256: f66b2de2eeab3160bdfd6f11c596d5e4deb540698042c6f230fbbe0554ce01d3
+- filename: emos-bad-sd.txt
+  media_type: text/plain
+  size_bytes: 748
+  sha256: 0258254b0ecf10421b9c07a3ebc7c516a5e1e49c2e86812b06bf6345a5271635
+- filename: emos-smoke.txt
+  media_type: text/plain
+  size_bytes: 936
+  sha256: 20053ce265b5af4a353182e0287891dbc1164b1bb7fbccfb623c147727321550
+- filename: install-autoexec.txt
+  media_type: text/plain
+  size_bytes: 57
+  sha256: 4addc50265a428ec25900a46730c50efd5bad9c90c5478c75414e22c43cb56b4
+- filename: stock-bad-sd.txt
+  media_type: text/plain
+  size_bytes: 446
+  sha256: 7ccecab2746eb16c128553947d7998c3eb2594caf01410818090d0481973df70
+- filename: stock-smoke.txt
+  media_type: text/plain
+  size_bytes: 428
+  sha256: ed641d162bae5d5737be8996472066d771791911d09775effa61d5a373050171
+- filename: operator-flash-autoexec.txt
+  media_type: text/plain
+  size_bytes: 25
+  sha256: 9b151308b812b3fcce13dd0d2a7dab7ac196ceca741f652742c9e9f5faaf38be
+- filename: smoke-autoexec.txt
+  media_type: text/plain
+  size_bytes: 63
+  sha256: f93eb392975dada1cc90a6626422dd5b42e33a21d354366fc0ea2ec8a7b73c7f
+- filename: hardware-result.md
+  media_type: text/markdown
+  size_bytes: 3212
+  sha256: 1960255701303cc65c6d830be491bc81f65de3f92d4e67f4cb1565e1b0440d3f
+  description: Author report and manual observation of conversation photo; this is not the raw photograph.
+corrections:
+- recorded_at: '2026-09-08T01:43:03Z'
+  description: Source review confirms the agent-supplied uppercase MOS flash argument was wrong. Original
+    procedure and staged-script bytes remain preserved; corrected operator invocation is a documented
+    run deviation. No specific CRC/reset observation is inferred from reported success.
+observation_limits:
+- One conversation photograph and operator report for three boots; raw photo bytes unavailable locally.
+- Exact installed VDP identity and physical GPIO-ribbon isolation were not shown in this photo.
+- No individual boot timestamps, measured startup duration or 60 Hz timing measurement supplied.
+- Original installation script had an invalid uppercase MOS argument; corrected operator invocation is
+  preserved as a deviation.
+- No UART1/P4, parallel, Exclusive Compatible or full MOS compatibility claim.

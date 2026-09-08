@@ -1,0 +1,23 @@
+Extracted verbatim check-result lines. Full logs remain in the local build bundle.
+
+qualify.log:
+Ran 133 tests in 5.599s
+Ran 17 tests in 0.026s
+EMOS UART baud contract: clock=18432000 baud=1152000 divisor=1; UART0/UART1 use linked 32-bit multiply and divide
+EMOS production parallel linked-image entry points and instruction shapes verified, including semantic dispatch, bounded-block argument/epilogue, and UART1-guard reachability; object origin, target execution, and electrical behavior are not claimed
+Custom MOS boot verified: shell banner, hostfs mount, and directory command (1538 output bytes)
+MOS shell parity verified: command/help parsing, variables, RTC, credits, curated hostfs traversal/TYPE bytes, and error handling
+Ran 2 tests in 0.002s
+EMOS ABI verified: MOS API 0x51, guarded UART1 slot 0x08, and resident Core slot 0x20 are fixed
+EMOS VDU verified: RST 10/C putch use byte dispatch, RST 18 uses bounded block dispatch, and each parallel branch reaches only the production route bridge
+Ran 66 tests in 0.632s
+
+linked-check.log:
+EMOS ABI verified: MOS API 0x51, guarded UART1 slot 0x08, and resident Core slot 0x20 are fixed
+EMOS VDU verified: RST 10/C putch use byte dispatch, RST 18 uses bounded block dispatch, and each parallel branch reaches only the production route bridge
+EMOS UART baud contract: clock=18432000 baud=1152000 divisor=1; UART0/UART1 use linked 32-bit multiply and divide
+EMOS production parallel linked-image entry points and instruction shapes verified, including semantic dispatch, bounded-block argument/epilogue, and UART1-guard reachability; object origin, target execution, and electrical behavior are not claimed
+
+emos-runtime.log:
+EMOS target runtime verified: discovery, star/service providers, fake Dual, and Legacy recovery (1583 output bytes)
+

@@ -5,9 +5,10 @@
 - Status: In progress — the UART divisor correction is committed in canonical
   EMOS commit `0e24b06abdb322fdb4e681a21242ccfebfc8ea65`; its earlier dirty-source
   physical boot/smoke check against official VDP v2.16.0 passed. The former
-  v0.1.0/fixed-forward predecessor is rejected. QUAL-002 now prepares
-  the approved v0.2.0 ordinary boot identity at draft status; a clean frozen
-  candidate and full physical qualification remain pending.
+  v0.1.0/fixed-forward predecessor is rejected. QUAL-002's clean v0.2.0
+  candidate has now passed its ordinary hardware smoke on three cold boots,
+  supported by the Author's photograph and report. Its installation-command
+  deviation is recorded; full physical qualification remains pending.
 - Started: 2026-08-31 18:32 EDT
 - Finished: --
 
@@ -21,6 +22,11 @@ The Author's next small deployment milestone is tracked separately in
 [QUAL-002](QUAL-002.md): a recoverable Legacy-mode EMOS boot and automatic
 stock-compatible smoke test. Its bounded result may supply boot evidence here,
 but does not complete this broader procedure or resume Extender transports.
+
+The [ordinary boot result](../qualification/minimal-boot/runs/QUAL-002-2026-09-08-01-23-44Z/hardware-result.md)
+identifies `agon-emos-v0.2.0-b2026-09-08-01-20-50Z`. It provides bounded
+physical boot, SD-program, clock-progress and Legacy-state evidence, with
+explicit observation limits. It does not close this task's remaining gates.
 
 ## Dependencies and gates
 
