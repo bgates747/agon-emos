@@ -296,6 +296,15 @@ static int emos_validate_file(const char *path, t_emosRegistryEntry *entry) {
 	return FR_OK;
 }
 
+static void emos_print_identity(void) {
+	printf("EMOS identity: %s, build %s, status %s\r\n",
+		EMOS_SOURCE_IDENTITY, EMOS_BUILD_ID, EMOS_ARTIFACT_STATUS);
+	#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
+	printf("EMOS qualification composition: %s (non-release)\r\n",
+		EMOS_QUALIFICATION_COMPOSITION_IDENTITY);
+	#endif
+}
+
 void emos_init(void) {
 	memset(&emosRegistry, 0, sizeof(emosRegistry));
 	emosBusy = FALSE;
@@ -311,6 +320,9 @@ void emos_init(void) {
 	/* No application survives a cold boot, so an interrupted prior session's
 	 * private preservation file cannot describe live module-area ownership. */
 	f_unlink(EMOS_SWAP_PATH);
+	/* main calls this after onboard VDP startup and SD mount. Expose the same
+	 * product/build identity as EMOS STATUS without requiring a boot script. */
+	emos_print_identity();
 }
 
 int emos_discover(void) {
@@ -817,12 +829,7 @@ int emos_cmd(char *args) {
 	char *operation;
 	int result = extractString(args, &args, NULL, &operation, EXTRACT_FLAG_AUTO_TERMINATE);
 	if (result == FR_INVALID_PARAMETER) {
-		printf("EMOS identity: %s, build %s, status %s\r\n",
-			EMOS_SOURCE_IDENTITY, EMOS_BUILD_ID, EMOS_ARTIFACT_STATUS);
-		#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
-		printf("EMOS qualification composition: %s (non-release)\r\n",
-			EMOS_QUALIFICATION_COMPOSITION_IDENTITY);
-		#endif
+		emos_print_identity();
 		printf("EMOS v1: %s, registry %d, generation %d\r\n",
 			emos_mode_name(emosModeState.mode), emosRegistry.count, emosRegistry.generation);
 		return FR_OK;
@@ -836,12 +843,7 @@ int emos_cmd(char *args) {
 	if (strcasecmp(operation, "clear") == 0) return emos_clear();
 	if (strcasecmp(operation, "status") == 0) {
 		BYTE index;
-		printf("EMOS identity: %s, build %s, status %s\r\n",
-			EMOS_SOURCE_IDENTITY, EMOS_BUILD_ID, EMOS_ARTIFACT_STATUS);
-		#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
-		printf("EMOS qualification composition: %s (non-release)\r\n",
-			EMOS_QUALIFICATION_COMPOSITION_IDENTITY);
-		#endif
+		emos_print_identity();
 		printf("EMOS v1: %s, registry %d, generation %d\r\n",
 			emos_mode_name(emosModeState.mode), emosRegistry.count, emosRegistry.generation);
 		printf("  VDU route %d, EDU %s, adapter %s, mode generation %d\r\n",

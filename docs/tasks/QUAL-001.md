@@ -5,8 +5,8 @@
 - Status: In progress — the UART divisor correction is committed in canonical
   EMOS commit `0e24b06abdb322fdb4e681a21242ccfebfc8ea65`; its earlier dirty-source
   physical boot/smoke check against official VDP v2.16.0 passed. The former
-  v0.1.0/fixed-forward predecessor is rejected. Current production-integration
-  work is deliberately `UNVERSIONED-DO-NOT-DEPLOY`; a clean identified
+  v0.1.0/fixed-forward predecessor is rejected. QUAL-002 now prepares
+  the approved v0.2.0 ordinary boot identity at draft status; a clean frozen
   candidate and full physical qualification remain pending.
 - Started: 2026-08-31 18:32 EDT
 - Finished: --
@@ -16,6 +16,11 @@
 Execute the recoverable, Author-operated physical qualification defined in
 `docs/port-203-hardware.md` against a committed EMOS candidate and preserve a
 hash-bound capture. Emulator success does not satisfy this task.
+
+The Author's next small deployment milestone is tracked separately in
+[QUAL-002](QUAL-002.md): a recoverable Legacy-mode EMOS boot and automatic
+stock-compatible smoke test. Its bounded result may supply boot evidence here,
+but does not complete this broader procedure or resume Extender transports.
 
 ## Dependencies and gates
 
@@ -135,10 +140,9 @@ where the original execution record is no longer current.
 6. At the time of this execution, the correction was uncommitted and the
    scratch image was unversioned. The correction was subsequently committed in
    canonical EMOS commit `0e24b06abdb322fdb4e681a21242ccfebfc8ea65`; the
-   scratch image was never promoted into an identified candidate. The current
-   production-integration work is deliberately `UNVERSIONED-DO-NOT-DEPLOY`, so
-   a clean-source build with a reviewed identity remains required before formal
-   candidate qualification.
+   scratch image was never promoted into an identified candidate. QUAL-002
+   subsequently established the approved v0.2.0 draft identity.
+   A clean-source frozen build remains required before formal qualification.
 7. Authorized `agon-extender` run `PORT-008-2026-08-31-23-11-18Z` used the P4
    as a temporary external ZDI programmer. It uploaded the exact 114,069-byte
    scratch image, executed the upstream `agon-recovery` flash agent, received

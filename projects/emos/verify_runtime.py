@@ -5,10 +5,13 @@ from __future__ import annotations
 
 import argparse
 from collections import Counter
+import hashlib
 import os
 from pathlib import Path
 import subprocess
 from typing import TypeAlias
+
+import yaml
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -42,10 +45,11 @@ COMMANDS = b"\n".join(COMMAND_LINES) + b"\n"
 COMMAND_FILE = b"\r\n".join(COMMAND_LINES) + b"\r\n"
 EXPECTED_SEQUENCE = (
     b"Agon Platform MOS Version 3.0.2 Arthur",
+    b"{identity}",
     b"/ *EMOS DISCOVER",
     b"EMOS: discovered 3 provider(s)",
     b"/ *EMOS STATUS",
-    b"EMOS identity: UNVERSIONED-DO-NOT-DEPLOY, build UNVERSIONED-DO-NOT-DEPLOY, status UNVERSIONED-DO-NOT-DEPLOY",
+    b"{identity}",
     b"EMOS v1: Legacy, registry 3, generation 1",
     b"VDU route 0, EDU inactive, adapter unavailable, mode generation 0",
     b"hello 1.0.0 /emos/modules/hello.emo",
@@ -60,11 +64,13 @@ EXPECTED_SEQUENCE = (
     b"/ *EMOS FAKE ON",
     b"/ *EMOS MODE DUAL",
     b"/ *EMOS STATUS",
+    b"{identity}",
     b"EMOS v1: Dual, registry 3, generation 1",
     b"VDU route 0, EDU active, adapter fake, mode generation 1",
     b"/ *EMOS MODE LEGACY",
     b"/ *EMOS FAKE OFF",
     b"/ *EMOS STATUS",
+    b"{identity}",
     b"EMOS v1: Legacy, registry 3, generation 1",
     b"VDU route 0, EDU inactive, adapter unavailable, mode generation 2",
 )
@@ -121,7 +127,19 @@ def snapshot_media(sdcard: Path) -> dict[str, SnapshotEntry]:
     return snapshot
 
 
-def validate_output(output: bytes) -> None:
+def identity_from_manifest(manifest: Path, firmware: Path) -> bytes:
+    record = yaml.safe_load(manifest.read_text())
+    build = record["build"]
+    matches = [item for item in record["outputs"] if item["filename"] == firmware.name]
+    if len(matches) != 1 or matches[0]["sha256"] != hashlib.sha256(firmware.read_bytes()).hexdigest():
+        raise EmosRuntimeError("firmware does not match the build manifest")
+    return (
+        f"EMOS identity: {build['source_identity']}, build {build['build_id']}, "
+        f"status {build['status']}"
+    ).encode("ascii")
+
+
+def validate_output(output: bytes, identity: bytes) -> None:
     if not output:
         raise EmosRuntimeError("Fab produced no EMOS runtime output")
     if len(output) > MAX_OUTPUT_BYTES:
@@ -150,6 +168,8 @@ def validate_output(output: bytes) -> None:
 
     cursor = 0
     for token in EXPECTED_SEQUENCE:
+        if token == b"{identity}":
+            token = identity
         try:
             cursor = lines.index(token, cursor) + 1
         except ValueError as error:
@@ -158,7 +178,7 @@ def validate_output(output: bytes) -> None:
             ) from error
 
 
-def verify(cli: Path, firmware: Path, sdcard: Path, timeout: float) -> bytes:
+def verify(cli: Path, firmware: Path, sdcard: Path, timeout: float, identity: bytes) -> bytes:
     if timeout <= 0:
         raise EmosRuntimeError("timeout must be positive")
     if not cli.is_file() or not os.access(cli, os.X_OK):
@@ -187,7 +207,7 @@ def verify(cli: Path, firmware: Path, sdcard: Path, timeout: float) -> bytes:
         raise EmosRuntimeError(f"EMOS runtime exceeded {timeout:g} seconds") from error
     if completed.returncode != 0:
         raise EmosRuntimeError(f"Fab exited with status {completed.returncode}")
-    validate_output(completed.stdout)
+    validate_output(completed.stdout, identity)
     after = snapshot_media(sdcard)
     if after != before:
         raise EmosRuntimeError("EMOS valid media changed during the runtime check")
@@ -200,6 +220,7 @@ def main() -> int:
     parser.add_argument("--firmware", type=Path, default=DEFAULT_FIRMWARE)
     parser.add_argument("--sdcard", type=Path, default=DEFAULT_SDCARD)
     parser.add_argument("--timeout", type=float, default=30.0)
+    parser.add_argument("--manifest", type=Path, required=True)
     arguments = parser.parse_args()
     try:
         cli = find_cli(arguments.fab_root.expanduser().resolve())
@@ -208,6 +229,7 @@ def main() -> int:
             arguments.firmware.expanduser().resolve(),
             arguments.sdcard.expanduser().resolve(),
             arguments.timeout,
+            identity_from_manifest(arguments.manifest, arguments.firmware),
         )
     except (OSError, EmosRuntimeError) as error:
         print(f"verify_runtime.py: {error}", file=os.sys.stderr)

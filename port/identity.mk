@@ -1,12 +1,14 @@
-# Human-readable identity for ordinary development builds.  The former
-# agon-emos-v0.1.0 candidate names the rejected/superseded PORT-008 predecessor
-# and must not be silently applied to the current production integration.
-# Until the Author approves a new source identity, every ordinary build remains
-# visibly unidentified and non-deployable.
+# Author-approved developmental identity (QUAL-002). The v0.1.0 predecessor
+# remains rejected. Draft builds are for review, not physical deployment.
 EMOS_PROFILE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-EMOS_SOURCE_IDENTITY := UNVERSIONED-DO-NOT-DEPLOY
-EMOS_ARTIFACT_STATUS := UNVERSIONED-DO-NOT-DEPLOY
-EMOS_BUILD_ID ?= UNVERSIONED-DO-NOT-DEPLOY
+EMOS_SOURCE_IDENTITY := agon-emos-v0.2.0
+EMOS_ARTIFACT_STATUS := draft
+# Expand once and export so nested Make invocations retain the same build ID.
+# A reviewed build wrapper may supply an already recorded UTC identity.
+ifndef EMOS_BUILD_ID
+EMOS_BUILD_ID := $(EMOS_SOURCE_IDENTITY)-b$(shell date -u +%Y-%m-%d-%H-%M-%SZ)
+endif
+export EMOS_BUILD_ID
 
 # The qualification procedure/composition is independently revisioned. Only
 # the fixed profile consumes this value; ordinary EMOS builds must not carry

@@ -10,3 +10,7 @@ projects/port008-forward/build/
 emulator/
 toolchains/
 upstream/
+build/
+projects/boot-smoke/bin/
+projects/boot-smoke/obj/
+projects/boot-smoke/build/

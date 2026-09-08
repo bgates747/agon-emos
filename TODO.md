@@ -20,6 +20,12 @@ port-infrastructure work remains in `mos-agondev`.
 
 ## Hardware qualification
 
+- [ ] **QUAL-002 — Deploy a minimal, recoverable EMOS baseline**
+  - Status: W2 emulator pass accepted; checkpoint authorized; deployment-candidate freeze pending
+  - Started: 2026-09-07
+  - Finished: --
+  - Details: [QUAL-002](docs/tasks/QUAL-002.md)
+
 - [ ] **QUAL-001 — Qualify EMOS on physical Agon hardware**
   - Started: 2026-08-31 18:32 EDT
   - Finished: --

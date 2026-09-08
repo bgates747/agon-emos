@@ -1,5 +1,6 @@
 PYTHON ?= python3
 MOS_AGONDEV_ROOT ?= ../mos-agondev
+MOS_AGONDEV_PYTHON ?= $(MOS_AGONDEV_ROOT)/.venv/bin/python
 MOS_SOURCE ?= .
 MOS_WORKTREE ?= $(MOS_AGONDEV_ROOT)/projects/mos-port/worktree
 AGONDEV_TOOLCHAIN ?= $(MOS_AGONDEV_ROOT)/toolchains/agondev
@@ -61,6 +62,7 @@ parallel-linked-check:
 
 firmware-check:
 	$(MAKE) -C $(MOS_AGONDEV_ROOT) \
+		PYTHON="$(abspath $(MOS_AGONDEV_PYTHON))" \
 		TOOLCHAIN="$(abspath $(AGONDEV_TOOLCHAIN))" \
 		MOS_MAINTAINED_SOURCE="$(abspath $(MOS_SOURCE))" \
 		MOS_WORKTREE="$(abspath $(MOS_WORKTREE))" \
@@ -70,6 +72,7 @@ firmware-check:
 
 parallel-fixed-firmware-check:
 	$(MAKE) -C $(MOS_AGONDEV_ROOT) \
+		PYTHON="$(abspath $(MOS_AGONDEV_PYTHON))" \
 		TOOLCHAIN="$(abspath $(AGONDEV_TOOLCHAIN))" \
 		MOS_MAINTAINED_SOURCE="$(abspath $(MOS_SOURCE))" \
 		MOS_WORKTREE="$(abspath $(MOS_WORKTREE))" \
@@ -83,6 +86,7 @@ port008-fixture:
 
 qualify:
 	$(MAKE) -C $(MOS_AGONDEV_ROOT) \
+		PYTHON="$(abspath $(MOS_AGONDEV_PYTHON))" \
 		TOOLCHAIN="$(abspath $(AGONDEV_TOOLCHAIN))" \
 		MOS_MAINTAINED_SOURCE="$(abspath $(MOS_SOURCE))" \
 		MOS_WORKTREE="$(abspath $(MOS_WORKTREE))" \
