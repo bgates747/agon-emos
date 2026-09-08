@@ -4,5 +4,6 @@
 /* Explicit Core diagnostics, not public register or application transport interfaces. */
 int emos_uart_probe(void);
 int emos_general_poll(void);
+int emos_visible_text(void);
 
 #endif

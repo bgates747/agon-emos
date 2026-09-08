@@ -313,9 +313,19 @@ def verify_source(source: Path) -> None:
         if branch.count(call) != 1 or "emosModeState.mode != EMOS_MODE_LEGACY" not in branch:
             raise ParallelError("General Poll diagnostic lost its Core/Legacy guard")
         checked_core = core[:poll_branch.start()] + branch.replace(call, "") + core[poll_branch.end():]
+    text_branch = re.search(
+        r'if \(strcasecmp\(operation, "vdptext"\) == 0\) \{(.*?)'
+        r'(?=if \(strcasecmp\(operation, "vdppoll"\))', checked_core, re.DOTALL)
+    if text_branch:
+        branch = text_branch.group(0)
+        call = "return emos_visible_text() ? FR_OK : FR_TIMEOUT;"
+        if branch.count(call) != 1 or "emosModeState.mode != EMOS_MODE_LEGACY" not in branch:
+            raise ParallelError("Visible text diagnostic lost its Core/Legacy guard")
+        checked_core = checked_core[:text_branch.start()] + branch.replace(call, "") + checked_core[text_branch.end():]
     for forbidden in (
         "EMOS_PORT008_FORWARD",
         "general_poll",
+        "visible_text",
         "PORT008_",
         "_port008_",
         "_emos_port008_",

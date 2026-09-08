@@ -164,3 +164,60 @@ int emos_general_poll(void) {
     printf("VDP POLL PASS: reply 80 01 A5 - returning to MOS\r\n");
     return 1;
 }
+
+/* INTEG-008: one fixed text/flush/poll stream. Only EMOS owns this UART
+ * diagnostic; parser completion and browser-visible text are separate gates.
+ * No mode-switch command is sent. The onboard UART0 console stays active.
+ */
+int emos_visible_text(void) {
+    static const BYTE poll[] = {12, 31, 2, 2, 69, 77, 79, 83, 32, 84, 79, 32, 69, 68, 80, 58, 32, 85, 65, 82, 84, 32, 84, 69, 88, 84, 13, 10, 23, 0, 202, 23, 0, 128, 166};
+    static const BYTE expected[] = {0x80, 1, 0xA6};
+    UART settings = {1152000, 8, 1, 0, FCTL_HW, 0};
+    ProbeClock clock;
+    BYTE sent = 0, received = 0, value, status;
+    UINT16 complete_at = 0;
+    const char *failure = NULL;
+    if (serialFlags & 0x10) {
+        printf("VDP TEXT FAIL: UART1 is already in use\r\n");
+        return 0;
+    }
+    if (open_UART1(&settings) != UART_ERR_NONE) {
+        printf("VDP TEXT FAIL: EMOS could not open UART1\r\n");
+        return 0;
+    }
+    if (uart1_claim_rts() != UART_POLL_READY) {
+        failure = "PC2 RTS is unavailable"; goto done;
+    }
+    printf("VDP TEXT: 1152000 baud; sending text for the browser...\r\n");
+    if (uart1_receive_ready(1) != UART_POLL_READY) {
+        failure = "RTS unavailable"; goto done;
+    }
+    clock_start(&clock);
+    while (sent < sizeof(poll)) {
+        if (!clock_step(&clock)) { failure = "MOS clock stalled"; goto done; }
+        if (clock.elapsed >= TX_CLOCK_LIMIT) { failure = "transmit timeout"; goto done; }
+        status = uart1_try_put(poll[sent]);
+        if (status == UART_POLL_READY) ++sent;
+        else if (status != UART_POLL_EMPTY && status != UART_POLL_BLOCKED) { failure = "UART transmit unavailable"; goto done; }
+    }
+    clock_start(&clock);
+    for (;;) {
+        if (!clock_step(&clock)) { failure = "MOS clock stalled"; break; }
+        if (clock.elapsed >= RX_CLOCK_LIMIT) {
+            failure = received ? "incomplete reply or quiet interval" : "no reply from EDP";
+            break;
+        }
+        status = uart1_try_get(&value);
+        if (status == UART_POLL_READY) {
+            if (received == sizeof(expected)) { failure = "extra reply bytes"; break; }
+            if (value != expected[received]) { failure = "wrong text completion reply"; break; }
+            if (++received == sizeof(expected)) complete_at = clock.elapsed;
+        } else if (status != UART_POLL_EMPTY) { failure = "UART receive error"; break; }
+        if (received == sizeof(expected) && clock.elapsed - complete_at >= QUIET_CLOCK_UNITS) break;
+    }
+ done:
+    close_UART1();
+    if (failure) { printf("VDP TEXT FAIL: %s\r\n", failure); return 0; }
+    printf("VDP TEXT PASS: parser ACK - confirm browser text; returning to MOS\r\n");
+    return 1;
+}

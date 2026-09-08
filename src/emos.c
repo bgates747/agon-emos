@@ -837,6 +837,15 @@ int emos_cmd(char *args) {
 		return FR_OK;
 	}
 	if (result != FR_OK) return result;
+    if (strcasecmp(operation, "vdptext") == 0) {
+        if (args && *args) return FR_INVALID_PARAMETER;
+        if (emosModeState.mode != EMOS_MODE_LEGACY) {
+            printf("VDP TEXT FAIL: EMOS must be in Legacy\r\n");
+            return FR_INVALID_PARAMETER;
+        }
+        emos_print_identity();
+        return emos_visible_text() ? FR_OK : FR_TIMEOUT;
+    }
     if (strcasecmp(operation, "vdppoll") == 0) {
         if (args && *args) return FR_INVALID_PARAMETER;
         if (emosModeState.mode != EMOS_MODE_LEGACY) {

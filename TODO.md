@@ -6,6 +6,10 @@ port-infrastructure work remains in `mos-agondev`.
 
 ## Extender integration
 
+- [ ] **INTEG-008 — EMOS-owned visible-text diagnostic**
+  - Started: 2026-09-08
+  - Details: [INTEG-008](docs/tasks/INTEG-008.md)
+
 - [ ] **INTEG-002 — Implement the production forward-parallel data plane**
   - Started: 2026-09-01
   - Finished: --
