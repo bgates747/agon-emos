@@ -1,6 +1,6 @@
 # INTEG-007 — EMOS-owned General Poll diagnostic
 
-Status: active; clean candidate prepared, hardware installation pending. Started: 2026-09-08.
+Status: active; EMOS installed, paired hardware test pending. Started: 2026-09-08.
 Coordinator: [PORT-013](../../../agon-extender/docs/tasks/PORT-013.md).
 
 Author-approved v0.6.0 adds Legacy-only EMOS VDPPOLL at 1152000/8N1 with
@@ -75,3 +75,8 @@ build manifest and verified installer media. SD is safely unmounted; working
 v0.5.0 is retained as EMPREV.BIN and off-card. Author-observed installation,
 same-build smoke/VDPPOLL media handover and paired hardware testing remain
 pending. No physical General Poll result is inferred from emulator checks.
+
+The Author reported successful v0.6.0 installation. The consumed SD payload
+matches the candidate hash and EMNEW.BIN is absent. Coordinator record
+PORT-013-2026-09-08-18-06-37Z retains verified same-build smoke/VDPPOLL media
+preparation and safe unmount. The paired General Poll result remains pending.
