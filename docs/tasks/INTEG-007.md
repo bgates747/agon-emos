@@ -1,6 +1,6 @@
 # INTEG-007 — EMOS-owned General Poll diagnostic
 
-Status: active; reviewed candidate preparation. Started: 2026-09-08.
+Status: active; clean candidate prepared, hardware installation pending. Started: 2026-09-08.
 Coordinator: [PORT-013](../../../agon-extender/docs/tasks/PORT-013.md).
 
 Author-approved v0.6.0 adds Legacy-only EMOS VDPPOLL at 1152000/8N1 with
@@ -60,3 +60,18 @@ source freeze and clean candidate preparation. Promote v0.6.0 and the General
 Poll fixture lifecycle metadata to candidate with reviewed implementation
 unchanged. Commit before building and retain passing v0.5.0/flow-r02 rollback.
 Physical flashing remains subject to the recorded bench authorization boundary.
+
+## Clean candidate prepared — 2026-09-08
+
+Source freeze `e5d9921` with unchanged builder `cf24304` produced candidate
+`agon-emos-v0.6.0-b2026-09-08-17-50-12Z`. Full configured/linked/runtime
+checks, 71 host tests, stock/EMOS ordinary and bad-SD smoke, and the bounded
+no-peer General Poll check pass. The firmware is 120901 bytes, CRC32
+`642B19C0`, SHA256
+`89a71acdd5e4e076e74c0865ecf2c2cd1d9b2f69f00135992dba204742880123`.
+
+The coordinator's PORT-013-2026-09-08-17-55-37Z record retains the exact
+build manifest and verified installer media. SD is safely unmounted; working
+v0.5.0 is retained as EMPREV.BIN and off-card. Author-observed installation,
+same-build smoke/VDPPOLL media handover and paired hardware testing remain
+pending. No physical General Poll result is inferred from emulator checks.
