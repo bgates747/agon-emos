@@ -1,7 +1,7 @@
-# Author-approved v0.5.0 candidate for INTEG-006 target-baud flow qualification.
-# The passing v0.4.0 candidate remains the working rollback.
+# Author-approved v0.6.0 candidate for INTEG-007 General Poll qualification.
+# The passing v0.5.0 candidate remains the working rollback.
 EMOS_PROFILE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-EMOS_SOURCE_IDENTITY := agon-emos-v0.5.0
+EMOS_SOURCE_IDENTITY := agon-emos-v0.6.0
 EMOS_ARTIFACT_STATUS := candidate
 # Expand once and export so nested Make invocations retain the same build ID.
 # A reviewed build wrapper may supply an already recorded UTC identity.

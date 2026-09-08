@@ -299,6 +299,20 @@ def verify_source(source: Path) -> None:
     for status in ("0xE3", "0xE4", "0xE5", "0xE6", "0xE8"):
         if status not in header:
             raise ParallelError(f"missing lifecycle status {status}")
+    # INTEG-007 admits one explicit Legacy-only UART diagnostic in Core.
+    # Keep the predecessor-poll ban everywhere else, including every parallel
+    # source and any additional call from Core. Do not rename the diagnostic
+    # just to evade this ownership guard.
+    poll_branch = re.search(
+        r'if \(strcasecmp\(operation, "vdppoll"\) == 0\) \{(.*?)'
+        r'(?=if \(strcasecmp\(operation, "uartflow"\))', core, re.DOTALL)
+    checked_core = core
+    if poll_branch:
+        branch = poll_branch.group(0)
+        call = "return emos_general_poll() ? FR_OK : FR_TIMEOUT;"
+        if branch.count(call) != 1 or "emosModeState.mode != EMOS_MODE_LEGACY" not in branch:
+            raise ParallelError("General Poll diagnostic lost its Core/Legacy guard")
+        checked_core = core[:poll_branch.start()] + branch.replace(call, "") + core[poll_branch.end():]
     for forbidden in (
         "EMOS_PORT008_FORWARD",
         "general_poll",
@@ -307,7 +321,7 @@ def verify_source(source: Path) -> None:
         "_emos_port008_",
         "UNIT_TEST",
     ):
-        if forbidden in engine + binding + serial + core:
+        if forbidden in engine + binding + serial + checked_core:
             raise ParallelError(f"production data plane contains {forbidden}")
     if "volatile BYTE busy" not in header or "volatile BYTE firstFault" not in header:
         raise ParallelError("interrupt-visible engine state is not volatile")

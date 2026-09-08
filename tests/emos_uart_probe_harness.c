@@ -4,6 +4,8 @@
 #include "emos_uart_probe.h"
 
 volatile BYTE serialFlags;
+BYTE uart1_claim_rts(void) { assert(0); return UART_POLL_UNAVAILABLE; }
+BYTE uart1_receive_ready(BYTE ready) { (void)ready; assert(0); return UART_POLL_UNAVAILABLE; }
 static const char expected[] = "EMOS UART1 -> P4\r\n";
 static const char *response;
 static unsigned sent, reads, replies, opened, closed, ticks;
