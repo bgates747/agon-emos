@@ -79,3 +79,26 @@ flash and guarded reset, remount SD to select the accepted combined smoke and
 UART timeout script. Do not claim hardware success from media preparation.
 The current powered/seated-ribbon instruction overrides the isolation steps
 in the earlier ordinary-boot-only procedure; WROOM remains untouched.
+
+Candidate agon-emos-v0.3.0-b2026-09-08-04-04-00Z was built from clean
+EMOS daf6881 and builder cf24304 inputs. Full configured and exact-image
+ordinary/bad-SD/combined-no-peer checks pass. Extender records SD preparation
+in PORT-010-2026-09-08-04-07-39Z beside r03's design tests. The card is safely
+unmounted with the guarded installer and preserved v0.2.0 rollback payload;
+physical flash, smoke and UART observations remain pending.
+
+The Author reported a successful flash. The remounted SD's consumed payload
+matches the candidate. The workstation replaced the guarded installer with
+the checked combined smoke/UARTTEST media and safely unmounted SD. The next
+hardware observation must confirm SD/CLOCK PASS, bounded no-reply failure and
+prompt return. No code or build changed during this second handover.
+
+## Physical smoke and no-reply pass — 2026-09-08
+
+The Author supplied a physical Agon screenshot confirming candidate
+agon-emos-v0.3.0-b2026-09-08-04-04-00Z, SD/CLOCK PASS, expected no-reply
+failure and final prompt. The Extender
+[timeout record](../../../agon-extender/hardware/designs/light2-harness-r03/tests/PORT-010-2026-09-08-04-07-39Z/timeout-result.yaml)
+retains the observation and its limits: no measured elapsed time or archived
+photo file. The installed candidate requires no rebuild or SD change for the
+ACK test. Physical reply receipt remains pending the P4 acknowledgement image.
