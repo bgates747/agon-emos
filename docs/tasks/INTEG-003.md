@@ -1,6 +1,6 @@
 # INTEG-003 — Exercise the installed EMOS UART1 driver
 
-Status: caller and local checks complete; paired identity/freeze and hardware test pending.
+Status: complete — installed EMOS UART1 caller and exact P4 receipt passed.
 Started: 2026-09-07.
 Cross-component scope and bench gates: [PORT-009](../../../agon-extender/docs/tasks/PORT-009.md).
 
@@ -14,7 +14,7 @@ Cross-component scope and bench gates: [PORT-009](../../../agon-extender/docs/ta
 3. [x] Prepare keyboardless mode-3 autoexec with EMOS STATUS before/after. The
    initial EMOS STATUS also stops the script under stock MOS. Do not place a
    flash command on the card or rebuild the accepted EMOS firmware.
-4. [ ] Record the paired hardware test after identity/freeze/bench approval.
+4. [x] Record the paired hardware test after identity/freeze/bench approval.
 
 The official API and implementation contracts are summarized in PORT-009's
 bounded précis. This is a diagnostic client of EMOS's retained public UART
@@ -38,3 +38,30 @@ Review/remove this compensation when adopting a corrected upstream wrapper.
 The actual installed library and compiler hashes are in the paired manifest;
 the read-only AgonDev checkout was not patched. No EMOS firmware source or
 candidate image changed. No physical UART result is claimed.
+
+The Author approved fixture uart-forward-probe-r01 and deployment. The paired
+candidate `uart-forward-probe-r01-b2026-09-08-02-35-54Z` uses this repository's
+clean source commit `4baeb277b041783b5fa01f1c48487ac52a22b294`. The workstation
+backed up the previous SD autoexec and staged the exact sender plus the prepared
+mode-3 script, then verified, synced and unmounted the card. Extender records
+successful P4 flashing, independent verification and receiver WAIT. No EMOS
+flash occurred; the Agon sender and final Legacy observation remain pending.
+
+The Author subsequently requested a powered Agon hard-reset-button trigger,
+not a cold power cycle. The coordinating r02 host procedure pauses for Enter
+before P4 arming, then cues reset after a matching empty receiver WAIT. It
+allows 90 seconds after that cue, including the reported 2–3-second MOS boot.
+The existing r01 sender and installed EMOS remain unchanged. Uninformative
+miswiring captures were discarded at the Author's direction; passing evidence
+is retained by Extender.
+
+## Closeout — 2026-09-07
+
+The Author confirmed that the passing run reset and returned to the Legacy
+prompt, with the screen appearing identical to the earlier sender/SENT
+photograph and without stock MOS/VDP branding. Combined with independently
+verified exact receipt in PORT-009-2026-09-08-02-59-01Z, this completes the
+bounded test. The earlier pending-confirmation checkpoints above are historical.
+Removed this completed item from the authoritative TODO. No return-channel
+work, broader qualification, firmware reflash, commit or push follows from
+this confirmation.
