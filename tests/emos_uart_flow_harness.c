@@ -7,7 +7,7 @@ static unsigned mode, phase, ticks, phase_at, sent, received, closes;
 static unsigned owns_rts, ready_calls;
 BYTE emos_uart_flow_clock(void) { if (mode != 9) ticks += 2; return (BYTE)ticks; }
 BYTE open_UART1(UART *s) {
-    assert(s->baudRate == 115200 && s->flowControl == FCTL_HW && !s->interrupts);
+    assert(s->baudRate == 1152000 && s->flowControl == FCTL_HW && !s->interrupts);
     assert(!(serialFlags & 0x10)); serialFlags |= 0x30; return UART_ERR_NONE;
 }
 void close_UART1(void) { ++closes; serialFlags &= 0x0F; owns_rts = 0; }

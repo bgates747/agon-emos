@@ -1,4 +1,4 @@
-/* INTEG-005: explicit Legacy Core diagnostic for PORT-011's fixture contract.
+/* INTEG-006: explicit Legacy Core diagnostic for PORT-012's fixture contract.
  * EMOS owns UART1 and PC2 RTS; ordinary public MOS APIs remain unchanged.
  * Peer-driven waits use nonblocking driver operations, MOS clock deadlines
  * and a separate finite stalled-clock budget. Never switch video modes here.
@@ -50,7 +50,7 @@ static BYTE silence(UINT16 units) {
     return 0;
 }
 int emos_uart_flow(void) {
-    UART settings = {115200, 8, 1, 0, FCTL_HW, 0};
+    UART settings = {1152000, 8, 1, 0, FCTL_HW, 0};
     BYTE sent = 0, received = 0, value, status;
     UINT16 blocked_until = 0;
     failure = NULL;
@@ -63,7 +63,7 @@ int emos_uart_flow(void) {
     if (uart1_claim_rts() != UART_POLL_READY) {
         failure = "PC2 RTS is unavailable"; goto done;
     }
-    printf("UART FLOW: testing pause, resume and blocked timeouts...\r\n");
+    printf("UART FLOW: 1152000 baud; testing pause, resume and blocked timeouts...\r\n");
     if (!ready(1)) goto done; /* Start edge observed by P4 CTS; P4 still stops TX. */
     start();
     while (sent < sizeof(request) - 1 && step()) {
