@@ -63,3 +63,19 @@ clean rebuild and physical qualification remain pending.
 The approved source checkpoint retains v0.3.0 draft identity. It freezes
 the reviewed implementation; it does not relabel or deploy the existing
 dirty review binary. The source bytes match the graphical-review manifest.
+
+## Hardware candidate preparation — 2026-09-08
+
+The Author authorized preparing the mounted SD for the MOS-only installation,
+with both boards powered and the harness seated. Promote the reviewed v0.3.0
+source to candidate status, commit that metadata and build from clean EMOS
+and builder inputs. No executable source changes accompany the promotion.
+The installed receive-only P4 stays in place for the intentional no-reply test.
+
+Use the established two-line rename-before-flash pattern with lowercase mos
+and a bare payload filename. Preserve the existing v0.2.0 payload and boot
+script before staging. The first handover installs only EMOS; after successful
+flash and guarded reset, remount SD to select the accepted combined smoke and
+UART timeout script. Do not claim hardware success from media preparation.
+The current powered/seated-ribbon instruction overrides the isolation steps
+in the earlier ordinary-boot-only procedure; WROOM remains untouched.
