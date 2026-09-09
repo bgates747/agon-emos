@@ -375,3 +375,29 @@ explicit commit approval. The nineteen-stage fixture and peer sources still
 match the reviewed manifests. The reviewed EMOS/fixture builds retain their
 draft identities; clean physical candidates and the real P4 sender remain
 future work. Keep Work 4 unchecked for its remaining session/hardware scope.
+
+
+## Paired P4 sender increment (authorized, in progress)
+
+The coordinator's PORT-005 now implements the real P4 processed-key sender.
+This repository supplies `projects/keyboard-wire`, an ordinary autoexec-loaded
+program checking twelve controlled packets, callback/count effects, held-key
+map, modifiers/repeats and mainboard return. No foreground UART request drives
+individual keys. The program uses a finite ten-second input deadline and no
+interactive physical-keyboard setup. EMOS v0.1.8 is unchanged. Human emulator
+review, clean candidates and separate physical deployment/test gates precede
+any hardware qualification. This does not close broader Work 4/session scope.
+
+The Author approved `uart-keyboard-probe-r01` and registry r38 for this paired
+fixture. SD build `uart-keyboard-probe-r01-b2026-09-09-02-36-43Z`, SHA-256
+`95555d5a0dcb56cc983988724d6d5be98cfa740a93b8ab2ad85abb1b0ded515b`, passes
+the paired CLI event checks and subsequent mainboard command/prompt. A separate
+admitted-but-silent peer proves the SD program's ten-second timeout, callback
+removal and mainboard return. No EMOS firmware or runtime source changed.
+The peer bytes and their retained P4 host-test provenance are hash-bound in the
+review profile. The Author supplied the matching graphical screenshot showing
+SD/CLOCK PASS, both detailed keyboard PASS lines, restored mainboard input and
+final MOS prompt. This confirms the bounded emulator result; explicit source
+freeze and physical qualification remain pending.
+
+The Author accepted the graphical result and explicitly authorized freezing this bounded sender/observer checkpoint, then preparing the paired hardware test. Reviewed builds retain their original draft status; candidate packaging and physical qualification follow separately.

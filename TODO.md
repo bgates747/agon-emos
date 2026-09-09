@@ -9,7 +9,7 @@ port-infrastructure work remains in `mos-agondev`.
 - [ ] **INTEG-009 — Receive stock keyboard packets over UART1**
   - Started: 2026-09-08 19:18 EDT
   - Finished: --
-  - Status: Work 1/2 accepted and frozen; Work 3 accepted and frozen; bounded Work 4 emulator recovery accepted and frozen; P4 integration and physical/session qualification remain.
+  - Status: Work 1–3 and bounded Work 4 emulator recovery frozen; paired P4 SD observer graphical checkpoint frozen; physical/session qualification remains.
   - Details: [INTEG-009](docs/tasks/INTEG-009.md)
 
 ## Other Extender integration

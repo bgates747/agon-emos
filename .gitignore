@@ -20,3 +20,7 @@ projects/uart-forward/build/
 projects/keyboard-api/bin/
 projects/keyboard-api/obj/
 projects/keyboard-api/build/
+
+/projects/keyboard-wire/bin/
+/projects/keyboard-wire/obj/
+/projects/keyboard-wire/build/
