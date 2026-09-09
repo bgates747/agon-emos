@@ -37,10 +37,20 @@ def main():
     name = 'KBAPI' if args.fixture == 'api' else 'KBWIRE'
     peer_source = ROOT/('scripts/keyboard_'+args.fixture+'_peer.py')
     identity = (project/'identity.txt').read_text().strip()
+    status_path = project/'status.txt'
+    status = status_path.read_text().strip() if args.fixture == 'wire' else 'draft'
+    if status not in ('draft','candidate'):
+        raise ValueError('Unsupported fixture status')
+    source_commit = subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
+    source_dirty = bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT))
+    if status == 'candidate' and (source_dirty or record['build']['status'] != 'candidate'
+                                 or record['provenance']['dirty'] or record['provenance']['builder_dirty']):
+        raise ValueError('Candidate fixture requires clean committed inputs and a candidate EMOS bundle')
     build = identity+datetime.now(timezone.utc).strftime('-b%Y-%m-%d-%H-%M-%SZ')
     (project/'build').mkdir(exist_ok=True)
     (project/'build/build_identity.h').write_text(
-        '// Generated; do not edit.\n#define PROBE_BUILD_ID "'+build+'"\n')
+        '// Generated; do not edit.\n#define PROBE_BUILD_ID "'+build+'"\n'
+        '#define PROBE_STATUS "'+status+'"\n')
     with (output/'build.log').open('w') as log:
         subprocess.run(['make', 'clean'], cwd=project, stdout=log, stderr=subprocess.STDOUT, check=True)
         subprocess.run(['make', 'AGONDEV_TOOLCHAIN='+str(args.toolchain.resolve()), 'all'],
@@ -59,10 +69,13 @@ def main():
     shutil.copy2(project/('bin/'+name+'.map'), output/(name+'.map'))
     source_files = [project/'Makefile', project/'identity.txt', *sorted((project/'src').iterdir()),
                     Path(__file__), peer_source, ROOT/'scripts/review_boot.py']
+    if args.fixture == 'wire': source_files.append(status_path)
+    if status == 'candidate' and (subprocess.check_output(['git','status','--porcelain'],cwd=ROOT)
+            or subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip() != source_commit):
+        raise ValueError('Candidate source state changed during build')
     (output/'fixture-inputs.json').write_text(json.dumps({
-        'build_id': build, 'status': 'draft', 'emos_build_id': record['build']['build_id'],
-        'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
-        'source_dirty': bool(subprocess.check_output(['git', 'status', '--porcelain'], cwd=ROOT)),
+        'build_id': build, 'status': status, 'emos_build_id': record['build']['build_id'],
+        'source_commit': source_commit, 'source_dirty': source_dirty,
         'toolchain_inputs': {name: digest(args.toolchain.resolve()/name) for name in (
             'bin/ez80-none-elf-clang', 'bin/ez80-none-elf-as', 'bin/ez80-none-elf-ld',
             'lib/libagon.a', 'config/makefile.inc', 'config/linker.conf')},

@@ -50,7 +50,7 @@ int main(void) {
     uint16_t elapsed=0;
     uint24_t stalled=0xFFFFFF;
     sv=mos_sysvars(); map=mos_getkbmap();
-    puts("P4 KEYBOARD " PROBE_BUILD_ID " (draft)");
+    puts("P4 KEYBOARD " PROBE_BUILD_ID " (" PROBE_STATUS ")");
     CHECK(cli("SET KEYBOARD 1"));
     CHECK(empty_map());
     before=sv[sysvar_vkeycount];

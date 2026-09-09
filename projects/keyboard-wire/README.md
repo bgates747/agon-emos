@@ -1,7 +1,7 @@
 # Controlled P4 keyboard exerciser
 
 Owner: INTEG-009 paired P4 increment, coordinated with Extender PORT-005.
-Identity: `uart-keyboard-probe-r01`, Author-approved with registry r38.
+Identity: `uart-keyboard-probe-r01`, Author-approved with registry r38; candidate promotion approved in r39.
 EMOS remains the reviewed v0.1.8 image.
 
 `KBWIRE.BIN` is an ordinary SD-loaded C application using documented MOS calls.
@@ -51,3 +51,5 @@ This does not emulate the P4 binary or prove physical baud, CTS/RTS, electrical
 margin, browser focus/network ownership or layout translation. P4 hardware
 qualification remains separate. Stock API/editor and recovery cases already
 covered by `keyboard-api` are not repeated here.
+
+`status.txt` supplies the generated lifecycle label. Candidate packaging requires clean committed EMOS/fixture inputs and a candidate firmware bundle; previously reviewed draft builds retain their original bytes and identities.

@@ -1,8 +1,8 @@
-# Author-approved v0.1.8 resident keyboard increment; draft emulator review.
+# Author-approved v0.1.8 resident keyboard candidate after emulator review.
 # Existing candidate/rollback images retain their original identities.
 EMOS_PROFILE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
 EMOS_SOURCE_IDENTITY := agon-emos-v0.1.8
-EMOS_ARTIFACT_STATUS := draft
+EMOS_ARTIFACT_STATUS := candidate
 # Expand once and export so nested Make invocations retain the same build ID.
 # A reviewed build wrapper may supply an already recorded UTC identity.
 ifndef EMOS_BUILD_ID
