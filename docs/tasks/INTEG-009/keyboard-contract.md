@@ -18,6 +18,11 @@ choose firmware versions or prepare a bench deployment.
 
 ## Commands and observable results
 
+The following table records the original browser increment. The native USB
+source amendment below supersedes its `extender`-unavailable row for v0.1.10
+and extends reporting/fault cleanup to the selected native source. Historical
+v0.1.8/v0.1.9 evidence retains the original behavior.
+
 | Input | Required result |
 |---|---|
 | `emos keyinput` | Print `Keyboard input: mainboard` or `Keyboard input: browser`; append `(fault)` when the selected browser receiver is faulted. Return success for the query. Do not imply that a browser is connected or has control merely because EMOS selected it. |
@@ -225,3 +230,27 @@ Reference baseline: EMOS `97d7dc80ca94e63bc8cb0061721702576d55fc08`, Extender
 The Author accepted this bounded contract and authorized Work 2. Material
 changes to the contract still require review. Work 2 has a separate emulator
 review boundary; physical evidence and later work items remain distinct.
+
+
+## Native USB source increment — PORT-015 W3
+
+Author authorized the ordinary-CLI USB increment on 2026-09-09. Draft
+agon-emos-v0.1.10 reuses resident UART1 framing/interrupt effects for the
+explicit extender selector. A matched readiness poll commits the requested
+source; timeout retains mainboard. Fault cleanup covers either UART1 source.
+Mainboard display/clock and the browser-only text gateway are unchanged.
+
+The paired native P4 composition provides only USB acquisition; the browser
+composition provides browser acquisition. General Poll remains stock and does
+not authenticate firmware/provider identity. Select the documented matching
+images. Direct browser/extender cross-selection returns BUSY without touching
+the current receiver; select mainboard first until P4 provider switching is
+implemented. No new source-selection packet or simultaneous input mixing.
+
+Native SET KEYBOARD additionally waits for an ordered stock poll after locale.
+The first P4 composition supports UK/US; other layouts withhold readiness and
+cause a bounded fault rather than silently mapping as US. Wider locale,
+settings/query/LED and VDP-local control behavior remain unqualified. Host
+checks cover extender admission, no-peer rollback, mainboard exclusion,
+malformed-frame cleanup, explicit retry and source return. Emulator review,
+source freeze and hardware deployment remain separate gates.

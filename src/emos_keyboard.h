@@ -5,6 +5,7 @@
 
 #define EMOS_KEY_MAINBOARD 0
 #define EMOS_KEY_BROWSER 1
+#define EMOS_KEY_EXTENDER 2
 #define EMOS_KEY_OK 0
 #define EMOS_KEY_BUSY 1
 #define EMOS_KEY_TIMEOUT 2

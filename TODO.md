@@ -4,12 +4,12 @@ This is the repository's single authoritative list of unfinished EMOS work.
 Cross-component Extender work remains in the `agon-extender` task list; generic
 port-infrastructure work remains in `mos-agondev`.
 
-## Current priority — browser keyboard
+## Current priority — resident keyboard input
 
 - [ ] **INTEG-009 — Receive stock keyboard packets over UART1**
   - Started: 2026-09-08 19:18 EDT
   - Finished: --
-  - Status: Receiver/emulator checkpoints frozen; controlled P4 UART delivery and public-API effects pass on hardware with three Agon runs; physical browser typing, Enter and Backspace work; latency and apparent capture loss need coordinator-led diagnosis; broader integration remains.
+  - Status: Controlled P4 UART/public-API hardware proof and basic browser typing pass. Native USB source admission under PORT-015 is drafted; host/headless ordinary-CLI checks pass, Author review and hardware pending. Browser latency/capture diagnosis and broader integration remain.
   - Details: [INTEG-009](docs/tasks/INTEG-009.md)
 
 ## Other Extender integration

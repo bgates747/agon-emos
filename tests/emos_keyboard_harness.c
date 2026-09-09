@@ -172,6 +172,35 @@ int main(void) {
     activate(); irq_enabled=0;
     assert(emos_keyboard_text((BYTE *)"x",1)==EMOS_KEY_BUSY);
     irq_enabled=1;
+    /* Native USB selects the same IRQ-owned stock path under its own name. */
+    assert(emos_keyboard_select(EMOS_KEY_EXTENDER)==EMOS_KEY_BUSY);
+    assert(emos_key_source==EMOS_KEY_BROWSER && uart1_keyboard_owned);
+    assert(emos_keyboard_select(EMOS_KEY_MAINBOARD)==EMOS_KEY_OK);
+    reply=0;
+    assert(emos_keyboard_select(EMOS_KEY_EXTENDER)==EMOS_KEY_TIMEOUT);
+    assert(emos_key_source==EMOS_KEY_MAINBOARD && !uart1_keyboard_owned);
+    reply=1;
+    assert(emos_keyboard_select(EMOS_KEY_EXTENDER)==EMOS_KEY_OK);
+    assert(emos_key_source==EMOS_KEY_EXTENDER && uart1_keyboard_owned);
+    before=event_count;
+    mainboard_key('x',0,45,1); assert(event_count==before);
+    key('a',0,22,1); assert(event_count==before+1);
+    assert(emos_keyboard_text((BYTE *)"x",1)==EMOS_KEY_BUSY);
+    assert(emos_keyboard_layout(1)==EMOS_KEY_OK);
+    assert(emos_key_source==EMOS_KEY_EXTENDER && !emos_key_faulted);
+    frame((BYTE[]){0x81,3},2);
+    assert(emos_key_faulted && events[event_count-1][2]==22 && !events[event_count-1][3]);
+    assert(emos_keyboard_select(EMOS_KEY_EXTENDER)==EMOS_KEY_OK);
+    key('z',0,47,1); before=event_count;
+    assert(emos_keyboard_select(EMOS_KEY_MAINBOARD)==EMOS_KEY_OK);
+    assert(event_count==before+1 && !events[before][3] && !uart1_keyboard_owned);
+    /* Native layout is committed only after its ordered readiness reply. */
+    assert(emos_keyboard_select(EMOS_KEY_EXTENDER)==EMOS_KEY_OK);
+    key('a',0,22,1); reply=0;
+    assert(emos_keyboard_layout(2)==EMOS_KEY_TIMEOUT); tick();
+    assert(emos_key_faulted && !events[event_count-1][3]);
+    assert(emos_keyboard_select(EMOS_KEY_MAINBOARD)==EMOS_KEY_OK);
+    assert(mainboard_layout==1); /* Failed layout never replaces retained US. */
     puts("resident keyboard parser, admission, ownership and IRQ cleanup scenarios passed");
     return 0;
 }

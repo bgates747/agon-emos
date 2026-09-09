@@ -65,7 +65,7 @@ def main():
         # commands still execute also checks the refactored mainboard handler.
         cases = [
             ('eMoS kEyInPuT', 'Keyboard input: mainboard'),
-            ('EMOS KEYINPUT extender', 'Extender keyboard input is not available'),
+            ('EMOS KEYINPUT extender', 'KEYINPUT FAIL: receiver readiness timeout'),
             ('EMOS KEYINPUT 1', 'Usage: EMOS KEYINPUT'),
             ('EMOS KEYINPUT browser extra', 'Usage: EMOS KEYINPUT'),
             ('EMOS KEYINPUT --browser', 'Usage: EMOS KEYINPUT'),

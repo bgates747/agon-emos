@@ -9,6 +9,7 @@
 
 volatile BYTE emos_key_source, emos_key_faulted;
 static volatile BYTE transitioning, preparing, stop_requested, fault_requested;
+static BYTE prepared_source;
 static BYTE layout, token;
 static volatile BYTE text_pending;
 static BYTE state, command, length, remaining, used, payload[5], partial_at;
@@ -67,7 +68,7 @@ void emos_keyboard_fault(void) {
     parser_reset();
     preparing = text_pending = 0;
     emos_key_faulted = 1;
-    if (emos_key_source == EMOS_KEY_BROWSER) cleanup();
+    if (emos_key_source != EMOS_KEY_MAINBOARD) cleanup();
 }
 void emos_keyboard_tick(void) {
     if (stop_requested) {
@@ -89,9 +90,9 @@ void emos_keyboard_tick(void) {
 static void dispatch(void) {
     if (command == 0x80 && length == 1 && preparing && payload[0] == token) {
         cleanup();
-        emos_key_source = EMOS_KEY_BROWSER;
+        emos_key_source = prepared_source;
         preparing = 0;
-    } else if (!preparing && emos_key_source == EMOS_KEY_BROWSER) {
+    } else if (!preparing && emos_key_source != EMOS_KEY_MAINBOARD) {
         if (command == 0x81) {
             if (!valid_key(payload)) emos_keyboard_fault();
             else publish(payload);
@@ -152,6 +153,15 @@ BYTE emos_keyboard_select(BYTE source) {
     Deadline d;
     irq = emos_keyboard_lock();
     if (transitioning || !irq) { emos_keyboard_unlock(irq); return EMOS_KEY_BUSY; }
+    /* One P4 acquisition composition at a time. General Poll does not select
+     * a physical input provider. Until P4 provider switching is implemented,
+     * require mainboard between remote selectors; never tear down a healthy
+     * receiver and then pretend a failed replacement preserved it. */
+    if (source > EMOS_KEY_EXTENDER ||
+        (source != EMOS_KEY_MAINBOARD && emos_key_source != EMOS_KEY_MAINBOARD &&
+         source != emos_key_source)) {
+        emos_keyboard_unlock(irq); return EMOS_KEY_BUSY;
+    }
     if (source == emos_key_source && !emos_key_faulted) {
         emos_keyboard_unlock(irq); return EMOS_KEY_OK;
     }
@@ -173,6 +183,7 @@ BYTE emos_keyboard_select(BYTE source) {
         parser_reset();
         emos_key_faulted = fault_requested = 0;
         preparing = 1;
+        prepared_source = source;
         ++token;
         if (uart1_keyboard_open() != UART_POLL_READY) result = EMOS_KEY_BUSY;
         emos_keyboard_unlock(irq);
@@ -202,6 +213,16 @@ BYTE emos_keyboard_layout(BYTE value) {
     } else {
         deadline_start(&d);
         ok = setting(value, &d);
+        if (ok && emos_key_source == EMOS_KEY_EXTENDER) {
+            /* The native USB candidate supports UK/US. An ordered poll after
+             * locale also bounds unsupported/no-progress peers without adding
+             * a non-stock packet. It is not firmware/provider authentication. */
+            text_pending = 1; ++token;
+            ok = transmit(23,&d) && transmit(0,&d) && transmit(0x80,&d) && transmit(token,&d);
+            while (ok && text_pending && !emos_key_faulted && deadline_step(&d)) { }
+            if (text_pending || emos_key_faulted) ok = 0;
+            text_pending = 0;
+        }
         /* A partial no-reply setting cannot be rolled back. Stop this owned
          * stream rather than appending another command to its truncated body. */
         if (!ok) fault_requested = 1;

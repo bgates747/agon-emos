@@ -2,7 +2,7 @@
 
 ## State
 
-- Status: Work 1–3 and bounded Work 4 emulator recovery accepted and frozen; controlled P4 sender/public-API hardware proof passes; broader physical/session cases remain open.
+- Status: Work 1–3 and bounded Work 4 emulator recovery accepted and frozen; controlled P4 sender/public-API hardware proof passes. Native USB source admission is drafted under PORT-015 W3; headless CLI checks pass, Author review/hardware pending. Broader physical/session cases remain open.
 - Started: 2026-09-08 19:18 EDT (Work 1 contract; no implementation).
 - Finished: --
 - Coordinator: [PORT-008](../../../agon-extender/docs/tasks/PORT-008.md), with
@@ -40,7 +40,8 @@ ordinary mainboard VDU routing continues.
 Follow the coordinator's ADR-0014 CLI section and SETUP-005 K004: commands and
 named arguments are case-insensitive; `EMOS KEYINPUT browser` selects browser
 input, `mainboard` selects the Agon mainboard keyboard, and no argument reports
-the source. Reserve `extender` as unavailable future hardware input. Keep the
+the source. PORT-015 now implements `extender` for a paired native USB P4 image;
+see the native-source amendment below for its current composition limits. Keep the
 runtime `SET KEYBOARD n` layout separate and consistent across modes.
 `EMOS EXCOM` / `EMOS LEGACY` are destination-mode commands, not aliases for
 keyboard selection; complete mode transitions are outside this increment.
@@ -485,3 +486,27 @@ The coordinator's REMOTE-001 I001/I002 own measurement and diagnosis before
 further implementation. Escape/MOS return and the result byte are unconfirmed
 for this session. Keep v0.1.9 candidate; no full qualification promotion.
 The Author requested a documentation checkpoint and a stop for the night.
+
+
+## Native USB source increment — PORT-015 W3
+
+Author authorized the ordinary-CLI USB increment on 2026-09-09. Draft
+agon-emos-v0.1.10 reuses resident UART1 framing/interrupt effects for the
+explicit extender selector. A matched readiness poll commits the requested
+source; timeout retains mainboard. Fault cleanup covers either UART1 source.
+Mainboard display/clock and the browser-only text gateway are unchanged.
+
+The paired native P4 composition provides only USB acquisition; the browser
+composition provides browser acquisition. General Poll remains stock and does
+not authenticate firmware/provider identity. Select the documented matching
+images. Direct browser/extender cross-selection returns BUSY without touching
+the current receiver; select mainboard first until P4 provider switching is
+implemented. No new source-selection packet or simultaneous input mixing.
+
+Native SET KEYBOARD additionally waits for an ordered stock poll after locale.
+The first P4 composition supports UK/US; other layouts withhold readiness and
+cause a bounded fault rather than silently mapping as US. Wider locale,
+settings/query/LED and VDP-local control behavior remain unqualified. Host
+checks cover extender admission, no-peer rollback, mainboard exclusion,
+malformed-frame cleanup, explicit retry and source return. Emulator review,
+source freeze and hardware deployment remain separate gates.

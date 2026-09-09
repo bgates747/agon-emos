@@ -856,11 +856,8 @@ static int emos_keyinput_command(char *args) {
     if (result == FR_OK) {
         while (args && isspace((unsigned char)*args)) ++args;
         if (args && *args) goto usage;
-        if (!strcasecmp(source, "extender")) {
-            printf("Extender keyboard input is not available\r\n");
-            return EMOS_UNAVAILABLE;
-        }
-        if (!strcasecmp(source, "browser")) selected = EMOS_KEY_BROWSER;
+        if (!strcasecmp(source, "extender")) selected = EMOS_KEY_EXTENDER;
+        else if (!strcasecmp(source, "browser")) selected = EMOS_KEY_BROWSER;
         else if (!strcasecmp(source, "mainboard")) selected = EMOS_KEY_MAINBOARD;
         else goto usage;
         result = emos_keyboard_select(selected);
@@ -871,6 +868,7 @@ static int emos_keyinput_command(char *args) {
         }
     } else if (result != FR_INVALID_PARAMETER) return result;
     printf("Keyboard input: %s%s\r\n",
+        emos_key_source == EMOS_KEY_EXTENDER ? "extender" :
         emos_key_source == EMOS_KEY_BROWSER ? "browser" : "mainboard",
         emos_key_faulted ? " (fault)" : "");
     return status;
