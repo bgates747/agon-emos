@@ -39,6 +39,7 @@
 			XDEF	putch 		
 			XDEF	getch 
 
+			XREF	_uart1_keyboard_owned
 			XREF	_serialFlags	; In globals.asm
 			XREF	_emosVduBackend	; Core-owned committed VDU route
 			XREF	_emos_parallel_route_write_byte
@@ -127,7 +128,13 @@ UART0_serial_TX2:	POP		AF			; Good to send at this point, so
 ; - F: C if written
 ; - F: NC if timed out
 ;
-UART1_serial_TX:	PUSH		BC			; Stack BC
+UART1_serial_TX:
+            PUSH AF
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            JP NZ, UART_keyboard_busy
+            POP AF
+            PUSH		BC			; Stack BC
 			PUSH		AF 			; Stack AF
 			LD		BC,TX_WAIT		; Set CB to the transmit timeout
 UART1_serial_TX1:	IN0		A,(UART1_REG_LSR)	; Get the line status register
@@ -166,7 +173,13 @@ UART0_serial_RX:	IN0		A,(UART0_REG_LSR)	; Get the line status register
 ; - F: C if character read
 ; - F: NC if no character read
 ;
-UART1_serial_RX:	IN0		A,(UART1_REG_LSR)	; Get the line status register
+UART1_serial_RX:
+            PUSH AF
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            JP NZ, UART_keyboard_busy
+            POP AF
+            IN0		A,(UART1_REG_LSR)	; Get the line status register
 			AND 		UART_LSR_RDY		; Check for characters in buffer
 			RET		Z			; Just ret (with carry clear) if no characters
 			IN0		A,(UART1_REG_RBR)	; Read the character from the UART receive buffer
@@ -194,7 +207,11 @@ $$:			CALL 		UART0_serial_RX
 ; - F: C if read
 ; - F: NC if UART not enabled
 ;
-UART1_serial_GETCH:	PUSH		AF 
+UART1_serial_GETCH:
+            PUSH AF
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            JP NZ, UART_keyboard_busy
 			LD		A, (_serialFlags)
 			TST		10h
 			JR		Z, UART_serial_NE
@@ -228,7 +245,15 @@ $$:			CALL	UART0_serial_TX			; Send the character
 ; - F: C if written
 ; - F: NC if UART not enabled
 ;
-UART1_serial_PUTCH:	PUSH	AF
+UART_keyboard_busy:
+            POP AF
+            OR A
+            RET
+UART1_serial_PUTCH:
+            PUSH AF
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            JP NZ, UART_keyboard_busy
 			LD	A, (_serialFlags)		; Get the serial flags
 			TST	10h				; Check UART is enabled
 			JR	Z, UART_serial_NE		; If not, then skip (reuses UART0 routine here)

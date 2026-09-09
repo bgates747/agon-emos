@@ -12,6 +12,8 @@
 
 #include "emos.h"
 #include "emos_uart_probe.h"
+#include "emos_keyboard.h"
+#include "uart.h"
 #include "emos_uart_flow.h"
 #ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
 #include "emos_parallel.h"
@@ -846,6 +848,37 @@ static int emos_call_service(char *args) {
 	return FR_OK;
 }
 
+static int emos_keyinput_command(char *args) {
+    char *source;
+    int result, status = FR_OK;
+    BYTE selected;
+    result = extractString(args, &args, NULL, &source, EXTRACT_FLAG_AUTO_TERMINATE);
+    if (result == FR_OK) {
+        while (args && isspace((unsigned char)*args)) ++args;
+        if (args && *args) goto usage;
+        if (!strcasecmp(source, "extender")) {
+            printf("Extender keyboard input is not available\r\n");
+            return EMOS_UNAVAILABLE;
+        }
+        if (!strcasecmp(source, "browser")) selected = EMOS_KEY_BROWSER;
+        else if (!strcasecmp(source, "mainboard")) selected = EMOS_KEY_MAINBOARD;
+        else goto usage;
+        result = emos_keyboard_select(selected);
+        if (result != EMOS_KEY_OK) {
+            status = result == EMOS_KEY_BUSY ? EMOS_BUSY : FR_TIMEOUT;
+            printf("KEYINPUT FAIL: %s\r\n", result == EMOS_KEY_BUSY ?
+                "UART or keyboard service busy" : "receiver readiness timeout");
+        }
+    } else if (result != FR_INVALID_PARAMETER) return result;
+    printf("Keyboard input: %s%s\r\n",
+        emos_key_source == EMOS_KEY_BROWSER ? "browser" : "mainboard",
+        emos_key_faulted ? " (fault)" : "");
+    return status;
+usage:
+    printf("Usage: EMOS KEYINPUT [mainboard|browser|extender]\r\n");
+    return FR_INVALID_PARAMETER;
+}
+
 int emos_cmd(char *args) {
 	char *operation;
 	int result = extractString(args, &args, NULL, &operation, EXTRACT_FLAG_AUTO_TERMINATE);
@@ -856,6 +889,13 @@ int emos_cmd(char *args) {
 		return FR_OK;
 	}
 	if (result != FR_OK) return result;
+    if (!strcasecmp(operation, "keyinput")) return emos_keyinput_command(args);
+    if (uart1_keyboard_owned && (!strcasecmp(operation, "vdptext") ||
+        !strcasecmp(operation, "vdppoll") || !strcasecmp(operation, "uartflow") ||
+        !strcasecmp(operation, "uarttest"))) {
+        printf("EMOS: UART1 is owned by keyboard input\r\n");
+        return EMOS_BUSY;
+    }
     if (strcasecmp(operation, "vdptext") == 0) {
         if (args && *args) return FR_INVALID_PARAMETER;
         if (emosModeState.mode != EMOS_MODE_LEGACY) {

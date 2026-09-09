@@ -56,6 +56,7 @@
 #include "mos_sysvars.h"
 #include "mos_file.h"
 #include "emos.h"
+#include "emos_keyboard.h"
 #if DEBUG > 0
 # include "tests.h"
 #endif /* DEBUG */
@@ -3393,7 +3394,12 @@ int writeVDPSetting(char * buffer, int setting) {
 
 // Write the "keyboard" setting to the VDP
 int writeKeyboard(char * buffer) {
-	return writeVDPSetting(buffer, VDP_keycode);
+	int value;
+    BYTE result;
+    if (!extractNumber(buffer, NULL, NULL, &value, 0)) return FR_INVALID_PARAMETER;
+    result = emos_keyboard_layout((BYTE)value);
+    return result == EMOS_KEY_OK ? FR_OK :
+        (result == EMOS_KEY_BUSY ? EMOS_BUSY : FR_TIMEOUT);
 }
 
 // Write the "console" setting to the VDP

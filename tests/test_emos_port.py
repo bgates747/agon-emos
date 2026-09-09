@@ -94,6 +94,9 @@ class EmosPortTests(unittest.TestCase):
         self.assertIn("src/emos.h", files)
         for relative in (
             "src/emos.c",
+            "src/emos_keyboard.c",
+            "src/emos_keyboard.h",
+            "src/emos_keyboard_io.asm",
             "src/emos.h",
             "src/emos_uart_probe.c",
             "src/emos_uart_probe.h",
@@ -114,19 +117,19 @@ class EmosPortTests(unittest.TestCase):
         linked_checks = _make_variable(PROFILE, "FIRMWARE_LINK_CHECKS")
         self.assertEqual(
             sources,
-            ["src/emos_uart_flow.c", "src/emos_uart_probe.c", "src/emos.c", "src/emos_parallel.c", "src/emos_parallel_engine.c"],
+            ["src/emos_keyboard.c", "src/emos_uart_flow.c", "src/emos_uart_probe.c", "src/emos.c", "src/emos_parallel.c", "src/emos_parallel_engine.c"],
         )
         self.assertEqual(
             objects,
-            ["src/emos_uart_flow.o", "src/emos_uart_probe.o", "src/emos.o", "src/emos_parallel.o", "src/emos_parallel_engine.o"],
+            ["src/emos_keyboard.o", "src/emos_uart_flow.o", "src/emos_uart_probe.o", "src/emos.o", "src/emos_parallel.o", "src/emos_parallel_engine.o"],
         )
         self.assertEqual(
             _make_variable(PROFILE, "ASM_SOURCES_EXTRA"),
-            ["src/emos_parallel_io.asm"],
+            ["src/emos_keyboard_io.asm", "src/emos_parallel_io.asm"],
         )
         self.assertEqual(
             _make_variable(PROFILE, "ASM_OBJECT_RELATIVE_EXTRA"),
-            ["src/emos_parallel_io.o"],
+            ["src/emos_keyboard_io.o", "src/emos_parallel_io.o"],
         )
         self.assertEqual(commands, ["EMOS"])
         profile_text = PROFILE.read_text(encoding="utf-8")
@@ -143,6 +146,7 @@ class EmosPortTests(unittest.TestCase):
             [
                 "$(EMOS_PROFILE_ROOT)/projects/emos/verify_uart_baud.py",
                 "$(EMOS_PROFILE_ROOT)/projects/emos/verify_parallel.py",
+                "$(EMOS_PROFILE_ROOT)/projects/emos/verify_keyboard.py",
             ],
         )
 
@@ -156,6 +160,7 @@ class EmosPortTests(unittest.TestCase):
         self.assertEqual(
             _make_variable(fixed, "C_SOURCES_EXTRA"),
             [
+                "src/emos_keyboard.c",
                 "src/emos_uart_flow.c",
                 "src/emos_uart_probe.c",
                 "src/emos.c",
@@ -166,7 +171,7 @@ class EmosPortTests(unittest.TestCase):
         )
         self.assertEqual(
             _make_variable(fixed, "ASM_SOURCES_EXTRA"),
-            ["src/emos_parallel_io.asm"],
+            ["src/emos_keyboard_io.asm", "src/emos_parallel_io.asm"],
         )
         fixed_text = fixed.read_text(encoding="utf-8")
         self.assertNotRegex(fixed_text, r"(?m)^CPPFLAGS_EXTRA\s*:=")
@@ -190,6 +195,7 @@ class EmosPortTests(unittest.TestCase):
             [
                 "$(EMOS_PROFILE_ROOT)/projects/emos/verify_uart_baud.py",
                 "$(EMOS_PROFILE_ROOT)/projects/emos/verify_parallel_fixed.py",
+                "$(EMOS_PROFILE_ROOT)/projects/emos/verify_keyboard.py",
             ],
         )
 

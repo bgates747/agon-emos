@@ -501,6 +501,12 @@ def verify_linked(
         "_uart1_claim_rts": [0x9E, 0x9F],
         "_uart1_receive_ready": [0x9E],
         "_close_UART1": [0x9E, 0x9F],
+        # Resident UART1 keyboard ownership; verify_keyboard.py additionally
+        # checks the actual IRQ/stock-handler/ownership bridges.
+        "_uart1_keyboard_open": [0x9E],
+        "_uart1_keyboard_stop": [0x9E],
+        "_uart1_keyboard_close": [0x9F, 0xA0, 0xA1],
+        "_uart1_keyboard_irq": [0x9E, 0x9E],
     }
     observed_rts_writes = {name: [] for name in rts_portc_writes}
     allowed_portc_writers = {
@@ -796,8 +802,15 @@ def verify_linked(
         raise ParallelError("linked UART1 serialFlags access escapes the guard")
     if acquire_index + 2 >= len(open_uart1_rows):
         raise ParallelError("linked UART1 acquire has no rejection branch")
-    status_test = open_uart1_rows[acquire_index + 1]
-    rejection = open_uart1_rows[acquire_index + 2]
+    # AgonDev may hoist the shared failure return into D when the resident
+    # UART owner adds a second early rejection. This load preserves A/flags;
+    # no arbitrary instruction may be skipped between acquire and its test.
+    test_index = acquire_index + 1
+    d_result = open_uart1_rows[test_index][1:] == ("ld", "d,0xff")
+    if d_result:
+        test_index += 1
+    status_test = open_uart1_rows[test_index]
+    rejection = open_uart1_rows[test_index + 1]
     rejection_target = re.fullmatch(r"nz,0x([0-9a-f]+)", rejection[2])
     if status_test[1:] != ("or", "a,a") or rejection[1] not in ("jp", "jr"):
         raise ParallelError("linked UART1 acquire result is not tested immediately")
@@ -812,12 +825,16 @@ def verify_linked(
     if len(target_indexes) != 1 or target_indexes[0] <= release_index:
         raise ParallelError("linked UART1 rejection does not bypass mutation/release")
     target_index = target_indexes[0]
-    if open_uart1_rows[target_index][1:] != ("ld", "a,0xff"):
+    expected_failure = ("ld", "a,d") if d_result else ("ld", "a,0xff")
+    expected_success = ("ld", "d,0x00") if d_result else ("xor", "a,a")
+    if open_uart1_rows[target_index][1:] != expected_failure:
         raise ParallelError("linked UART1 rejection does not return UART_ERR_FAILURE")
     if release_index + 1 >= len(open_uart1_rows) or open_uart1_rows[
         release_index + 1
-    ][1:] != ("xor", "a,a"):
+    ][1:] != expected_success:
         raise ParallelError("linked UART1 success does not return UART_ERR_NONE")
+    if d_result and target_index != release_index + 2:
+        raise ParallelError("shared UART1 result does not immediately follow success")
     main_rows = instructions(body("_main"))
     init_calls = direct_transfer_indexes(
         body("_main"), addresses["_init_UART1"], mnemonics=("call",)

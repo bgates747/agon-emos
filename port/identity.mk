@@ -1,8 +1,8 @@
-# Author-approved v0.1.7 numbering reset and SD-sample gateway candidate.
-# Historical v0.7.0 remains installed and retains its original identity.
+# Author-approved v0.1.8 resident keyboard increment; draft emulator review.
+# Existing candidate/rollback images retain their original identities.
 EMOS_PROFILE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-EMOS_SOURCE_IDENTITY := agon-emos-v0.1.7
-EMOS_ARTIFACT_STATUS := candidate
+EMOS_SOURCE_IDENTITY := agon-emos-v0.1.8
+EMOS_ARTIFACT_STATUS := draft
 # Expand once and export so nested Make invocations retain the same build ID.
 # A reviewed build wrapper may supply an already recorded UTC identity.
 ifndef EMOS_BUILD_ID

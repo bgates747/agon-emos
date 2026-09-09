@@ -2,6 +2,18 @@
 
 #include "emos_parallel.h"
 #include "uart.h"
+#include "emos_keyboard.h"
+
+volatile BYTE emos_key_source, emos_key_faulted;
+static BYTE vector_owned;
+BYTE emos_keyboard_lock(void) { return 1; }
+void emos_keyboard_unlock(BYTE irq) { (void)irq; }
+BYTE emos_keyboard_vector(BYTE op) {
+    if (op == 2) return vector_owned;
+    vector_owned = op; return 1;
+}
+void emos_keyboard_fault(void) { emos_key_faulted = 1; uart1_keyboard_stop(); }
+void emos_keyboard_byte(BYTE value) { (void)value; }
 
 volatile BYTE hostPcDr;
 volatile BYTE hostPcDdr;
@@ -242,11 +254,49 @@ static int test_cts_and_explicit_rts_ownership(void) {
     return 0;
 }
 
+static int test_keyboard_ownership(void) {
+    BYTE value = 0;
+    UART settings = uart_settings();
+    hostPcDdr = 0xFF; hostPcAlt1 = 0; hostPcAlt2 = 3;
+    hostPcDr = 0xF7; hostUart1Ier = 0; serialFlags = 1;
+    requestedGuardResult = EMOS_PARALLEL_OK;
+    initialState = snapshot_uart1();
+    CHECK(uart1_keyboard_open() == UART_POLL_READY);
+    CHECK(uart1_keyboard_owned && vector_owned && hostUart1Ier == 5);
+    CHECK(!(hostPcDr & 4) && !(hostPcDdr & 4));
+    initialState = snapshot_uart1();
+    CHECK(open_UART1(&settings) == UART_ERR_FAILURE);
+    close_UART1();
+    t_uart1State after = snapshot_uart1();
+    CHECK(state_equal(&initialState, &after));
+    CHECK(uart1_try_get(&value) == UART_POLL_UNAVAILABLE);
+    CHECK(uart1_try_put(42) == UART_POLL_UNAVAILABLE);
+    CHECK(uart1_receive_ready(1) == UART_POLL_UNAVAILABLE);
+    hostUart1Lsr = UART_LSR_THRE;
+    CHECK(uart1_keyboard_put(42) == UART_POLL_READY && hostUart1Thr == 42);
+    hostPcDr |= 8;
+    CHECK(uart1_keyboard_put(43) == UART_POLL_BLOCKED && hostUart1Thr == 42);
+    hostUart1Lsr |= UART_LSR_OE;
+    CHECK(uart1_keyboard_put(43) == UART_POLL_ERROR && !hostUart1Ier && (hostPcDr & 4));
+    uart1_keyboard_close();
+    CHECK(!uart1_keyboard_owned && !vector_owned && hostPcDdr == 0xFF);
+    CHECK(!hostPcAlt1 && !hostPcAlt2 && serialFlags == 1);
+    initialState = snapshot_uart1();
+    uart1_keyboard_close();
+    after = snapshot_uart1(); CHECK(state_equal(&initialState, &after));
+    serialFlags |= 0x10;
+    CHECK(uart1_keyboard_open() == UART_POLL_UNAVAILABLE && !vector_owned);
+    serialFlags &= ~0x10; hostPcDdr &= ~1;
+    CHECK(uart1_keyboard_open() == UART_POLL_UNAVAILABLE && !vector_owned);
+    return 0;
+}
+
 int main(void) {
 	if (test_busy_rejection_changes_nothing()) return 1;
 	if (test_success_holds_guard_through_final_mutation()) return 1;
 	if (test_nonblocking_operations()) return 1;
 	if (test_cts_and_explicit_rts_ownership()) return 1;
+	if (test_keyboard_ownership()) return 1;
 	puts("EMOS UART1 guard and nonblocking host checks passed");
 	return 0;
 }

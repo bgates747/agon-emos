@@ -30,6 +30,9 @@
 			SEGMENT .STARTUP
 			
 			XDEF	vdp_protocol
+            XDEF emos_keyboard_payload
+            XREF _emos_keyboard_mainboard
+            XREF _emos_keyboard_mainboard_settings
 
 			XREF	_keyascii
 			XREF	_keycode
@@ -172,32 +175,47 @@ vdp_protocol_GP:	LD	A, (_vdp_protocol_data + 0)
 ; Keyboard Data
 ; Received after a keypress event in the VPD
 ;
-vdp_protocol_KEY:	LD	HL, (_user_kbvector)		; If a user kbvector is set, call it
-			LD	DE, 0
-			OR	A
-			SBC	HL, DE
-			JR	Z, $F
-			LD	HL, $F
-			PUSH	HL				; Push return address from user routine
-			LD	HL, (_user_kbvector)
-			LD	DE, _vdp_protocol_data		; Pass keyboard packet address to user routine in DE (24-bit)
-			JP	(HL)
-;
-$$:			LD	A, (_vdp_protocol_data + 0)	; ASCII key code
-			LD	(_keyascii), A
-			LD	A, (_vdp_protocol_data + 1)	; Key modifiers (SHIFT, ALT, etc)
-			LD	(_keymods), A
-			LD	A, (_vdp_protocol_data + 3)	; Key down? (1=down, 0=up)
-			LD	C, A				; C: Keydown
-			LD	(_keydown), A
-			LD	A, (_keycount)			; Increment the key event counter
-			INC	A
-			LD	(_keycount), A
-			LD	A, (_vdp_protocol_data + 2)	; Virtual key code
-			LD	B, A 				; B: Virtual keycode
-			LD	(_keycode), A
-;
-			JP	keyboard_handler		; Call the handle keyboard routine (in keyboard.asm)
+vdp_protocol_KEY:
+            LD HL, _vdp_protocol_data
+            PUSH HL
+            CALL _emos_keyboard_mainboard
+            POP HL
+            RET
+
+; Shared stock KEY effects. DE points to the invoking UART's PRIVATE payload.
+; Preserve its address across the callback; callback edits remain visible.
+emos_keyboard_payload:
+            PUSH DE
+            LD HL, (_user_kbvector)
+            LD DE, 0
+            OR A
+            SBC HL, DE
+            JR Z, keyboard_payload_publish
+            POP DE
+            PUSH DE
+            LD HL, keyboard_payload_publish
+            PUSH HL
+            LD HL, (_user_kbvector)
+            JP (HL)
+keyboard_payload_publish:
+            POP HL
+            LD A, (HL)
+            LD (_keyascii), A
+            INC HL
+            LD A, (HL)
+            LD (_keymods), A
+            INC HL
+            LD B, (HL)
+            INC HL
+            LD A, (HL)
+            LD C, A
+            LD (_keydown), A
+            LD A, (_keycount)
+            INC A
+            LD (_keycount), A
+            LD A, B
+            LD (_keycode), A
+            JP keyboard_handler
 
 ; Cursor data
 ; Received after the cursor position is updated in the VPD
@@ -322,11 +340,12 @@ vdp_protocol_RTC:	LD	HL, _vdp_protocol_data
 ; Word: rate
 ; Byte: led status
 ;
-vdp_protocol_KEYSTATE:	LD	HL, _vdp_protocol_data
-			LD	DE, _keydelay
-			LD	BC, 5
-			LDIR 
-			RET
+vdp_protocol_KEYSTATE:
+            LD HL, _vdp_protocol_data
+            PUSH HL
+            CALL _emos_keyboard_mainboard_settings
+            POP HL
+            RET
 
 ; Mouse data
 ; Received after a mouse movement event, if mouse has been activated

@@ -7,9 +7,9 @@ port-infrastructure work remains in `mos-agondev`.
 ## Current priority — browser keyboard
 
 - [ ] **INTEG-009 — Receive stock keyboard packets over UART1**
-  - Started: --
+  - Started: 2026-09-08 19:18 EDT
   - Finished: --
-  - Status: Plan accepted for freeze, 2026-09-08; implementation pending.
+  - Status: Work 1/2 accepted and frozen; Work 3 keyboard-behavior proof is next.
   - Details: [INTEG-009](docs/tasks/INTEG-009.md)
 
 ## Other Extender integration

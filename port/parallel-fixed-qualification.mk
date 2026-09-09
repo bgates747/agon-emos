@@ -5,6 +5,7 @@
 # identity. Firmware and qualification-composition identities remain separate.
 include $(dir $(lastword $(MAKEFILE_LIST)))identity.mk
 C_SOURCES_EXTRA := \
+	src/emos_keyboard.c \
 	src/emos_uart_flow.c \
 	src/emos_uart_probe.c \
 	src/emos.c \
@@ -12,14 +13,15 @@ C_SOURCES_EXTRA := \
 	src/emos_parallel_engine.c \
 	src/emos_parallel_fixed_backend.c
 C_OBJECT_RELATIVE_EXTRA := \
+	src/emos_keyboard.o \
 	src/emos_uart_flow.o \
 	src/emos_uart_probe.o \
 	src/emos.o \
 	src/emos_parallel.o \
 	src/emos_parallel_engine.o \
 	src/emos_parallel_fixed_backend.o
-ASM_SOURCES_EXTRA := src/emos_parallel_io.asm
-ASM_OBJECT_RELATIVE_EXTRA := src/emos_parallel_io.o
+ASM_SOURCES_EXTRA := src/emos_keyboard_io.asm src/emos_parallel_io.asm
+ASM_OBJECT_RELATIVE_EXTRA := src/emos_keyboard_io.o src/emos_parallel_io.o
 C_SOURCE_CPPFLAGS_RELATIVE := src/emos.c
 C_SOURCE_CPPFLAGS_EXTRA := \
 	$(EMOS_IDENTITY_CPPFLAGS) \
@@ -28,4 +30,5 @@ C_SOURCE_CPPFLAGS_EXTRA := \
 PARITY_EXPECTED_COMMANDS := EMOS
 FIRMWARE_LINK_CHECKS := \
 	$(EMOS_PROFILE_ROOT)/projects/emos/verify_uart_baud.py \
-	$(EMOS_PROFILE_ROOT)/projects/emos/verify_parallel_fixed.py
+	$(EMOS_PROFILE_ROOT)/projects/emos/verify_parallel_fixed.py \
+	$(EMOS_PROFILE_ROOT)/projects/emos/verify_keyboard.py

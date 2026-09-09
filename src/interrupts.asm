@@ -23,6 +23,7 @@
 			XDEF	_uart0_handler
 			XDEF	_i2c_handler
 
+			XREF	emos_keyboard_tick_entry
 			XREF	_clock
 			XREF	_vdp_protocol_data
 			
@@ -51,7 +52,8 @@ _vblank_handler:	DI
 			LD		(_clock), HL
 			LD		A, (_clock + 3)
 			ADC		A, 0
-			LD		(_clock + 3), A			
+			LD		(_clock + 3), A
+            CALL emos_keyboard_tick_entry
 			POP		HL
 			POP		DE
 			POP		BC
@@ -66,10 +68,26 @@ _uart0_handler:		DI
 			PUSH		BC
 			PUSH		DE
 			PUSH		HL
-			CALL		UART0_serial_RX
+			PUSH IX
+            PUSH IY
+            EX AF, AF'
+            PUSH AF
+            EXX
+            PUSH BC
+            PUSH DE
+            PUSH HL
+            CALL		UART0_serial_RX
 			LD		C, A		
 			LD		HL, _vdp_protocol_data
 			CALL		vdp_protocol
+            POP HL
+            POP DE
+            POP BC
+            EXX
+            POP AF
+            EX AF, AF'
+            POP IY
+            POP IX
 			POP		HL
 			POP		DE
 			POP		BC

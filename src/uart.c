@@ -29,6 +29,9 @@
 
 #include "emos_parallel.h"
 #include "uart.h"
+#include "emos_keyboard.h"
+
+volatile BYTE uart1_keyboard_owned;
 
 static BYTE uart1_rts_owned;
  
@@ -119,6 +122,7 @@ BYTE open_UART1(UART * pUART) {
 	/* EMOS and UART1 share Port C.  Reserve the production lifecycle lock
 	 * before the first flag, mux, or UART mutation; a committed parallel epoch
 	 * is indefinite, so contention is rejected rather than spun on. */
+	if (uart1_keyboard_owned) return UART_ERR_FAILURE;
 	if (emos_parallel_uart1_guard_acquire() != EMOS_PARALLEL_OK)
 		return UART_ERR_FAILURE;
 
@@ -157,6 +161,7 @@ BYTE open_UART1(UART * pUART) {
 // Close UART1
 //
 void close_UART1() {
+    if (uart1_keyboard_owned) return; /* Public close cannot steal the receiver. */
     if (uart1_rts_owned) {
         SETREG(PC_DR, PORTPIN_TWO);  /* Stop peer before abandoning receive. */
         UART1_FCTL = 0x07;          /* Cancel queued data owned by this probe. */
@@ -176,7 +181,7 @@ void close_UART1() {
  * Active-low ready is preloaded HIGH (stop) before enabling the driver.
  */
 BYTE uart1_claim_rts(void) {
-    if (uart1_rts_owned || (serialFlags & 0x30) != 0x30 || UART1_IER != 0 ||
+    if (uart1_keyboard_owned || uart1_rts_owned || (serialFlags & 0x30) != 0x30 || UART1_IER != 0 ||
         !(PC_DDR & PORTPIN_TWO) || ((PC_ALT1 | PC_ALT2) & PORTPIN_TWO))
         return UART_POLL_UNAVAILABLE;
     SETREG(PC_DR, PORTPIN_TWO);
@@ -186,7 +191,7 @@ BYTE uart1_claim_rts(void) {
 }
 
 BYTE uart1_receive_ready(BYTE ready) {
-    if (!uart1_rts_owned || (serialFlags & 0x30) != 0x30 || UART1_IER != 0)
+    if (uart1_keyboard_owned || !uart1_rts_owned || (serialFlags & 0x30) != 0x30 || UART1_IER != 0)
         return UART_POLL_UNAVAILABLE;
     if (ready) RESETREG(PC_DR, PORTPIN_TWO);
     else SETREG(PC_DR, PORTPIN_TWO);
@@ -200,7 +205,7 @@ BYTE uart1_receive_ready(BYTE ready) {
  */
 BYTE uart1_try_get(BYTE *value) {
     BYTE status;
-    if (!value || !(serialFlags & 0x10) || UART1_IER != 0)
+    if (uart1_keyboard_owned || !value || !(serialFlags & 0x10) || UART1_IER != 0)
         return UART_POLL_UNAVAILABLE;
     status = UART1_LSR;
     if (status & (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE | UART_LSR_BI | UART_LSR_ERR))
@@ -212,7 +217,7 @@ BYTE uart1_try_get(BYTE *value) {
 
 BYTE uart1_try_put(BYTE value) {
     BYTE status;
-    if (!(serialFlags & 0x10) || UART1_IER != 0)
+    if (uart1_keyboard_owned || !(serialFlags & 0x10) || UART1_IER != 0)
         return UART_POLL_UNAVAILABLE;
     status = UART1_LSR;
     /* LSR reads also clear RX error flags: do not silently lose them here. */
@@ -223,4 +228,78 @@ BYTE uart1_try_put(BYTE value) {
     if (!(status & UART_LSR_THRE)) return UART_POLL_EMPTY;
     UART1_THR = value;
     return UART_POLL_READY;
+}
+
+/* INTEG-009: this resident driver has a distinct ownership path. Open/close
+ * run with interrupts masked by the coordinator; public UART calls retain
+ * their old behavior unless this driver owns UART1. Do not relax the polling
+ * helpers' IER checks to share their receive/error side effects. */
+extern BYTE emos_keyboard_vector(BYTE operation);
+
+BYTE uart1_keyboard_open(void) {
+    UART settings = {1152000, 8, 1, 0, FCTL_HW, 0};
+    if (uart1_keyboard_owned || uart1_rts_owned || (serialFlags & 0x10) ||
+        UART1_IER || (PC_DDR & 0x0F) != 0x0F || (PC_ALT1 & 0x0F) ||
+        (PC_ALT2 & 0x0C) || ((PC_ALT2 & 3) != 0 && (PC_ALT2 & 3) != 3))
+        return UART_POLL_UNAVAILABLE;
+    if (!emos_keyboard_vector(1)) return UART_POLL_UNAVAILABLE;
+    if (open_UART1(&settings) != UART_ERR_NONE) {
+        emos_keyboard_vector(0); return UART_POLL_UNAVAILABLE;
+    }
+    if (uart1_claim_rts() != UART_POLL_READY) {
+        close_UART1(); emos_keyboard_vector(0); return UART_POLL_UNAVAILABLE;
+    }
+    uart1_keyboard_owned = 1;
+    UART1_FCTL = 0x07;
+    UART1_IER = UART_IER_RECEIVEINT | UART_IER_LINESTATUSINT;
+    RESETREG(PC_DR, PORTPIN_TWO); /* Receiver/vector ready before admission. */
+    return UART_POLL_READY;
+}
+void uart1_keyboard_stop(void) {
+    if (!uart1_keyboard_owned) return;
+    SETREG(PC_DR, PORTPIN_TWO);
+    UART1_IER = 0;
+}
+void uart1_keyboard_close(void) {
+    if (!uart1_keyboard_owned) return;
+    /* A hostile/raw replacement is unsupported, but never overwrite it. */
+    if (!emos_keyboard_vector(2)) return;
+    uart1_keyboard_stop();
+    uart1_keyboard_owned = 0;
+    close_UART1();
+    /* Release only r03 PC0..PC3. Other Port C lanes retain their state. */
+    SETREG(PC_DDR, 0x0F);
+    RESETREG(PC_ALT1, 0x0F);
+    RESETREG(PC_ALT2, 0x0F);
+    emos_keyboard_vector(0);
+}
+BYTE uart1_keyboard_put(BYTE value) {
+    BYTE irq = emos_keyboard_lock(), status, result;
+    if (!uart1_keyboard_owned || emos_key_faulted) result = UART_POLL_UNAVAILABLE;
+    else {
+        status = UART1_LSR;
+        if (status & (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE | UART_LSR_BI | UART_LSR_ERR)) {
+            uart1_keyboard_stop(); /* Preserve acknowledged errors for caller. */
+            result = UART_POLL_ERROR;
+        } else if (PC_DR & PORTPIN_THREE) result = UART_POLL_BLOCKED;
+        else if (!(status & UART_LSR_THRE)) result = UART_POLL_EMPTY;
+        else { UART1_THR = value; result = UART_POLL_READY; }
+    }
+    emos_keyboard_unlock(irq);
+    return result;
+}
+void uart1_keyboard_irq(void) {
+    BYTE count, status;
+    if (!uart1_keyboard_owned || emos_key_faulted) return;
+    SETREG(PC_DR, PORTPIN_TWO); /* Stop peer while processing its FIFO. */
+    for (count = 0; count < 16; ++count) {
+        status = UART1_LSR;
+        if (status & (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE | UART_LSR_BI | UART_LSR_ERR)) {
+            emos_keyboard_fault(); return;
+        }
+        if (!(status & UART_LSR_DR)) break;
+        emos_keyboard_byte(UART1_RBR);
+        if (emos_key_faulted) return;
+    }
+    RESETREG(PC_DR, PORTPIN_TWO);
 }

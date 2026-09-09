@@ -65,7 +65,7 @@ class EmosVduTests(unittest.TestCase):
             with self.subTest(offset=offset), self.assertRaises(vdu.VduError):
                 vdu.verify(image, linked)
 
-    def test_raw_uart_putch_blocks_match_official_base(self) -> None:
+    def test_inactive_uart_putch_blocks_retain_official_base(self) -> None:
         current = (MOS_SOURCE / "src" / "serial.asm").read_text(
             encoding="utf-8"
         )
@@ -86,6 +86,15 @@ class EmosVduTests(unittest.TestCase):
                 "; Called by UART0 and UART1 PUTCH"
             )
         ].rstrip()
+        # INTEG-009 adds only a fail-closed ownership prefix and rejection
+        # return here. The inactive path must remain byte-for-byte source
+        # equivalent to stock; verify_keyboard binds the prefix to the image.
+        guard = ("UART_keyboard_busy:\n            POP AF\n            OR A\n            RET\n"
+                 "UART1_serial_PUTCH:\n            PUSH AF\n"
+                 "            LD A, (_uart1_keyboard_owned)\n            OR A\n"
+                 "            JP NZ, UART_keyboard_busy")
+        self.assertEqual(current_block.count(guard), 1)
+        current_block = current_block.replace(guard, "UART1_serial_PUTCH:\tPUSH\tAF")
         self.assertEqual(current_block, base_block)
 
 

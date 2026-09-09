@@ -14,6 +14,8 @@
 			SEGMENT .STARTUP
 
 			XDEF	keyboard_handler
+			XDEF	keyboard_lookup
+			XDEF	keyboard_lookup_end
 
 			XREF	_keymods 			; In globals.asm
 			XREF	_keyascii
@@ -33,7 +35,11 @@ keyboard_handler:	LD	A, B
 ;  C: Keydown state (1 = pressed 0 = depressed)
 ;  A: Virtual keycode
 ;
-keyboard_map:		DEC	A 				;  A: Virtual keycode - 1
+keyboard_map:
+            ; Bound callback-edited indices as well as validated wire keys.
+            CP (keyboard_lookup_end-keyboard_lookup)/4 + 1
+            RET NC
+            DEC	A 				;  A: Virtual keycode - 1
 			LD	DE, keyboard_lookup		; DE: Address of keyboard lookup table
 			LD	HL, 0
 			LD	L, A 
@@ -342,3 +348,4 @@ keyboard_lookup:	KEY(099)	; VK_SPACE
 			KEY(000)	; VK_HANKAKU_ZENKAKU_KANJI
 			KEY(000)	; VK_SHIFT_0
 			KEY(000)	; VK_ASCII
+keyboard_lookup_end:

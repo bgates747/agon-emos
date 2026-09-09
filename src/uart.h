@@ -192,4 +192,12 @@ extern volatile BYTE serialFlags;		// In globals.asm
 extern INT putch(INT ich);				// Now in serial.asm
 extern INT getch(VOID);					// Now in serial.asm
 
+/* Private resident keyboard driver; not an application UART API. */
+extern volatile BYTE uart1_keyboard_owned;
+BYTE uart1_keyboard_open(void);
+void uart1_keyboard_close(void);
+void uart1_keyboard_stop(void);
+BYTE uart1_keyboard_put(BYTE value);
+void uart1_keyboard_irq(void);
+
 #endif UART_H

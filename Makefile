@@ -13,7 +13,7 @@ PARALLEL_FIXED_SOURCE_PROFILE := $(abspath port/parallel-fixed-qualification.mk)
 .DEFAULT_GOAL := help
 
 .PHONY: help test modules linked-check contract-linked-check uart-baud-check \
-	parallel-linked-check firmware-check parallel-fixed-firmware-check \
+	parallel-linked-check keyboard-linked-check firmware-check parallel-fixed-firmware-check \
 	port008-fixture qualify
 
 help:
@@ -34,7 +34,7 @@ modules:
 	$(MAKE) -C projects/emos TOOLCHAIN=$(abspath $(AGONDEV_TOOLCHAIN)) \
 		PYTHON=$(PYTHON) validate
 
-linked-check: contract-linked-check uart-baud-check parallel-linked-check
+linked-check: contract-linked-check uart-baud-check parallel-linked-check keyboard-linked-check
 
 contract-linked-check:
 	$(PYTHON) -B projects/emos/verify_abi.py \
@@ -59,6 +59,12 @@ parallel-linked-check:
 		--elf $(MOS_AGONDEV_ROOT)/projects/mos-port/bin/MOS.elf \
 		--nm $(AGONDEV_TOOLCHAIN)/bin/ez80-none-elf-nm \
 		--objdump $(AGONDEV_TOOLCHAIN)/bin/ez80-none-elf-objdump
+
+keyboard-linked-check:
+	$(PYTHON) -B projects/emos/verify_keyboard.py \
+		--source . \
+		--elf $(MOS_AGONDEV_ROOT)/projects/mos-port/bin/MOS.elf \
+		--nm $(AGONDEV_TOOLCHAIN)/bin/ez80-none-elf-nm
 
 firmware-check:
 	$(MAKE) -C $(MOS_AGONDEV_ROOT) \
