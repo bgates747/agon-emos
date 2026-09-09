@@ -2,7 +2,7 @@
 
 ## State
 
-- Status: Work 1 and Work 2 accepted and frozen; Work 3 is next, not started.
+- Status: Work 1 and Work 2 accepted and frozen; Work 3 accepted and frozen; bounded Work 4 cleanup/recovery authorized.
 - Started: 2026-09-08 19:18 EDT (Work 1 contract; no implementation).
 - Finished: --
 - Coordinator: [PORT-008](../../../agon-extender/docs/tasks/PORT-008.md), with
@@ -91,7 +91,7 @@ same audited commits; no upstream source changes are authorized.
    preserved ABI/order. Keep UART1 owned while keys may arrive, including when
    the foreground program waits for input or sends no UART request. Preserve
    independent onboard display, clock and non-keyboard packet handling.
-3. [ ] Prove ordinary MOS key retrieval/editor, key sysvars/count, virtual map
+3. [x] Prove ordinary MOS key retrieval/editor, key sysvars/count, virtual map
    and keyboard callback effects. Scope applicable configuration/query routing
    to the selected P4 keyboard source over UART; don't reroute all ordinary
    VDU just to make this test work.
@@ -107,7 +107,10 @@ same audited commits; no upstream source changes are authorized.
 ## Review boundary
 
 The Author accepted the Work 2 graphical result and authorized its source
-freeze on 2026-09-08. Work 3 is the next separate increment and has not started.
+freeze on 2026-09-08, then separately authorized Work 3. Its implementation
+and emulator evidence passed Author review. The Author then authorized the
+Work 3 source freeze and bounded Work 4 held-key cleanup, truncated-frame
+timeout and explicit receiver recovery.
 Task order governs only the keyboard slices;
 full network, mode lifecycle, parallel provenance and mouse are not prerequisites.
 MOS-001 is cancelled; implement resident EMOS extensions instead.
@@ -197,6 +200,102 @@ SD/CLOCK and ordinary smoke PASS, two mainboard source reports, the expected
 receiver-readiness timeout, source still mainboard and `/ *` prompt return.
 The displayed autoexec error at line 7 and `Volume timeout` are the existing
 MOS presentation of `FR_TIMEOUT`; they are expected for the absent-peer case.
-The Author subsequently explicitly authorized freezing Work 2. Work 3 remains
-unstarted; its next proof covers ordinary MOS key retrieval/editor, sysvars,
+The Author subsequently explicitly authorized freezing Work 2. Work 3 was subsequently authorized; its proof covers ordinary MOS key retrieval/editor, sysvars,
 virtual map, callbacks and applicable keyboard configuration/query routing.
+
+
+## Work 3 — ordinary API proof and configuration scope
+
+Author approved `keyboard-api-probe-r01` and registry r36. The implementation
+reuses `agon-emos-v0.1.8-b2026-09-09-00-09-53Z` and its original SHA-256
+unchanged. No firmware source, version, flash/RAM cost or hardware deployment
+changes in this work item. The ordinary [SD exerciser](../../projects/keyboard-api/README.md)
+and controlled peer are independent test artifacts.
+
+1. The eZ80 application selects browser input through the resident command,
+   installs the stock keyboard callback and observes public sysvars/map APIs.
+   The host sends complete stock packets over the emulated UART1; actual
+   vector entry, UART driver, resident framing, C bridge and assembly effects
+   execute. No test injects guest memory, sysvars, a private function call or
+   an application-owned UART handler to manufacture this result.
+2. Target assertions cover callback-before-publication and DE payload, callback
+   edits to ASCII/virtual code, primary/alternate/IX/IY register preservation,
+   modifiers, two independent held keys, 260 packets across counter wrap,
+   five-byte settings with no completion flag, getkey ignoring releases,
+   editor letters/Backspace/arrows/Enter/Escape, callback removal, retained
+   locale across source changes, VBlank progress and return to mainboard CLI.
+3. Fab 1.2.3 at `fbb7d7ca887a06966ca8a62ed22272409a5ab640` has UART1 registers
+   but no UART1 receive interrupt in `do_interrupts`. Generic mos-agondev
+   TEST-001 owns a checked source-copy adaptation and an explicit Unix-socket
+   peer for both frontends. It supplies ordered bytes and constant CTS-ready;
+   physical baud, FIFO overflow, RTS timing and actual P4/browser behavior are
+   outside this proof. Reference sources and the independent Fab fork remain
+   untouched. The build retains resolved Cargo lock and executable hashes.
+4. The peer observes a fixture-owned one-byte SD stage file. This synchronizes
+   tests without adding a keyboard-wire ACK or a product settings store. The
+   host enforces a 45-second deadline around the stock blocking input APIs.
+   The callback is cleared before returning. A fresh launcher invocation can
+   repeat the complete test. The generated profile verifies fixture, firmware,
+   peer, runtime manifest, VDP and all immutable media hashes.
+5. Fab CLI cannot service display queries while its stdin helper types an
+   entire line. The final prompt check therefore waits 500 ms for the stock
+   editor's post-prompt mode query before typing its verification command.
+   This is a host-fixture pacing constraint, not an EMOS buffering change.
+
+### Applicable configuration/query boundary
+
+The official docs and accepted AUDIT-004 P013/P014 remain the authority.
+Work 3 proves the following selected-source subset and identifies the raw-VDU
+integration work explicitly; it does not silently claim all keyboard controls.
+
+| Operation | Current ownership and proof |
+|---|---|
+| `SET KEYBOARD n` / named Keyboard setter | EMOS sends `17 00 81 n` to the selected source and retains the accepted byte in RAM. The peer observes locales 1, 2, then retained 2 after re-entry. Returning to mainboard invokes its separate UART0 sender. Wider locale mapping is not inferred. |
+| Readiness General Poll | EMOS's private `17 00 80 token` / `80 01 token` exchange establishes ordered admission; the peer observes two admissions. It is not a settings or session-identity acknowledgement. |
+| Incoming `88 05 delay_lo delay_hi rate_lo rate_hi led` | The selected UART1 source updates the normal five MOS sysvar bytes without a key event or new result flag. This fixture sends known values directly as stock status packets; it does not pretend a repeat-control request was routed. |
+| Raw `VDU 23,0,&81,n` | Still follows the ordinary output destination. It does not use the source-aware named setter or update EMOS's retained locale. Full source-independent raw routing remains unimplemented. |
+| Raw `&88` repeat/LED/query and `&99` key-state query | Still follow ordinary VDU output, presently mainboard. Their mainboard keyboard replies are ignored while browser is selected. Do not use these to claim browser settings/query support in this Legacy test. |
+| Raw `&98` control-key enable | Still controls the mainboard VDP's local control-key behavior. Browser/P4 policy and eventual destination routing require coordinator integration; no byte-pattern interception is added here. |
+
+For `&88`, the selected VDP source applies delay 250–1000 ms in 250 ms steps,
+rate 33–500 ms, and LED 255 as leave-unchanged; out-of-range delay/rate preserve
+existing settings. Thus `(0,0,255)` requests existing settings without changing
+them. Stock MOS has no KEYSTATE completion pflag. These are source-qualified
+contracts, not operations newly implemented by this fixture.
+
+**W3-K001 — raw keyboard-control routing (open integration boundary):** preserve
+these stock requests when input and display owners differ. A correct future
+EMOS dispatcher must identify complete commands within the VDU grammar; a
+search for `23,0,...` inside arbitrary binary/VDU payload is not sufficient.
+Keep this under the coordinator's source/destination integration work. Work 3's
+controlled-packet proof does not close this boundary or broaden ordinary VDU
+routing. The Author accepted the graphical proof; this open routing boundary
+is not closed by that acceptance.
+
+### Work 3 validation
+
+The paired CLI run passes all guest assertions and a subsequent mainboard CLI
+command. All 75 existing EMOS tests pass. Exact fixture/runtime/build manifests,
+logs and the graphical profile are recorded in the ignored coordinator
+`agents/keyboard/handoff.md`. Work 4/5 and physical deployment are not started.
+
+
+Final Work 3 fixture: `keyboard-api-probe-r01-b2026-09-09-01-03-19Z`, SHA-256
+`dfe4e21f491dab9c8f263abfdb7a87fc7a55119de54d0b707c77081bebf3a7ea`.
+The graphical peer completes all eleven stages, and the agent observed every
+PASS plus the normal mainboard MOS prompt. The Author subsequently accepted the graphical result. The Author authorized its source freeze. The final runtime also passes stock
+and EMOS SD/clock smoke and the absent-peer case. A missing socket exits with
+status 2 rather than silently falling back.
+
+The graphical run exposed a second Fab limitation: joystick setup holds Port C
+inputs high, and the GPIO read ORs UART CTS into them. The explicit test peer
+now drives PC3's input level; it does not override a guest-configured output
+and leaves absent-peer/ordinary joystick behavior unchanged. This emulator
+correction allowed the same EMOS firmware to pass both frontends.
+
+
+The Author confirmed “emulator review passes” for Work 3. Its bounded
+keyboard API proof is accepted; the raw-VDU routing boundary stays open.
+Next implementation work is Work 4's receiver cleanup/recovery qualification,
+starting with held-key release, truncated-packet timeout and explicit source
+recovery. The Author authorized that bounded next increment after accepting Work 3.

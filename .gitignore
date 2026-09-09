@@ -17,3 +17,6 @@ projects/boot-smoke/build/
 projects/uart-forward/bin/
 projects/uart-forward/obj/
 projects/uart-forward/build/
+projects/keyboard-api/bin/
+projects/keyboard-api/obj/
+projects/keyboard-api/build/
