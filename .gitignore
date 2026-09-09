@@ -24,3 +24,7 @@ projects/keyboard-api/build/
 /projects/keyboard-wire/bin/
 /projects/keyboard-wire/obj/
 /projects/keyboard-wire/build/
+
+/projects/browser-typing/bin/
+/projects/browser-typing/obj/
+/projects/browser-typing/build/

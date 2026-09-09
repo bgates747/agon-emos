@@ -440,3 +440,37 @@ The returned SD's exact `01` PASS byte was independently collected on
 receipt; fixture, smoke, autoexec and consumed firmware hashes still match.
 This is the last run's result because the fixture overwrites the file each
 time. The broader task remains unfinished.
+
+## Shared UART typing increment — 2026-09-09
+
+Author authorized focused browser typing and preapproved EMOS v0.1.9. The
+existing resident receiver now demultiplexes the text gateway's General Poll
+acknowledgement while still publishing unsolicited keys under IRQ. One
+foreground transition lock serializes text, layout and source changes. A
+partial/failed text transaction requests IRQ-owned fault/held-key cleanup;
+application code never opens UART1. Existing public API numbers are unchanged.
+
+`projects/browser-typing` is the bounded SD application: public keyboard
+callback → finite FIFO → resident `edu.text-probe` output. US layout, 70-column
+wrapping, Enter, Backspace, Escape, a five-minute deadline and result byte
+are covered by the coordinator's browser-keyboard-probe-r01 procedure. Its
+preview uses mainboard VDU only after the peer acknowledges the same text.
+It does not implement ordinary ExCom CLI routing or change video mode.
+
+Qualified-build checks pass (134 builder tests, 75 EMOS tests and linked ABI,
+UART divisor, parallel and keyboard guards). The emulator peer consumes the
+actual mapped/retained serializer bytes and verifies `aB3!`, Backspace, `?`,
+newline and `z` returned through EMOS; a key overlaps the banner acknowledgement.
+Withheld text acknowledgement faults boundedly and restores mainboard/MOS.
+Human graphical review and installation remain pending; the installed v0.1.8
+hardware milestone and rollback images retain their exact identities.
+
+## Graphical typing review accepted — 2026-09-09
+
+The Author supplied the review screenshot showing `aB3?`, newline `z`,
+BROWSER TYPING PASS (8 edited characters), mainboard input and the MOS prompt.
+This accepts the bounded graphical result, not physical browser typing.
+Standing version preapproval advances registry r41 and the unchanged EMOS
+v0.1.9/browser-keyboard-probe-r01 implementation to candidate for clean builds.
+The reviewed draft builds and their results retain their original identities.
+Guarded Agon installation and paired P4/browser qualification are next.

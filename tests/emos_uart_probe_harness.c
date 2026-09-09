@@ -2,6 +2,12 @@
 #include <string.h>
 #include "uart.h"
 #include "emos_uart_probe.h"
+#include "emos_keyboard.h"
+/* These legacy one-shot tests have no resident keyboard owner. Shared-session
+ * effects are exercised against the real receiver in emos_keyboard_harness.c. */
+volatile BYTE uart1_keyboard_owned;
+BYTE emos_keyboard_text(const BYTE *p, UINT16 n) { (void)p; (void)n; return EMOS_KEY_BUSY; }
+
 
 volatile BYTE serialFlags;
 BYTE uart1_claim_rts(void) { assert(0); return UART_POLL_UNAVAILABLE; }

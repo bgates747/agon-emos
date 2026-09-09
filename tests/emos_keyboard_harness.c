@@ -7,7 +7,7 @@
 
 volatile BYTE uart1_keyboard_owned;
 static BYTE irq_enabled = 1, in_irq, clock_byte, frozen_clock;
-static BYTE occupied, reply, tx_error, rx_stopped, edit_key;
+static BYTE occupied, reply, tx_error, rx_stopped, edit_key, interleave;
 static BYTE tx[64], tx_count, pending_reply;
 static BYTE events[600][4], settings[5], mainboard_layout;
 static unsigned event_count, settings_count, closed;
@@ -53,7 +53,10 @@ void uart1_keyboard_close(void) {
 BYTE uart1_keyboard_put(BYTE value) {
     if (tx_error) return UART_POLL_ERROR;
     assert(tx_count < sizeof(tx)); tx[tx_count++] = value;
-    if (tx_count == 8 && reply) pending_reply = 1;
+    if (tx_count>=4 && tx[tx_count-4]==23 && tx[tx_count-3]==0 && tx[tx_count-2]==0x80 && reply) {
+        if (interleave) key('q',0,38,1);
+        pending_reply = 1;
+    }
     return UART_POLL_READY;
 }
 void emos_keyboard_effect(BYTE *p) {
@@ -155,6 +158,20 @@ int main(void) {
     irq_enabled = 0;
     assert(emos_keyboard_select(EMOS_KEY_BROWSER) == EMOS_KEY_BUSY);
     assert(!irq_enabled); irq_enabled = 1;
+    activate(); before=event_count; interleave=1;
+    assert(emos_keyboard_text((BYTE *)"hello",5)==EMOS_KEY_OK);
+    assert(uart1_keyboard_owned && event_count==before+1 && events[before][0]=='q');
+    assert(tx_count==20 && !memcmp(tx+8,"hello",5));
+    assert(!memcmp(tx+13,(BYTE[]){23,0,0xCA,23,0,0x80},6));
+    interleave=0; reply=2;
+    assert(emos_keyboard_text((BYTE *)"x",1)==EMOS_KEY_TIMEOUT); tick();
+    assert(emos_key_faulted && !events[event_count-1][3]);
+    activate(); reply=0; frozen_clock=1;
+    assert(emos_keyboard_text((BYTE *)"x",1)==EMOS_KEY_TIMEOUT);
+    frozen_clock=0; tick(); assert(emos_key_faulted);
+    activate(); irq_enabled=0;
+    assert(emos_keyboard_text((BYTE *)"x",1)==EMOS_KEY_BUSY);
+    irq_enabled=1;
     puts("resident keyboard parser, admission, ownership and IRQ cleanup scenarios passed");
     return 0;
 }

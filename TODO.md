@@ -9,7 +9,7 @@ port-infrastructure work remains in `mos-agondev`.
 - [ ] **INTEG-009 — Receive stock keyboard packets over UART1**
   - Started: 2026-09-08 19:18 EDT
   - Finished: --
-  - Status: Receiver/emulator checkpoints frozen; controlled P4 UART delivery and public-API effects pass on hardware with three Agon runs; browser/session and broader integration remain.
+  - Status: Receiver/emulator checkpoints frozen; controlled P4 UART delivery and public-API effects pass on hardware with three Agon runs; shared resident text/input and the SD typing program are implemented for review; browser hardware and broader integration remain.
   - Details: [INTEG-009](docs/tasks/INTEG-009.md)
 
 ## Other Extender integration

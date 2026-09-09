@@ -30,13 +30,14 @@ def digest(path: Path) -> str:
 
 def make_profile(profile: Path, firmware: Path, mos_map: Path, sdcard: Path,
                  fab: Path, *, runtime: Path | None = None,
-                 peer: Path | None = None) -> None:
+                 peer: Path | None = None,
+                 mutable_names: tuple[str, ...] = ("keyboard-state.bin",)) -> None:
     profile.mkdir()
     binary = (runtime or fab) / "target/release/fab-agon-emulator"
     vdp = fab / "firmware/vdp_platform.so"
     raw = profile / "fab-agon-emulator.bin"
     raw.symlink_to(binary)
-    mutable = {str(sdcard / 'keyboard-state.bin')} if peer else set()
+    mutable = {str(sdcard / name) for name in mutable_names} if peer else set()
     inputs = [raw, firmware, mos_map, vdp, *sorted(p for p in sdcard.rglob("*")
               if p.is_file() and str(p) not in mutable)]
     if peer:

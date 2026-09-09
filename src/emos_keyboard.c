@@ -10,6 +10,7 @@
 volatile BYTE emos_key_source, emos_key_faulted;
 static volatile BYTE transitioning, preparing, stop_requested, fault_requested;
 static BYTE layout, token;
+static volatile BYTE text_pending;
 static BYTE state, command, length, remaining, used, payload[5], partial_at;
 static BYTE held[32], modifiers, zero_down;
 
@@ -64,7 +65,7 @@ void emos_keyboard_fault(void) {
     /* ISR only. Foreground TX errors request this through fault_requested. */
     uart1_keyboard_stop();
     parser_reset();
-    preparing = 0;
+    preparing = text_pending = 0;
     emos_key_faulted = 1;
     if (emos_key_source == EMOS_KEY_BROWSER) cleanup();
 }
@@ -95,6 +96,8 @@ static void dispatch(void) {
             if (!valid_key(payload)) emos_keyboard_fault();
             else publish(payload);
         } else if (command == 0x88) emos_keyboard_settings(payload);
+        else if (command == 0x80 && length == 1 && text_pending && payload[0] == token)
+            text_pending = 0;
     }
 }
 void emos_keyboard_byte(BYTE value) {
@@ -205,5 +208,31 @@ BYTE emos_keyboard_layout(BYTE value) {
     }
     if (ok) layout = value;
     transitioning = 0;
+    return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
+}
+
+/* One foreground writer, one IRQ receiver. Keep keyboard packets flowing while
+ * the retained P4 renderer consumes text. A failed partial transaction poisons
+ * this stream; only the IRQ may release held keys and latch the fault. */
+BYTE emos_keyboard_text(const BYTE *text, UINT16 length) {
+    BYTE irq = emos_keyboard_lock(), ok = 1;
+    UINT16 n;
+    Deadline d;
+    if (transitioning || !irq || preparing || emos_key_faulted ||
+        emos_key_source != EMOS_KEY_BROWSER || !uart1_keyboard_owned) {
+        emos_keyboard_unlock(irq); return EMOS_KEY_BUSY;
+    }
+    transitioning = 1; text_pending = 1; ++token;
+    emos_keyboard_unlock(irq);
+    deadline_start(&d);
+    for (n = 0; n < length && ok; ++n) ok = transmit(text[n], &d);
+    /* Retained drawing flush, followed by an ordered stock General Poll. */
+    if (ok) ok = transmit(23,&d) && transmit(0,&d) && transmit(0xCA,&d) &&
+                 transmit(23,&d) && transmit(0,&d) && transmit(0x80,&d) && transmit(token,&d);
+    while (ok && text_pending && !emos_key_faulted && deadline_step(&d)) { }
+    irq = emos_keyboard_lock();
+    if (!ok || text_pending || emos_key_faulted) { ok = 0; fault_requested = 1; }
+    text_pending = transitioning = 0;
+    emos_keyboard_unlock(irq);
     return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
 }

@@ -8,6 +8,7 @@
 #include <defines.h>
 #include "uart.h"
 #include "emos_uart_probe.h"
+#include "emos_keyboard.h"
 
 static const char request[] = "EMOS UART1 -> P4\r\n";
 static const char reply[] = "ACK\r\n";
@@ -240,6 +241,8 @@ static int text_exchange(const BYTE *text, UINT16 length, BYTE token, BYTE verbo
 
 int emos_text_probe(const BYTE *text, UINT16 length) {
     if (!emos_text_valid(text, length)) return 0;
+    if (uart1_keyboard_owned)
+        return emos_keyboard_text(text, length) == EMOS_KEY_OK;
     return text_exchange(text, length, 0xA7, 0);
 }
 
