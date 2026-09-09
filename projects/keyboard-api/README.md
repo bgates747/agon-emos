@@ -1,7 +1,7 @@
 # Resident keyboard API exerciser
 
-Identity: `keyboard-api-probe-r01`, Author-approved with registry r36.
-Owner: [INTEG-009 Work 3](../../docs/tasks/INTEG-009.md).
+Identity: `keyboard-api-probe-r02`, Author-approved with registry r37.
+Owner: [INTEG-009 Work 3/4](../../docs/tasks/INTEG-009.md).
 
 `KBAPI.BIN` is an ordinary SD-loaded MOS program. It selects browser input
 through `EMOS KEYINPUT`, installs a documented keyboard callback, reads the
@@ -21,13 +21,17 @@ edits, primary/alternate/index register preservation, modifiers, independent
 held keys in the map, 260 events across counter wrap, five-byte settings with
 no new completion flag, getkey ignoring releases, line editing and Escape,
 callback removal, locale retention across source changes, clock progress and
-return to mainboard input. Stock getkey/editor waits are unbounded; the host
+return to mainboard input. Revision r02 adds repeated downs with held modifiers,
+modifier-first synthetic cleanup with lock retention, stale/wrong-token admission,
+safe idle, whole-frame timeout during a slowly delivered key, ignored late data,
+latched fault and explicit retry. Actual browser/P4 session loss and physical
+UART errors remain separate gates. Stock getkey/editor waits are unbounded; the host
 enforces a 45-second overall failure deadline. All callback exits are cleaned
 up before the application returns normally or reports an assertion failure.
 
 `scripts/prepare_keyboard_api_review.py` builds only the fixture, checks the
 selected firmware/runtime hashes, runs the paired CLI test and creates a frozen
-graphical profile. Launch that profile through its generated
+graphical profile with its own immutable copy of the peer script. Launch that profile through its generated
 `./fab-agon-emulator` wrapper. It starts the same controlled peer, leaving the
 window open after PASS. A new launcher invocation repeats the test with a fresh
 peer and stage file. `last-peer.json` and `.log` record graphical execution.
@@ -38,7 +42,7 @@ an explicit Unix-socket peer in an isolated source copy. It also records every
 changed-source and executable hash. The official runtime and independently
 maintained Fab fork remain untouched. CTS is constant ready; FIFO overflow,
 RTS backpressure, physical baud, browser mappings and P4 firmware are **not**
-qualified here. See mos-agondev TEST-001 for the adaptation's removal condition.
+qualified here. See mos-agondev `docs/uart-peer-emulator.md` for usage and removal conditions.
 
 Fab CLI's fake VDP stops processing display requests while it types a whole
 stdin line. The runner lets the editor's post-prompt mode query finish before

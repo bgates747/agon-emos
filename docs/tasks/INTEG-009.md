@@ -2,7 +2,7 @@
 
 ## State
 
-- Status: Work 1 and Work 2 accepted and frozen; Work 3 accepted and frozen; bounded Work 4 cleanup/recovery authorized.
+- Status: Work 1 and Work 2 accepted and frozen; Work 3 accepted and frozen; bounded Work 4 emulator cleanup/recovery accepted and frozen; physical/session cases remain open.
 - Started: 2026-09-08 19:18 EDT (Work 1 contract; no implementation).
 - Finished: --
 - Coordinator: [PORT-008](../../../agon-extender/docs/tasks/PORT-008.md), with
@@ -299,3 +299,79 @@ keyboard API proof is accepted; the raw-VDU routing boundary stays open.
 Next implementation work is Work 4's receiver cleanup/recovery qualification,
 starting with held-key release, truncated-packet timeout and explicit source
 recovery. The Author authorized that bounded next increment after accepting Work 3.
+
+
+## Work 4 — bounded receiver recovery proof (accepted checkpoint)
+
+The Author authorized the next small emulator increment after freezing Work 3.
+Reuse the reviewed v0.1.8 firmware and accepted generic UART1 runtime unchanged.
+Extend only the ordinary SD exerciser and controlled host peer. The official
+Keyboard/API and VDP System-Commands references above were reread first;
+stock packet/map/callback behavior remains the authority. Synthetic cleanup and
+partial-frame expiry are EMOS's accepted recovery contract, not stock promises.
+
+1. Exercise repeated downs while Shift and two keys are held, then select
+   mainboard. Observe modifier-first synthetic releases through the registered
+   callback, empty map, count increments, cleared physical modifiers and
+   retained Caps Lock. Repeated selection/later ticks must not repeat cleanup.
+2. Before a new matched poll reply, the peer sends stale keys, a wrong token
+   and further keys. None may publish. Leave the admitted receiver idle beyond
+   250 ms, then prove that a fresh key still works; idle is not partial data.
+3. Hold Ctrl, a normal key and a virtual-code-zero key, then trickle a key
+   frame at 100 ms intervals. Whole-frame expiry must release the held keys
+   before completion. The late tail and later complete keys must remain
+   ineffective while faulted. Explicit browser selection must perform a fresh
+   readiness exchange and accept new keys, followed by mainboard prompt return.
+
+This does not finish all of Work 4. Actual P4/browser blur, disconnect, takeover,
+restart and physical UART overrun/RTS behavior still require their owning peer
+and hardware tests. The socket runtime cannot manufacture meaningful physical
+line/overflow evidence. Source-aware raw VDU routing remains W3-K001. No EMOS
+firmware rebuild, SD-card write, P4 deployment or physical test is in this slice.
+The Author approved keyboard-api-probe-r02 and registry r37. The bounded
+emulator proof passes automated checks and supplied screenshot review; the
+Author subsequently authorized its source freeze. Do not mark the whole work item done.
+
+
+### Work 4 bounded validation
+
+Author-approved fixture `keyboard-api-probe-r02-b2026-09-09-01-54-03Z`, SHA-256
+`d8ba03877fb1bbc261260c487e080bf4883e10fe21e37e818698bda6a9af6caa`,
+passes all nineteen paired CLI stages and a subsequent mainboard CLI command.
+The same accepted EMOS v0.1.8 image and runtime hashes are retained. No firmware
+source or linked executable changed. The build uses warnings as errors.
+
+The peer records five distinct readiness tokens and locales `[1,2,2,2,2,2]`.
+Target checks prove modifier-first cleanup once, preserved lock state and
+callback/count effects, stale keys around a wrong readiness token discarded,
+idle without a fault, and partial timeout with Ctrl/normal/zero-code cleanup.
+The target reached its fault result while the packet's tail was still pending;
+complete subsequent keys had no effects before explicit retry. These are
+functional clock/receiver observations, not physical UART timing qualification.
+
+Python execution, controlled-input hashes, diff checks and the coordinator's
+registry/templates/VDP identity checks pass. Existing stock/EMOS boot and
+absent-peer runtime evidence remains applicable because both images and the
+runtime are byte-identical. This increment's autoexec also passes SD/CLOCK.
+The generated review profile retains an immutable peer-script copy so later
+fixture edits do not alter this review. Exact local paths and manifests are
+recorded in the coordinator's ignored keyboard handoff.
+
+The supplied screenshot confirms the graphical result. The Author subsequently
+authorized its source freeze. Work 4's wider physical/session cases remain open.
+
+
+The graphical profile was launched for review. Its controlled peer also reports
+all nineteen stages PASS, and the session subsequently exited cleanly. The
+Author then supplied the matching r02 build screenshot: all four recovery PASS
+lines, the intentional browser fault followed by successful retry, final API
+PASS, mainboard input and the normal `/ *` prompt. This confirms the bounded
+emulator review result. The Author subsequently authorized source freeze; no
+physical work or next implementation increment is authorized by this freeze.
+
+
+The bounded Work 4 checkpoint is frozen after Author screenshot review and
+explicit commit approval. The nineteen-stage fixture and peer sources still
+match the reviewed manifests. The reviewed EMOS/fixture builds retain their
+draft identities; clean physical candidates and the real P4 sender remain
+future work. Keep Work 4 unchecked for its remaining session/hardware scope.

@@ -31,7 +31,21 @@ def stage_packets(stage):
         8: [key(55, 9, 0), key(55, 9)],
         10: [key(27, 125), key(27, 125, 0)],
         11: [key(120, 45), key(120, 45, 0)],
+        12: [key(0,117,modifiers=0x12)] + [key(97,22,modifiers=0x12)]*3 +
+            [key(98,23,modifiers=0x12)],
+        13: [],  # Admission and then idle; no unsolicited key packets.
+        14: [key(99,24,modifiers=0x10), key(99,24,0,modifiers=0x10)],
+        15: [key(0,121,modifiers=0x11), key(1,22,modifiers=0x11),
+             key(0,0,modifiers=0x11)],
+        17: [key(122,47), key(122,47,0)],  # Complete keys during latched fault.
+        18: [],  # Only an explicit command retries the receiver.
+        19: [key(97,22), key(97,22,0)],
     }
+    if stage == 16:
+        # 100ms interbyte intervals are below the 250ms partial deadline, but
+        # the whole frame takes 500ms. The receiver must release held keys
+        # BEFORE it could publish this key. The late tail remains on the wire.
+        return [(0.1, bytes([byte])) for byte in key(122,47,modifiers=0x10)]
     if stage == 9:
         # "cab", Backspace, left, "r", right, Enter => "cra".
         simple[9] = [key(55, 9, 0)]
@@ -53,7 +67,8 @@ def run(args):
     env['LD_LIBRARY_PATH'] = str(Path.home()/'.local/lib')+os.pathsep+env.get('LD_LIBRARY_PATH', '')
     transcript = bytearray()
     record = {'scope': 'emulated UART1 resident API effects; not physical/browser qualification',
-              'outcome': 'fail', 'stages': [], 'locales': [], 'polls': [], 'tx': [], 'rx': []}
+              'outcome': 'fail', 'stages': [], 'stage_times': {}, 'locales': [],
+              'polls': [], 'tx': [], 'tx_times': [], 'rx': []}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     def save():
         args.output.write_text(json.dumps(record, indent=2)+'\n')
@@ -97,7 +112,15 @@ def run(args):
                         record['locales'].append(request[3])
                     elif request[:3] == bytes([23,0,0x80]):
                         record['polls'].append(request[3])
-                        scheduled.append((now+0.05, bytes([0x80,1,request[3]])))
+                        reply = bytes([0x80,1,request[3]])
+                        if len(record['polls']) == 4:
+                            # All old events precede the matched ordering
+                            # barrier; this models the peer's admission duty.
+                            stale = key(122,47) + key(122,47,0)
+                            wrong = bytes([0x80,1,(request[3]+1)&255])
+                            scheduled.append((now+0.02, stale+wrong+key(120,45)+key(120,45,0)))
+                        scheduled.append((now+0.05, reply))
+                        scheduled.sort(key=lambda item: item[0])
                     else:
                         raise RuntimeError('Unexpected EMOS request: '+request.hex(' '))
                 value = marker.read_bytes() if marker.exists() else b''
@@ -114,17 +137,22 @@ def run(args):
                             continue
                         raise RuntimeError('Guest rejected stage '+str(last_stage))
                     if stage == 127:
-                        if record['stages'] != list(range(1,12)) or record['locales'] != [1,2,2] or len(record['polls']) != 2:
+                        if record['stages'] != list(range(1,20)) or record['locales'] != [1,2,2,2,2,2] or len(record['polls']) != 5 or len(set(record['polls'])) != 5:
                             raise RuntimeError('Incomplete stages or layout/readiness exchanges')
                         record['outcome'] = 'pass'
                         success_at = now
                         if args.graphical:
-                            print('PASS: resident UART1 keyboard API exerciser', flush=True)
+                            print('PASS: resident UART1 keyboard API and recovery exerciser', flush=True)
                         save()
                     else:
                         if stage != last_stage+1:
                             raise RuntimeError('Out-of-order stage')
+                        if stage == 17 and not scheduled:
+                            raise RuntimeError('No partial-frame tail left at guest timeout result')
+                        if stage == 18 and scheduled:
+                            raise RuntimeError('Guest retried before all post-fault bytes were sent')
                         record['stages'].append(stage)
+                        record['stage_times'][str(stage)] = round(now-started,6)
                         # getkey/editor can return on key-down while its
                         # release remains queued. Finish it before next stage.
                         due = max(now+0.15, scheduled[-1][0]+0.15 if scheduled else now)
@@ -137,6 +165,7 @@ def run(args):
                     _, packet = scheduled.pop(0)
                     peer.sendall(packet)
                     record['tx'].append(packet.hex(' '))
+                    record['tx_times'].append(round(now-started,6))
                 if success_at is not None and not args.graphical:
                     at_prompt = transcript.rstrip().endswith(b'/ *')
                     # Stock mos_EDITLINE queries mode after printing the prompt.
@@ -148,7 +177,7 @@ def run(args):
                     if (b'KEYBOARD REVIEW PROMPT RETURNED' in transcript.splitlines()
                             and at_prompt):
                         record['prompt_return'] = True
-                        print('PASS: resident UART1 API effects and mainboard prompt return', flush=True)
+                        print('PASS: resident UART1 API, recovery and mainboard prompt return', flush=True)
                         break
                     if now-success_at > 5:
                         raise RuntimeError('No mainboard CLI command after source return')

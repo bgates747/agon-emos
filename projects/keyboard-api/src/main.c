@@ -1,4 +1,4 @@
-/* INTEG-009 Work 3: ordinary SD application using public MOS APIs only.
+/* INTEG-009 Work 3/4: ordinary SD application using public MOS APIs only.
  * The host peer observes a one-byte SD stage marker and supplies stock UART
  * packets. This test-control file is NOT a product packet ACK or saved setting.
  * No mode change, UART register/vector ownership, private EMOS call or sysvar
@@ -49,6 +49,17 @@ static uint8_t wait_events(uint24_t expected) {
     uint24_t budget = 0xFFFFFF;
     while (events < expected && --budget) {}
     return events == expected && !overflow && !bad_irq;
+}
+static uint8_t wait_ticks(uint8_t ticks) {
+    /* Observe the public VBlank clock; no guest clock or sysvar writes. */
+    uint8_t start = sv[sysvar_time];
+    uint24_t budget = 0xFFFFFF;
+    while ((uint8_t)(sv[sysvar_time] - start) < ticks && --budget) {}
+    return budget != 0;
+}
+static uint8_t release_at(uint24_t index, uint8_t virtual, uint8_t before) {
+    return !memcmp(records[index], (uint8_t[]){0,0x10,virtual,0}, 4) &&
+           records[index][8] == before;
 }
 static uint8_t empty_map(void) {
     for (uint8_t i = 0; i < 16; ++i) if (map[i]) return 0;
@@ -138,6 +149,69 @@ int main(void) {
     CHECK(cli("EMOS KEYINPUT browser") && cli("EMOS KEYINPUT mainboard"));
     CHECK(sv[sysvar_time] != clock_before && !bad_irq && !overflow);
     puts("KEYBOARD API PASS: callback removed, retained layout, clock and source return");
+    /* A fresh callback record window keeps recovery diagnostics readable.
+     * The callback is currently removed and mainboard input is idle. */
+    events = 0;
+    mos_setkbvector(probe_callback, 0);
+    CHECK(cli("EMOS KEYINPUT browser"));
+    before = sv[sysvar_vkeycount];
+    CHECK(mark(12) && wait_events(5)); /* Shift, a down + two repeats, b */
+    CHECK(map[0] == 8 && map[8] == 2 && map[12] == 0x10 &&
+          sv[sysvar_keymods] == 0x12 && sv[sysvar_vkeydown] == 1 &&
+          sv[sysvar_vkeycount] == (uint8_t)(before+5));
+    for (uint8_t i = 1; i <= 3; ++i)
+        CHECK(!memcmp(records[i], (uint8_t[]){'a',0x12,22,1}, 4) &&
+              records[i][8] == (uint8_t)(before+i));
+    CHECK(cli("EMOS KEYINPUT mainboard") && wait_events(8) && empty_map());
+    CHECK(release_at(5,117,(uint8_t)(before+5)) &&
+          release_at(6,22,(uint8_t)(before+6)) &&
+          release_at(7,23,(uint8_t)(before+7)) &&
+          records[5][5] == 0x12 && records[6][5] == 0x10 &&
+          sv[sysvar_keymods] == 0x10 && !sv[sysvar_vkeydown]);
+    CHECK(cli("EMOS KEYINPUT mainboard") && wait_ticks(60) && events == 8 &&
+          sv[sysvar_vkeycount] == (uint8_t)(before+8));
+    puts("KEYBOARD RECOVERY PASS: repeats and one-time held-key cleanup");
+
+    /* The peer queues stale keys and a wrong poll token BEFORE the matched
+     * reply for this admission. None may publish, even through the callback.
+     * Then idle beyond the partial-frame deadline: silence is not a fault. */
+    CHECK(mark(13) && cli("EMOS KEYINPUT browser"));
+    CHECK(wait_ticks(60) && events == 8 && empty_map() &&
+          sv[sysvar_vkeycount] == (uint8_t)(before+8));
+    CHECK(mark(14) && wait_events(10) && empty_map());
+    CHECK(!memcmp(records[8], (uint8_t[]){'c',0x10,24,1}, 4) &&
+          !memcmp(records[9], (uint8_t[]){'c',0x10,24,0}, 4));
+    puts("KEYBOARD RECOVERY PASS: stale admission discarded; idle remains usable");
+
+    before = sv[sysvar_vkeycount];
+    CHECK(mark(15) && wait_events(13)); /* Ctrl, a and virtual-code-zero held */
+    CHECK(map[0] == 0x10 && map[8] == 2 && sv[sysvar_keymods] == 0x11);
+    clock_before = sv[sysvar_time];
+    CHECK(mark(16) && wait_events(16));
+    /* A key frame trickles at sub-deadline intervals, but its TOTAL age must
+     * expire before completion. Only the three synthetic releases may appear;
+     * no part of the incomplete key may publish. Timing includes host arming. */
+    CHECK((uint8_t)(sv[sysvar_time]-clock_before) >= 30 && empty_map() &&
+          release_at(13,121,(uint8_t)(before+3)) &&
+          release_at(14,22,(uint8_t)(before+4)) &&
+          release_at(15,0,(uint8_t)(before+5)) &&
+          sv[sysvar_keymods] == 0x10 && !sv[sysvar_keyascii] &&
+          !sv[sysvar_vkeydown] && sv[sysvar_vkeycount] == (uint8_t)(before+6));
+    CHECK(cli("EMOS KEYINPUT")); /* Human review sees browser (fault). */
+    CHECK(mark(17) && wait_ticks(120) && events == 16 && empty_map() &&
+          sv[sysvar_vkeycount] == (uint8_t)(before+6));
+    puts("KEYBOARD RECOVERY PASS: partial timeout, releases and latched fault");
+
+    /* The peer has finished the late tail and complete post-fault keys.
+     * An explicit retry must perform a NEW readiness exchange. */
+    CHECK(mark(18) && cli("EMOS KEYINPUT browser"));
+    CHECK(events == 16 && empty_map());
+    CHECK(mark(19) && wait_events(18) && empty_map());
+    CHECK(!memcmp(records[16], (uint8_t[]){'a',0,22,1}, 4) &&
+          !memcmp(records[17], (uint8_t[]){'a',0,22,0}, 4));
+    CHECK(cli("EMOS KEYINPUT mainboard") && events == 18 && !bad_irq && !overflow);
+    mos_setkbvector(NULL, 0);
+    puts("KEYBOARD RECOVERY PASS: explicit retry and mainboard return");
     puts("KEYBOARD API PASS - returning to MOS");
     CHECK(mark(127));
     return 0;

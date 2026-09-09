@@ -61,12 +61,14 @@ def main():
         'runtime_manifest_sha256': digest(runtime/'runtime-inputs.json'),
         'inputs': {str(p.relative_to(ROOT)): digest(p) for p in source_files},
     }, indent=2)+'\n')
-    subprocess.run([sys.executable, str(ROOT/'scripts/keyboard_api_peer.py'),
+    peer = output/'keyboard_api_peer.py'
+    shutil.copy2(ROOT/'scripts/keyboard_api_peer.py', peer)
+    subprocess.run([sys.executable, str(peer),
                     '--emulator', str(runtime/'target/release/agon-cli-emulator'),
                     '--firmware', str(outputs['firmware']), '--sdcard', str(media),
                     '--output', str(output/'paired-result.json')], check=True)
     make_profile(output/'profile', outputs['firmware'], outputs['firmware_map'], media, fab,
-                 runtime=runtime, peer=ROOT/'scripts/keyboard_api_peer.py')
+                 runtime=runtime, peer=peer)
     print('Human review profile: '+str(output/'profile'))
 
 
