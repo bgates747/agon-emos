@@ -2,7 +2,7 @@
 
 ## State
 
-- Status: Work 1 and Work 2 accepted and frozen; Work 3 accepted and frozen; bounded Work 4 emulator cleanup/recovery accepted and frozen; physical/session cases remain open.
+- Status: Work 1–3 and bounded Work 4 emulator recovery accepted and frozen; controlled P4 sender/public-API hardware proof passes; broader physical/session cases remain open.
 - Started: 2026-09-08 19:18 EDT (Work 1 contract; no implementation).
 - Finished: --
 - Coordinator: [PORT-008](../../../agon-extender/docs/tasks/PORT-008.md), with
@@ -403,3 +403,40 @@ the checkpoint and approved candidate preparation. Physical qualification remain
 The Author accepted the graphical result and explicitly authorized freezing this bounded sender/observer checkpoint, then preparing the paired hardware test. Reviewed builds retain their original draft status; candidate packaging and physical qualification follow separately.
 
 The Author-approved r39 candidate `agon-emos-v0.1.8-b2026-09-09-03-07-18Z` passes full configured/linked and exact-image smoke/keyboard checks. The separate SD observer `uart-keyboard-probe-r01-b2026-09-09-03-09-38Z` passes paired events and missing-input cleanup. Guarded installation media is ready under the coordinator's r03 record `PORT-005-2026-09-09-03-10-57Z`; physical results remain pending.
+
+The Author subsequently reported a successful flash. The returned SD's
+consumed payload matches that exact candidate, and rollback hashes remain
+unchanged. Same-build EMBOOT and the candidate KBWIRE observer are verified
+on the safely unmounted test SD. Extender's r03 record
+`PORT-005-2026-09-09-03-19-20Z` retains the installation report and media hashes;
+this is not an independent flash-memory readback or a physical keyboard PASS.
+The matching P4 sender still awaits authorized deployment and paired testing.
+
+The Author authorized the matching P4 sender deployment. Extender's r03 record
+`PORT-005-2026-09-09-03-22-37Z` confirms independent flash verification and
+correct candidate/UART/WAIT startup. EMOS and the SD media remain unchanged;
+the paired capture launcher is ready for the Author's Enter/reset-cued test.
+Hardware API effects, waveform and repeated Agon resets remain unqualified.
+
+### Controlled P4 sender hardware result — PASS
+
+Extender's r03 evidence `PORT-005-2026-09-09-03-26-09Z` proves the exact
+admission/poll and twelve stock keyboard packets at 1152000 baud, valid
+framing, permission at every character start and a full 12-second acquisition.
+The Author confirmed SD/CLOCK and both keyboard API checks, restored mainboard
+input and MOS return on the captured run and two additional Agon-only resets.
+The waveform retains 7.590125 seconds quiet and the P4 log remains clean for
+8.005626 seconds after PASS. EMOS is the unchanged v0.1.8 candidate.
+
+The waveform shows `uart1_keyboard_irq`'s RTS pauses while processing bytes:
+37 already-started P4 characters finish during a pause, and no new character
+starts with CTS HIGH. An inherited counting-only offline assertion requiring
+LOW through the entire character was corrected; firmware and captured data
+were unchanged. Wider overload, abrupt reset, browser/session cleanup and
+source-aware raw keyboard-control routing remain open.
+
+The returned SD's exact `01` PASS byte was independently collected on
+2026-09-09 at 03:44:25 UTC. The coordinator retains it and a separate timestamped
+receipt; fixture, smoke, autoexec and consumed firmware hashes still match.
+This is the last run's result because the fixture overwrites the file each
+time. The broader task remains unfinished.
