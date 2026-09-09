@@ -397,7 +397,9 @@ removal and mainboard return. No EMOS firmware or runtime source changed.
 The peer bytes and their retained P4 host-test provenance are hash-bound in the
 review profile. The Author supplied the matching graphical screenshot showing
 SD/CLOCK PASS, both detailed keyboard PASS lines, restored mainboard input and
-final MOS prompt. This confirms the bounded emulator result; explicit source
-freeze and physical qualification remain pending.
+final MOS prompt. This confirms the bounded emulator result; the Author subsequently froze
+the checkpoint and approved candidate preparation. Physical qualification remains pending.
 
 The Author accepted the graphical result and explicitly authorized freezing this bounded sender/observer checkpoint, then preparing the paired hardware test. Reviewed builds retain their original draft status; candidate packaging and physical qualification follow separately.
+
+The Author-approved r39 candidate `agon-emos-v0.1.8-b2026-09-09-03-07-18Z` passes full configured/linked and exact-image smoke/keyboard checks. The separate SD observer `uart-keyboard-probe-r01-b2026-09-09-03-09-38Z` passes paired events and missing-input cleanup. Guarded installation media is ready under the coordinator's r03 record `PORT-005-2026-09-09-03-10-57Z`; physical results remain pending.
