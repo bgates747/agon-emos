@@ -2,7 +2,7 @@
 
 ## State
 
-- Status: Reviewed software checkpoint; automated and Author mainboard visual checks pass, paired hardware proof pending. PORT-008-D005 authorized, 2026-09-09.
+- Status: Candidate preparation from reviewed checkpoint 8e63cc4; automated and Author mainboard visual checks pass, paired hardware proof pending. PORT-008-D005 authorized, 2026-09-09.
 - Owner: EMOS resident mode coordinator, UART dispatch and stock reply effects.
 
 ## Scope and contracts
@@ -76,3 +76,8 @@ On 2026-09-09 the Author supplied the final Legacy/Extender-keyboard/MOS-prompt
 screenshot, then authorized source freeze and continued preparation. The SD is
 with the Author for independent testing. Candidate builds may be prepared
 locally; do not change the card or running boards during that testing.
+
+Candidate promotion follows the explicit freeze-and-continue request and standing
+version preapproval. Source identity remains v0.1.11; only lifecycle/build
+identity changes. Build clean committed inputs through the guarded wrapper.
+Physical deployment waits while the Author uses the SD and installed pair.

@@ -8,7 +8,7 @@ port-infrastructure work remains in `mos-agondev`.
 
 - [ ] **INTEG-010 — Ordinary ExCom console over UART1**
   - Started: 2026-09-09
-  - Status: Software and Author mainboard visual checks pass; freezing for candidate preparation. Physical ExCom proof remains open under Extender PORT-008.
+  - Status: Software and Author mainboard visual checks pass; candidate preparation from frozen source. Physical ExCom proof remains open under Extender PORT-008.
   - Details: [INTEG-010](docs/tasks/INTEG-010.md)
 
 ## Established keyboard integration
