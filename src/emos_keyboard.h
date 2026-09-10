@@ -16,6 +16,9 @@
 
 extern volatile BYTE emos_key_source, emos_key_faulted;
 BYTE emos_keyboard_select(BYTE source);
+BYTE emos_keyboard_transport_claim(void);
+void emos_keyboard_transport_release(void);
+BYTE emos_keyboard_send(const BYTE *data, UINT16 length);
 BYTE emos_keyboard_text(const BYTE *text, UINT16 length);
 BYTE emos_keyboard_layout(BYTE layout);
 void emos_keyboard_byte(BYTE value);

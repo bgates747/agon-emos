@@ -48,6 +48,8 @@ def verify(image: bytes, linked: dict[str, int]) -> None:
     required = (
         "EMOS_vdu_PUTCH",
         "EMOS_vdu_WRITE",
+        "EMOS_vdu_console",
+        "EMOS_vdu_console_PUTCH",
         "EMOS_vdu_parallel",
         "EMOS_vdu_onboard",
         "EMOS_vdu_parallel_PUTCH",
@@ -73,15 +75,19 @@ def verify(image: bytes, linked: dict[str, int]) -> None:
         if obsolete.startswith(("PORT008_", "_port008_", "_emos_port008_")):
             raise VduError(f"linked image retains predecessor symbol {obsolete}")
 
-    dispatcher = image[start : linked["UART_serial_NE"]]
+    dispatcher = image[start : linked["EMOS_vdu_console_PUTCH"]]
     expected = (
         b"\xf5\x3a"
         + linked["_emosVduBackend"].to_bytes(3, "little")
         + b"\xb7"
         + _jr(0x28, start + 6, linked["EMOS_vdu_onboard"])
+        + b"\xfe\x01"
+        + _jr(0x28, start + 10, linked["EMOS_vdu_console"])
         + b"\xfe\x02"
-        + _jr(0x28, start + 10, linked["EMOS_vdu_parallel"])
+        + _jr(0x28, start + 14, linked["EMOS_vdu_parallel"])
         + b"\xf1\xb7\xc9\xf1"
+        + _jump(linked["EMOS_vdu_console_PUTCH"])
+        + b"\xf1"
         + _jump(linked["EMOS_vdu_parallel_PUTCH"])
         + b"\xf1"
         + _jump(linked["UART0_serial_PUTCH"])

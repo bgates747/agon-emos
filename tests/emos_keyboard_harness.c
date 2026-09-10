@@ -5,7 +5,10 @@
 #include "emos_keyboard.h"
 #include "uart.h"
 
-volatile BYTE uart1_keyboard_owned;
+volatile BYTE uart1_keyboard_owned, emos_console_owned;
+void emos_console_packet(BYTE command, BYTE *payload, BYTE length) {
+    (void)command; (void)payload; (void)length;
+}
 static BYTE irq_enabled = 1, in_irq, clock_byte, frozen_clock;
 static BYTE occupied, reply, tx_error, rx_stopped, edit_key, interleave;
 static BYTE tx[64], tx_count, pending_reply;

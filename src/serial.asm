@@ -42,6 +42,8 @@
 			XREF	_uart1_keyboard_owned
 			XREF	_serialFlags	; In globals.asm
 			XREF	_emosVduBackend	; Core-owned committed VDU route
+			XREF	_emos_console_write_byte
+			XREF	_emos_console_write_stream
 			XREF	_emos_parallel_route_write_byte
 			XREF	_emos_parallel_route_write_stream
 				
@@ -269,15 +271,28 @@ $$:			CALL	UART1_serial_TX			; Send the character
 ; the common production route, whose private epoch lease is published only by
 ; the EMOS coordinator. Every other value fails closed without UART fallback.
 ;
+; Called by UART0 and UART1 PUTCH and GETCH if the UART is not enabled. Keep
+; this stock helper before the semantic dispatcher so the original short
+; branches and raw UART routines remain byte-for-byte unchanged.
+;
+UART_serial_NE:		POP	AF				; Tidy up the stack
+			OR	A 				; Clear the carry flag
+			RET
+
 EMOS_vdu_PUTCH:	PUSH	AF
 			LD	A, (_emosVduBackend)
 			OR	A, A
 			JR	Z, EMOS_vdu_onboard
+            CP 1
+            JR Z, EMOS_vdu_console
 			CP	EMOS_VDU_EDP_EXTENDED
 			JR	Z, EMOS_vdu_parallel
 			POP	AF
 			OR	A, A				; Unsupported backend: clear carry
 			RET
+EMOS_vdu_console:
+            POP AF
+            JP EMOS_vdu_console_PUTCH
 EMOS_vdu_parallel:
 			POP	AF
 			JP	EMOS_vdu_parallel_PUTCH
@@ -285,20 +300,44 @@ EMOS_vdu_onboard:
 			POP	AF
 			JP	UART0_serial_PUTCH
 
-; Called by UART0 and UART1 PUTCH and GETCH if the UART is not enabled. Keep
-; this stock helper adjacent to the semantic dispatcher so the original short
-; branches and raw UART routines remain byte-for-byte unchanged.
-;
-UART_serial_NE:		POP	AF				; Tidy up the stack
-			OR	A 				; Clear the carry flag
-			RET
-
 ; Route one ordinary VDU byte through the production lease bridge. Preserve the
 ; stock PUTCH register contract, including HLU: _putch preloads its return value
 ; there before entering the semantic dispatcher. The internal status remains
 ; available through emos_parallel_last_fault(); the public byte path preserves
 ; the input byte and reports success/failure only through carry.
 ;
+EMOS_vdu_console_PUTCH:
+			PUSH	BC
+			PUSH	DE
+			PUSH	HL
+			PUSH	IX
+			PUSH	IY
+			PUSH	AF
+			LD	HL, 0
+			LD	L, A
+			PUSH	HL				; BYTE uses one 3-byte ADL ABI slot
+			CALL	_emos_console_write_byte
+			POP	HL				; Discard argument slot
+			OR	A, A
+			JR	NZ, EMOS_vdu_console_PUTCH_failed
+			POP	AF
+			POP	IY
+			POP	IX
+			POP	HL
+			POP	DE
+			POP	BC
+			SCF
+			RET
+EMOS_vdu_console_PUTCH_failed:
+			POP	AF
+			POP	IY
+			POP	IX
+			POP	HL
+			POP	DE
+			POP	BC
+			OR	A, A				; Preserve byte, report not written
+			RET
+
 EMOS_vdu_parallel_PUTCH:
 			PUSH	BC
 			PUSH	DE
@@ -342,6 +381,8 @@ EMOS_vdu_parallel_PUTCH_failed:
 EMOS_vdu_WRITE:	LD	A, (_emosVduBackend)
 			OR	A, A
 			JR	Z, EMOS_vdu_WRITE_onboard
+            CP 1
+            JP Z, EMOS_vdu_console_WRITE
 			CP	EMOS_VDU_EDP_EXTENDED
 			JR	Z, EMOS_vdu_parallel_WRITE
 			OR	A, A				; Unsupported backend: clear carry
@@ -364,6 +405,32 @@ EMOS_vdu_parallel_WRITE:
 			PUSH	BC				; UINT16 uses one 3-byte ADL ABI slot
 			PUSH	HL				; Pointer argument
 			CALL	_emos_parallel_route_write_stream
+			POP	DE				; Discard pointer argument
+			POP	DE				; Discard length argument
+			POP	DE				; Original BC; ignore undocumented BCU
+			POP	HL				; Original pointer
+			LD	BC, 0
+			LD	B, D
+			LD	C, E
+			ADD	HL, BC
+			LD	BC, 0
+			POP	IY
+			POP	IX
+			POP	DE
+			OR	A, A
+			RET	NZ
+			SCF
+			RET
+
+EMOS_vdu_console_WRITE:
+			PUSH	DE				; Preserve documented entry E
+			PUSH	IX
+			PUSH	IY
+			PUSH	HL				; Original pointer
+			PUSH	BC				; Original bounded count
+			PUSH	BC				; UINT16 uses one 3-byte ADL ABI slot
+			PUSH	HL				; Pointer argument
+			CALL	_emos_console_write_stream
 			POP	DE				; Discard pointer argument
 			POP	DE				; Discard length argument
 			POP	DE				; Original BC; ignore undocumented BCU

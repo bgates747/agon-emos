@@ -21,10 +21,12 @@ class EmosVduTests(unittest.TestCase):
         image = bytearray(0x900)
         linked = {
             "EMOS_vdu_PUTCH": 0x100,
-            "EMOS_vdu_parallel": 0x10F,
-            "EMOS_vdu_onboard": 0x114,
-            "UART_serial_NE": 0x119,
-            "EMOS_vdu_parallel_PUTCH": 0x11C,
+            "EMOS_vdu_console": 0x113,
+            "EMOS_vdu_console_PUTCH": 0x122,
+            "EMOS_vdu_parallel": 0x118,
+            "EMOS_vdu_onboard": 0x11D,
+            "UART_serial_NE": 0x90,
+            "EMOS_vdu_parallel_PUTCH": 0x150,
             "EMOS_vdu_WRITE": 0x170,
             "EMOS_vdu_parallel_WRITE": 0x190,
             "_emos_parallel_route_write_byte": 0x550,
@@ -38,11 +40,12 @@ class EmosVduTests(unittest.TestCase):
             "_rst_18_handler": 0x320,
             "__rst_38_handler": 0x380,
         }
-        image[0x100:0x119] = (
-            b"\xf5\x3a\x00\x07\x00\xb7\x28\x0c\xfe\x02\x28\x03"
-            b"\xf1\xb7\xc9\xf1\xc3\x1c\x01\x00\xf1\xc3\x00\x05\x00"
+        image[0x100:0x122] = (
+            b"\xf5\x3a\x00\x07\x00\xb7\x28\x15\xfe\x01\x28\x07"
+            b"\xfe\x02\x28\x08\xf1\xb7\xc9\xf1\xc3\x22\x01\x00"
+            b"\xf1\xc3\x50\x01\x00\xf1\xc3\x00\x05\x00"
         )
-        image[0x130:0x134] = b"\xcd\x50\x05\x00"
+        image[0x160:0x164] = b"\xcd\x50\x05\x00"
         image[0x170:0x220] = b"\x00" * 0xB0
         image[0x180:0x184] = b"\xcd\x00\x05\x00"
         image[0x1B0:0x1B4] = b"\xcd\x60\x05\x00"
@@ -59,7 +62,7 @@ class EmosVduTests(unittest.TestCase):
         vdu.verify(image, linked)
 
     def test_rejects_route_and_callsite_drift(self) -> None:
-        for offset in (0x105, 0x10A, 0x130, 0x228, 0x338, 0x1B0):
+        for offset in (0x105, 0x10A, 0x160, 0x228, 0x338, 0x1B0):
             image, linked = self.fixture()
             image[offset] ^= 1
             with self.subTest(offset=offset), self.assertRaises(vdu.VduError):

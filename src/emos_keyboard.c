@@ -6,13 +6,14 @@
 #include <string.h>
 #include "emos_keyboard.h"
 #include "uart.h"
+#include "emos_console.h"
 
 volatile BYTE emos_key_source, emos_key_faulted;
 static volatile BYTE transitioning, preparing, stop_requested, fault_requested;
 static BYTE prepared_source;
 static BYTE layout, token;
 static volatile BYTE text_pending;
-static BYTE state, command, length, remaining, used, payload[5], partial_at;
+static BYTE state, command, length, remaining, used, payload[16], partial_at;
 static BYTE held[32], modifiers, zero_down;
 
 static void parser_reset(void) { state = remaining = used = 0; }
@@ -72,9 +73,9 @@ void emos_keyboard_fault(void) {
 }
 void emos_keyboard_tick(void) {
     if (stop_requested) {
-        uart1_keyboard_stop();
+        if (!emos_console_owned) uart1_keyboard_stop();
         cleanup();
-        parser_reset();
+        if (!emos_console_owned) parser_reset();
         preparing = 0;
         emos_key_source = EMOS_KEY_MAINBOARD;
         emos_key_faulted = fault_requested = stop_requested = 0;
@@ -88,6 +89,7 @@ void emos_keyboard_tick(void) {
     }
 }
 static void dispatch(void) {
+    emos_console_packet(command, payload, length);
     if (command == 0x80 && length == 1 && preparing && payload[0] == token) {
         cleanup();
         emos_key_source = prepared_source;
@@ -175,17 +177,18 @@ BYTE emos_keyboard_select(BYTE source) {
         while (stop_requested && deadline_step(&d)) { }
         irq = emos_keyboard_lock();
         if (stop_requested) { stop_requested = 0; result = EMOS_KEY_TIMEOUT; }
-        else uart1_keyboard_close();
+        else if (!emos_console_owned) uart1_keyboard_close();
         emos_keyboard_unlock(irq);
     } else {
         irq = emos_keyboard_lock();
-        if (uart1_keyboard_owned) uart1_keyboard_close(); /* explicit fault retry */
-        parser_reset();
+        if (uart1_keyboard_owned && (!emos_console_owned || emos_key_faulted))
+            uart1_keyboard_close(); /* explicit fault retry */
+        if (!emos_console_owned || emos_key_faulted) parser_reset();
         emos_key_faulted = fault_requested = 0;
         preparing = 1;
         prepared_source = source;
         ++token;
-        if (uart1_keyboard_open() != UART_POLL_READY) result = EMOS_KEY_BUSY;
+        if (!uart1_keyboard_owned && uart1_keyboard_open() != UART_POLL_READY) result = EMOS_KEY_BUSY;
         emos_keyboard_unlock(irq);
         if (result == EMOS_KEY_OK &&
             (!setting(layout, &d) || !transmit(23, &d) || !transmit(0, &d) ||
@@ -194,7 +197,8 @@ BYTE emos_keyboard_select(BYTE source) {
         irq = emos_keyboard_lock();
         if (result == EMOS_KEY_OK && (preparing || emos_key_faulted)) result = EMOS_KEY_TIMEOUT;
         if (result != EMOS_KEY_OK) {
-            preparing = 0; parser_reset(); uart1_keyboard_close();
+            preparing = 0;
+            if (!emos_console_owned) { parser_reset(); uart1_keyboard_close(); }
             emos_key_faulted = previous_fault;
         }
         emos_keyboard_unlock(irq);
@@ -255,5 +259,39 @@ BYTE emos_keyboard_text(const BYTE *text, UINT16 length) {
     if (!ok || text_pending || emos_key_faulted) { ok = 0; fault_requested = 1; }
     text_pending = transitioning = 0;
     emos_keyboard_unlock(irq);
+    return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
+}
+
+/* Shared resident UART owner. Console lease is separate from keyboard source;
+ * no application is allowed to call this private transport boundary. */
+BYTE emos_keyboard_transport_claim(void) {
+    BYTE irq = emos_keyboard_lock(), result = EMOS_KEY_OK;
+    if (!irq || transitioning || preparing || emos_key_faulted) result = EMOS_KEY_BUSY;
+    else if (!uart1_keyboard_owned) {
+        parser_reset();
+        if (uart1_keyboard_open() != UART_POLL_READY) result = EMOS_KEY_BUSY;
+    }
+    emos_keyboard_unlock(irq);
+    return result;
+}
+void emos_keyboard_transport_release(void) {
+    BYTE irq = emos_keyboard_lock();
+    if (!emos_console_owned && emos_key_source == EMOS_KEY_MAINBOARD) {
+        uart1_keyboard_close(); parser_reset();
+    }
+    emos_keyboard_unlock(irq);
+}
+BYTE emos_keyboard_send(const BYTE *data, UINT16 length) {
+    BYTE irq = emos_keyboard_lock(), ok = 1;
+    UINT16 i;
+    Deadline d;
+    if (!irq || transitioning || preparing || emos_key_faulted || !uart1_keyboard_owned) {
+        emos_keyboard_unlock(irq); return EMOS_KEY_BUSY;
+    }
+    transitioning = 1;
+    emos_keyboard_unlock(irq);
+    deadline_start(&d);
+    for (i=0; i<length && ok; ++i) ok=transmit(data[i],&d);
+    transitioning = 0;
     return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
 }

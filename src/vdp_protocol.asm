@@ -31,6 +31,8 @@
 			
 			XDEF	vdp_protocol
             XDEF emos_keyboard_payload
+            XDEF emos_vdp_dispatch
+            XREF _emosVduBackend
             XREF _emos_keyboard_mainboard
             XREF _emos_keyboard_mainboard_settings
 
@@ -132,6 +134,17 @@ vdp_protocol_exec:	XOR	A			; Reset the state
 			LD	A, (_vdp_protocol_cmd)	; Get the command byte...
 			CP	vdp_protocol_vesize	; Check whether the command is in bounds
 			RET	NC			; Out of bounds, so just ignore
+            ; UART0 display effects are unowned while ExCom is committed.
+            ; Keyboard/settings retain their independently selected source.
+            LD A, (_emosVduBackend)
+            CP 1
+            LD A, (_vdp_protocol_cmd)
+            JR NZ, emos_vdp_dispatch
+            CP 1
+            JR Z, emos_vdp_dispatch
+            CP 8
+            RET NZ
+emos_vdp_dispatch:
 			LD	DE, vdp_protocol_vector
 			LD	HL, 0			; Index into the jump table
 			LD	L, A			; ...in HLU

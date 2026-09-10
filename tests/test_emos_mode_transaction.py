@@ -33,6 +33,14 @@ typedef int BOOL;
 #define EMOS_MODE_EXCLUSIVE_EXTENDED 3
 #define EMOS_PARALLEL_FIXED_QUALIFICATION 1
 
+#define EMOS_POLICY_CORE 0
+static BYTE emosPolicy;
+static BYTE emos_console_owned;
+static BYTE emos_console_prepare(void) { return 0; }
+static BYTE emos_console_commit(void) { return 0; }
+static BYTE emos_console_recover(void) { return 1; }
+static void emos_console_publish(void) { }
+static void emos_console_notice(BYTE mode) { (void)mode; }
 static BOOL emosBusy = FALSE;
 volatile BYTE emosVduBackend = 0;
 
