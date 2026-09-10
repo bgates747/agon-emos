@@ -8,15 +8,15 @@
 
 volatile BYTE emosVduBackend, emos_key_faulted;
 BYTE vdp_protocol_data[16];
-static BYTE irq=1, tick, suppress, wrong_nonce, wrong_crc, frozen, claimed;
+static BYTE irq=1, tick, suppress, wrong_nonce, wrong_crc, frozen, claimed, old_peer;
 static BYTE tx[128], mode[8], cursor[2];
-static unsigned tx_count, effects, release_count;
+static unsigned tx_count, effects, release_count, fresh_initializations, kept_initializations, mainboard_writes;
 BYTE emos_keyboard_clock(void) { if (!frozen) tick+=2; return tick; }
 BYTE emos_keyboard_lock(void) { BYTE old=irq;irq=0;return old; }
 void emos_keyboard_unlock(BYTE enabled) { irq=enabled; }
 BYTE emos_keyboard_transport_claim(void) { claimed=1;return 0; }
 void emos_keyboard_transport_release(void) { claimed=0;++release_count; }
-void emos_mainboard_put(BYTE b) { (void)b; }
+void emos_mainboard_put(BYTE b) { (void)b; ++mainboard_writes; }
 void emos_vdp_effect(BYTE command) {
     assert(!irq);++effects;
     if(command==0x86)memcpy(mode,vdp_protocol_data,8);
@@ -33,15 +33,18 @@ BYTE emos_keyboard_send(const BYTE *p,UINT16 n) {
         BYTE reply[CONSOLE_SIZE];
         assert(console_valid(p));memcpy(reply,p,sizeof(reply));
         reply[3]|=0x80;
-        if(p[3]==CONSOLE_PREPARE)memcpy(reply+8,(BYTE[]){1,2,3,4},4);
+        if(old_peer && p[3]==CONSOLE_PREPARE_KEEP)return EMOS_KEY_OK;
+        if(p[3]==CONSOLE_PREPARE || p[3]==CONSOLE_PREPARE_KEEP)memcpy(reply+8,(BYTE[]){1,2,3,4},4);
         else if(wrong_nonce)++reply[8];
         console_seal(reply);
         if(wrong_crc)reply[14]^=1;
         if(!suppress)receive(CONSOLE_REPLY,reply,sizeof(reply));
-    } else if(n==15 && p[0]==26) {
+    } else if((n==15 && p[0]==26) || (n==10 && p[0]==23)) {
+        if(n==15)++fresh_initializations;else ++kept_initializations;
+        assert(!memcmp(p+(n==15?5:0),(BYTE[]){23,0,0x86,23,0,0x82,23,0,0x80},9));
         BYTE m[]={0x80,2,0xe0,1,80,60,16,0}, c[]={2,3};
         receive(0x86,m,8);receive(0x82,c,2);
-        BYTE token=p[14];receive(0x80,&token,1);
+        BYTE token=p[n-1];receive(0x80,&token,1);
     } else if(n!=3) {assert(tx_count+n<sizeof(tx));memcpy(tx+tx_count,p,n);tx_count+=n;}
     return EMOS_KEY_OK;
 }
@@ -54,6 +57,7 @@ int main(void) {
     frozen=1;assert(!emos_console_prepare());assert(emos_console_recover());frozen=0;
     suppress=0;wrong_crc=1;assert(!emos_console_prepare());assert(emos_console_recover());wrong_crc=0;
     for(unsigned run=0;run<3;++run) {
+        emos_console_keep=run==1;
         assert(emos_console_prepare());assert(emos_console_owned);
         unsigned before=effects;
         assert(emos_console_commit());assert(effects==before); /* staged, not published */
@@ -69,5 +73,12 @@ int main(void) {
         BYTE late[]={9,9};receive(0x82,late,2);assert(cursor[0]==2);
     }
     assert(tx_count==3 && !memcmp(tx,"aaa",3));assert(release_count==6);
+    assert(fresh_initializations==2 && kept_initializations==1);
+    emos_console_keep=1;old_peer=1;
+    assert(!emos_console_prepare());assert(!emosVduBackend);
+    assert(emos_console_recover());assert(!claimed && !emos_console_owned);
+    emos_console_notice(1);assert(mainboard_writes==0);
+    emos_console_notice(0);assert(mainboard_writes==6); /* queries only */
+    emos_console_keep=0;emos_console_notice(1);assert(mainboard_writes>10);
     puts("Console control, staging, private scratch, stale replies and bounded recovery passed");
 }

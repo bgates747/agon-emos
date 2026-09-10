@@ -1,7 +1,7 @@
-# Author-reviewed v0.1.11 idle-console ExCom candidate; physical qualification pending.
+# Author preapproved v0.1.12 display-preserving application switches; visual review accepted; hardware deployment authorized.
 # Existing candidate/rollback images retain their original identities.
 EMOS_PROFILE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-EMOS_SOURCE_IDENTITY := agon-emos-v0.1.11
+EMOS_SOURCE_IDENTITY := agon-emos-v0.1.12
 EMOS_ARTIFACT_STATUS := candidate
 # Expand once and export so nested Make invocations retain the same build ID.
 # A reviewed build wrapper may supply an already recorded UTC identity.

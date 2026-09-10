@@ -16,6 +16,7 @@ SOURCE = ROOT / "src" / "emos.c"
 PREAMBLE = r'''
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 
 typedef unsigned char BYTE;
 typedef int BOOL;
@@ -35,9 +36,11 @@ typedef int BOOL;
 
 #define EMOS_POLICY_CORE 0
 static BYTE emosPolicy;
+static BYTE emos_console_keep;
+static BYTE consoleAvailable;
 static BYTE emos_console_owned;
-static BYTE emos_console_prepare(void) { return 0; }
-static BYTE emos_console_commit(void) { return 0; }
+static BYTE emos_console_prepare(void) { return consoleAvailable; }
+static BYTE emos_console_commit(void) { return consoleAvailable; }
 static BYTE emos_console_recover(void) { return 1; }
 static void emos_console_publish(void) { }
 static void emos_console_notice(BYTE mode) { (void)mode; }
@@ -93,6 +96,8 @@ static void resetCoordinator(void) {
     emosEduState.selectedAdapter = EMOS_ADAPTER_PARALLEL_FIXED;
     emosVduBackend = EMOS_VDU_ONBOARD;
     emosBusy = FALSE;
+    emosPolicy = EMOS_POLICY_CORE;
+    emos_console_keep = 0;
     scriptedEnter = FR_OK;
     scriptedLeave = FR_OK;
     routeOwned = FALSE;
@@ -230,7 +235,34 @@ static int publicResultMappingPreservesOnlyThePublicDomain(void) {
     return 0;
 }
 
+static int applicationRequests(void) {
+    resetCoordinator();
+    emosPolicy = 3; /* ordinary MOS application, no extension header */
+    emos_console_owned = consoleAvailable = 1;
+    CHECK(emos_review_command("excom", "") == EMOS_BUSY);
+    CHECK(emos_review_command("excom", "--unknown") == FR_INVALID_PARAMETER);
+    CHECK(!emos_console_keep && emosModeState.mode == EMOS_MODE_LEGACY);
+    CHECK(emos_review_command("ExCoM", "--KeEp-DisPlay") == FR_OK);
+    CHECK(emosModeState.mode == EMOS_MODE_EXCLUSIVE_COMPAT && !emos_console_keep);
+    emosBusy = TRUE;
+    CHECK(emos_review_command("legacy", "--keep-display") == EMOS_BUSY);
+    CHECK(emosModeState.mode == EMOS_MODE_EXCLUSIVE_COMPAT && !emos_console_keep);
+    emosBusy = FALSE;
+    CHECK(emos_review_command("LEGACY", "--KEEP-DISPLAY") == FR_OK);
+    CHECK(emosModeState.mode == EMOS_MODE_LEGACY && !emos_console_keep);
+    consoleAvailable = 0;
+    CHECK(emos_review_command("excom", "--keep-display") == EMOS_UNAVAILABLE);
+    CHECK(emosModeState.mode == EMOS_MODE_LEGACY && !emos_console_keep);
+    CHECK(emos_review_command("excom", "") == EMOS_BUSY);
+    emos_console_keep = 1;
+    CHECK(emos_request_mode(EMOS_MODE_EXCLUSIVE_EXTENDED) == EMOS_BUSY);
+    CHECK(emos_request_mode(EMOS_MODE_DUAL) == EMOS_BUSY);
+    resetCoordinator();
+    return 0;
+}
+
 int main(void) {
+    if (applicationRequests()) return 1;
     if (happyPath()) return 1;
     if (failedPrepareCleansWithoutInventingAReleaseFailure()) return 1;
     if (failedEnterCleansPreownedRouteAndRetainsCause()) return 1;
@@ -250,7 +282,11 @@ def exact_mode_translation_unit() -> str:
     state_end = source.index("static UINT16 emos_read16", state_start)
     mode_start = source.index("BYTE emos_get_mode(void)")
     mode_end = source.index("static const char *emos_mode_name", mode_start)
-    return PREAMBLE + source[state_start:state_end] + source[mode_start:mode_end] + HARNESS
+    command_start = source.index('    if (strcasecmp(operation, "excom") == 0')
+    command_end = source.index('\n\tif (strcasecmp(operation, "mode")', command_start)
+    command = ('int emos_review_command(char *operation, char *args) { int result;\n' +
+               source[command_start:command_end] + '\nreturn FR_INVALID_PARAMETER; }\n')
+    return PREAMBLE + source[state_start:state_end] + source[mode_start:mode_end] + command + HARNESS
 
 
 class EmosModeTransactionTests(unittest.TestCase):
@@ -287,7 +323,7 @@ class EmosModeTransactionTests(unittest.TestCase):
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
             )
-        self.assertEqual(result.stdout, "EMOS mode coordinator host checks passed\n")
+        self.assertTrue(result.stdout.endswith("EMOS mode coordinator host checks passed\n"))
         self.assertEqual(result.stderr, "")
 
 

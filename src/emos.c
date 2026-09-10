@@ -761,7 +761,10 @@ int emos_request_mode(BYTE mode) {
 	t_emosModeState prepared = emosModeState;
 	int result;
 	if (mode > EMOS_MODE_EXCLUSIVE_EXTENDED) return FR_INVALID_PARAMETER;
-	if (emosBusy || emosPolicy != EMOS_POLICY_CORE) return EMOS_BUSY;
+	/* INTEG-011: an application may explicitly retain the two displays at a
+     * complete VDU boundary. Default/mixed-mode transitions remain CLI-only. */
+    if (emosBusy || (emosPolicy != EMOS_POLICY_CORE && (!emos_console_keep ||
+        (mode != EMOS_MODE_LEGACY && mode != EMOS_MODE_EXCLUSIVE_COMPAT)))) return EMOS_BUSY;
 	if (mode == emosModeState.mode) {
 		#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
 		/* A failed entry cleanup can retain the fixed route while the published
@@ -982,9 +985,13 @@ int emos_cmd(char *args) {
 		return FR_OK;
 	}
     if (strcasecmp(operation, "excom") == 0 || strcasecmp(operation, "legacy") == 0) {
-        if (args && *args) return FR_INVALID_PARAMETER;
+        /* INTEG-011: mos_oscli uses this same coordinator; no application
+         * transport bypass. The option belongs to one request, even on error. */
+        if (args && *args && strcasecmp(args,"--keep-display")) return FR_INVALID_PARAMETER;
+        emos_console_keep = args && *args;
         result = emos_request_mode(strcasecmp(operation,"excom") == 0 ?
             EMOS_MODE_EXCLUSIVE_COMPAT : EMOS_MODE_LEGACY);
+        emos_console_keep = 0;
         if (result != FR_OK) printf("EMOS: display switch failed; current route retained\r\n");
         return result;
     }

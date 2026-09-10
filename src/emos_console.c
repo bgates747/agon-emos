@@ -12,6 +12,8 @@
 extern volatile BYTE emosVduBackend;
 extern BYTE vdp_protocol_data[];
 volatile BYTE emos_console_owned;
+/* INTEG-011: one explicit CLI/API request, cleared by its caller on return. */
+BYTE emos_console_keep;
 static BYTE request[CONSOLE_SIZE], transaction[4];
 static volatile BYTE waiting, accepted, staging, seen, poll_done;
 static BYTE staged_mode[8], staged_cursor[2], poll_token;
@@ -56,7 +58,7 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
         if (length != CONSOLE_SIZE || !waiting || !console_valid(p) ||
             p[3] != (BYTE)(waiting | 0x80) || p[13] ||
             memcmp(p + 4, request + 4, 4)) return;
-        if (waiting == CONSOLE_PREPARE) {
+        if (waiting == CONSOLE_PREPARE || waiting == CONSOLE_PREPARE_KEEP) {
             if (!(p[8] | p[9] | p[10] | p[11])) return;
             memcpy(request + 8, p + 8, 4);
         } else if (memcmp(p + 8, request + 8, 4)) return;
@@ -80,7 +82,7 @@ BYTE emos_console_prepare(void) {
     memset(request,0,sizeof(request));
     request[0]='E'; request[1]='X'; request[2]=1; request[12]=1;
     memcpy(request+4,transaction,4);
-    if (!exchange(CONSOLE_PREPARE)) return 0;
+    if (!exchange(emos_console_keep ? CONSOLE_PREPARE_KEEP : CONSOLE_PREPARE)) return 0;
     lease = 1;
     return 1;
 }
@@ -91,7 +93,11 @@ BYTE emos_console_commit(void) {
     irq = emos_keyboard_lock(); staging = 1; seen = poll_done = 0;
     poll_token = request[8] ^ request[4]; init[14] = poll_token;
     emos_keyboard_unlock(irq);
-    ok = emos_keyboard_send(init,sizeof(init)) == EMOS_KEY_OK && wait_reply(&poll_done);
+    /* Keep requests still query/synchronize; only viewport/clear/cursor reset
+     * is omitted. Never publish stale display sysvars on route commit. */
+    if (emos_console_keep) ok = emos_keyboard_send(init+5,10);
+    else ok = emos_keyboard_send(init,sizeof(init));
+    ok = ok == EMOS_KEY_OK && wait_reply(&poll_done);
     return ok;
 }
 void emos_console_publish(void) {
@@ -119,9 +125,11 @@ BYTE emos_console_write_stream(const BYTE *p, UINT16 length) {
 BYTE emos_console_write_byte(BYTE value) { return emos_console_write_stream(&value,1); }
 void emos_console_notice(BYTE exclusive) {
     const char *s = exclusive ? "Exclusive Compatible mode\r\nOutput is on Extender.\r\n" : "Legacy mode\r\n";
-    emos_mainboard_put(12);
-    while (*s) emos_mainboard_put((BYTE)*s++);
-    emos_mainboard_put(23); emos_mainboard_put(1); emos_mainboard_put(!exclusive);
+    if (!emos_console_keep) {
+        emos_mainboard_put(12);
+        while (*s) emos_mainboard_put((BYTE)*s++);
+        emos_mainboard_put(23); emos_mainboard_put(1); emos_mainboard_put(!exclusive);
+    }
     if (!exclusive) {
         emos_mainboard_put(23); emos_mainboard_put(0); emos_mainboard_put(0x86);
         emos_mainboard_put(23); emos_mainboard_put(0); emos_mainboard_put(0x82);

@@ -3,6 +3,7 @@
 #define EMOS_CONSOLE_H
 #include <defines.h>
 extern volatile BYTE emos_console_owned;
+extern BYTE emos_console_keep;
 BYTE emos_console_prepare(void);
 BYTE emos_console_commit(void);
 BYTE emos_console_recover(void);

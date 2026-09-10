@@ -6,6 +6,11 @@ port-infrastructure work remains in `mos-agondev`.
 
 ## Current priority — ordinary ExCom console
 
+- [ ] **INTEG-011 — Preserve displays during application-requested route switches**
+  - Started: 2026-09-09
+  - Status: Draft --keep-display command option for Extender paired graphics fixtures; retain EMOS coordinator and public mos_oscli ownership.
+  - Details: [INTEG-011](docs/tasks/INTEG-011.md)
+
 - [ ] **INTEG-010 — Ordinary ExCom console over UART1**
   - Started: 2026-09-09
   - Status: Software and Author mainboard visual checks pass; candidate preparation from frozen source. Physical ExCom proof remains open under Extender PORT-008.
