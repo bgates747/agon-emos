@@ -46,7 +46,8 @@ static void effect(BYTE command, BYTE *p, BYTE length) {
     /* IRQs are masked: borrow the stock EFFECT buffer, not its parser state.
      * Restore every byte, including a partly assembled UART0 packet. This
      * retains upstream handlers rather than duplicating sysvar semantics.
-     * No callback-bearing KEY packet is dispatched by this bridge. */
+     * No KEY packet is dispatched by this bridge. The private diagnostic
+     * callback observes the borrowed buffer only during this ISR call. */
     memcpy(saved, vdp_protocol_data, 16);
     memcpy(vdp_protocol_data, p, length);
     emos_vdp_effect(command);
@@ -63,6 +64,12 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
             memcpy(request + 8, p + 8, 4);
         } else if (memcmp(p + 8, request + 8, 4)) return;
         accepted = 1;
+        return;
+    }
+    /* INTEG-012 diagnostic packets have their own type. Never relax KEY's
+     * four-byte validation or publish these sixteen bytes as keyboard state. */
+    if (command == 0x8C) {
+        if (length == 16 && emosVduBackend == 1 && lease) effect(command,p,length);
         return;
     }
     if (command < 0x80 || command > 0x89 || command == 0x81 || command == 0x88 ||

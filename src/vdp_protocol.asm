@@ -132,6 +132,16 @@ vdp_protocol_state2:	LD	HL, (_vdp_protocol_ptr)	; Get the buffer pointer
 vdp_protocol_exec:	XOR	A			; Reset the state
 			LD	(_vdp_protocol_state), A
 			LD	A, (_vdp_protocol_cmd)	; Get the command byte...
+            ; INTEG-012: private graphics result requires all sixteen bytes.
+            CP 0Ch
+            JR NZ, graphics_length_done
+            LD HL, (_vdp_protocol_ptr)
+            LD DE, _vdp_protocol_data+16
+            OR A
+            SBC HL, DE
+            RET NZ
+            LD A, 0Ch
+graphics_length_done:
 			CP	vdp_protocol_vesize	; Check whether the command is in bounds
 			RET	NC			; Out of bounds, so just ignore
             ; UART0 display effects are unowned while ExCom is committed.
@@ -165,9 +175,38 @@ vdp_protocol_vector:	JP	vdp_protocol_GP
 			JP	vdp_protocol_RTC
 			JP	vdp_protocol_KEYSTATE
 			JP	vdp_protocol_MOUSE
+            JP graphics_ignored          ; stock echo, still unimplemented
+            JP graphics_ignored          ; stock echo-end, still unimplemented
+            JP graphics_reply
 ;
 vdp_protocol_vesize:	EQU	($-vdp_protocol_vector)/4
 
+;
+ ; INTEG-012: bounded diagnostic callback, NOT keyboard publication.
+; DE points at 16 private bytes; user vector has its normal ISR restrictions.
+; Callback validates token and metric and copies to its bounded mailbox.
+graphics_reply:
+            LD HL, (_vdp_protocol_data)
+            LD DE, 475451h              ; Q,T,G
+            OR A
+            SBC HL, DE
+            RET NZ
+            LD A, (_vdp_protocol_data+3)
+            CP 0A1h
+            RET NZ
+            LD A, (_emosVduBackend)
+            LD HL, _vdp_protocol_data+7
+            CP (HL)
+            RET NZ
+            LD HL, (_user_kbvector)
+            LD DE, 0
+            OR A
+            SBC HL, DE
+            RET Z
+            LD DE, _vdp_protocol_data
+            JP (HL)
+graphics_ignored:
+            RET
 ;
 ; Discard data (packet too long)
 ;

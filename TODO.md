@@ -4,7 +4,14 @@ This is the repository's single authoritative list of unfinished EMOS work.
 Cross-component Extender work remains in the `agon-extender` task list; generic
 port-infrastructure work remains in `mos-agondev`.
 
-## Current priority — ordinary ExCom console
+## Current priority — graphics timing reception
+
+- [ ] **INTEG-012 — Private graphics benchmark completion reception**
+  - Started: 2026-09-11
+  - Status: Draft diagnostic v0.1.13; ROM and emulator gates pending.
+  - Details: [INTEG-012](docs/tasks/INTEG-012.md)
+
+## Ordinary ExCom console
 
 - [ ] **INTEG-011 — Preserve displays during application-requested route switches**
   - Started: 2026-09-09
