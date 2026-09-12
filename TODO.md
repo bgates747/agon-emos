@@ -4,7 +4,15 @@ This is the repository's single authoritative list of unfinished EMOS work.
 Cross-component Extender work remains in the `agon-extender` task list; generic
 port-infrastructure work remains in `mos-agondev`.
 
-## Current priority — graphics timing reception
+## Current priority — mainboard SD-service transport
+
+- [ ] **INTEG-013 — Owned mainboard SD-service transport gateway**
+  - Started: 2026-09-12
+  - Status: Author released Extender PORT-017; freeze and implement its bounded
+    transport while preserving input and fitting ROM. Other work waits.
+  - Details: [INTEG-013](docs/tasks/INTEG-013.md)
+
+## Queued graphics timing reception
 
 - [ ] **INTEG-012 — Private graphics benchmark completion reception**
   - Started: 2026-09-11
