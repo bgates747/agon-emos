@@ -13,6 +13,7 @@
 #include "emos.h"
 #include "emos_uart_probe.h"
 #include "emos_keyboard.h"
+#include "emos_sdlink.h"
 #include "emos_console.h"
 #include "uart.h"
 #include "emos_uart_flow.h"
@@ -123,8 +124,17 @@ static UINT16 emos_read16(const BYTE *ptr) {
 	return (UINT16)ptr[0] | ((UINT16)ptr[1] << 8);
 }
 
-static UINT24 emos_read24(const BYTE *ptr) {
+UINT24 emos_read24(const BYTE *ptr) {
+#if defined(__ez80__)
+    /* eZ80 ADL is little endian and supports unaligned 24-bit loads. memcpy
+     * states the aliasing contract without three shift/or sequences. Keep the
+     * byte-wise path for ZDS/host compilers without this target guarantee. */
+    UINT24 value;
+    __builtin_memcpy(&value,ptr,3);
+    return value;
+#else
 	return (UINT24)ptr[0] | ((UINT24)ptr[1] << 8) | ((UINT24)ptr[2] << 16);
+#endif
 }
 
 static UINT32 emos_read32(const BYTE *ptr) {
@@ -576,6 +586,13 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
         emosBusy = FALSE;
         return result;
     }
+    if (strcmp(namespaceName,"ext") == 0 && strcmp(providerName,"sdlink") == 0) {
+        if (emosBusy || emosRecoveryRequired) return EMOS_BUSY;
+        emosBusy = TRUE;
+        result = emos_sdlink_gateway(request);
+        emosBusy = FALSE;
+        return result;
+    }
 	entry = emos_find(EMOS_PROVIDER_SERVICE, namespaceName, providerName);
 	memset(&providerRequest, 0, sizeof(providerRequest));
 	emos_write16(providerRequest.size, EMOS_PROVIDER_REQUEST_SIZE);
@@ -615,6 +632,7 @@ int emos_dispatch_command(char *command, char *args, BOOL *matched) {
 BYTE emos_application_enter(UINT8 *image, UINT24 address) {
 	BYTE previous = emosPolicy;
 	BYTE flags;
+    emos_sdlink_reset();
 	if (address == EMOS_MODULE_BASE) {
 		emosPolicy = EMOS_POLICY_MOSLET;
 		return previous;
@@ -633,6 +651,7 @@ BYTE emos_application_enter(UINT8 *image, UINT24 address) {
 }
 
 void emos_application_leave(BYTE previousPolicy) {
+    emos_sdlink_reset();
 	/* Once the application exits there is no live owner to recover. Retain a
 	 * failed-restore image while a nested caller returns to an outer live
 	 * application; only leaving the top-level application discards it. */

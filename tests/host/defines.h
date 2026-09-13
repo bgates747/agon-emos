@@ -4,6 +4,8 @@
 #include <stdint.h>
 
 typedef uint8_t BYTE;
+typedef uint8_t UINT8;
+typedef int BOOL;
 typedef int8_t CHAR;
 typedef uint8_t UCHAR;
 typedef uint16_t UINT16;

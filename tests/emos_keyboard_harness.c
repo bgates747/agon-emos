@@ -6,6 +6,11 @@
 #include "uart.h"
 
 volatile BYTE uart1_keyboard_owned, emos_console_owned;
+static unsigned sd_packets, sd_resets;
+void emos_sdlink_reset(void) { ++sd_resets; }
+void emos_sdlink_packet(const BYTE *data, BYTE length) {
+    (void)data; (void)length; ++sd_packets;
+}
 void emos_console_packet(BYTE command, BYTE *payload, BYTE length) {
     (void)command; (void)payload; (void)length;
 }
@@ -204,6 +209,16 @@ int main(void) {
     assert(emos_key_faulted && !events[event_count-1][3]);
     assert(emos_keyboard_select(EMOS_KEY_MAINBOARD)==EMOS_KEY_OK);
     assert(mainboard_layout==1); /* Failed layout never replaces retained US. */
+    /* Bulk bodies containing plausible key headers never become key events. */
+    reply=1;
+    assert(emos_keyboard_select(EMOS_KEY_EXTENDER)==EMOS_KEY_OK);
+    before=event_count;
+    p[0]=0x8D;p[1]=240;memset(p+2,0x81,240);
+    frame(p,242);assert(sd_packets==1 && event_count==before);
+    key('x',0,25,1);key('x',0,25,0);assert(event_count==before+2);
+    /* Oversized packet is consumed without dispatch or resynchronizing its body. */
+    p[1]=241;p[242]=0x81;frame(p,243);assert(sd_packets==1 && event_count==before+2);
+    assert(sd_resets>0);
     puts("resident keyboard parser, admission, ownership and IRQ cleanup scenarios passed");
     return 0;
 }

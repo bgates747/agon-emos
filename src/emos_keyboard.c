@@ -7,13 +7,14 @@
 #include "emos_keyboard.h"
 #include "uart.h"
 #include "emos_console.h"
+#include "emos_sdlink.h"
 
 volatile BYTE emos_key_source, emos_key_faulted;
 static volatile BYTE transitioning, preparing, stop_requested, fault_requested;
 static BYTE prepared_source;
 static BYTE layout, token;
 static volatile BYTE text_pending;
-static BYTE state, command, length, remaining, used, payload[16], partial_at;
+static BYTE state, command, length, remaining, used, payload[EMOS_SDLINK_LIMIT], partial_at;
 static BYTE held[32], modifiers, zero_down;
 
 static void parser_reset(void) { state = remaining = used = 0; }
@@ -66,6 +67,7 @@ void emos_keyboard_mainboard_settings(BYTE *p) {
 void emos_keyboard_fault(void) {
     /* ISR only. Foreground TX errors request this through fault_requested. */
     uart1_keyboard_stop();
+    emos_sdlink_reset();
     parser_reset();
     preparing = text_pending = 0;
     emos_key_faulted = 1;
@@ -73,6 +75,7 @@ void emos_keyboard_fault(void) {
 }
 void emos_keyboard_tick(void) {
     if (stop_requested) {
+        emos_sdlink_reset();
         if (!emos_console_owned) uart1_keyboard_stop();
         cleanup();
         if (!emos_console_owned) parser_reset();
@@ -89,6 +92,7 @@ void emos_keyboard_tick(void) {
     }
 }
 static void dispatch(void) {
+    if (command == 0x8D) { emos_sdlink_packet(payload,length); return; }
     emos_console_packet(command, payload, length);
     if (command == 0x80 && length == 1 && preparing && payload[0] == token) {
         cleanup();
@@ -292,6 +296,7 @@ BYTE emos_keyboard_send(const BYTE *data, UINT16 length) {
     emos_keyboard_unlock(irq);
     deadline_start(&d);
     for (i=0; i<length && ok; ++i) ok=transmit(data[i],&d);
+    if (!ok) fault_requested = 1; /* Partial packets cannot be safely replayed. */
     transitioning = 0;
     return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
 }

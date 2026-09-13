@@ -7,6 +7,7 @@
 # qualification-composition identities remain separate.
 include $(dir $(lastword $(MAKEFILE_LIST)))identity.mk
 C_SOURCES_EXTRA := \
+	src/emos_sdlink.c \
 	src/emos_console.c \
 	src/emos_keyboard.c \
 	src/emos_uart_flow.c \
@@ -16,6 +17,7 @@ C_SOURCES_EXTRA := \
 	src/emos_parallel_engine.c \
 	src/emos_parallel_fixed_backend.c
 C_OBJECT_RELATIVE_EXTRA := \
+	src/emos_sdlink.o \
 	src/emos_console.o \
 	src/emos_keyboard.o \
 	src/emos_uart_flow.o \

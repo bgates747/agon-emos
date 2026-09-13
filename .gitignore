@@ -27,4 +27,6 @@ projects/keyboard-api/build/
 
 /projects/browser-typing/bin/
 /projects/browser-typing/obj/
+/projects/sdserve/bin/
+/projects/sdserve/obj/
 /projects/browser-typing/build/

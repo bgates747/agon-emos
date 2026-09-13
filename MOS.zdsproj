@@ -10,6 +10,7 @@
 <file filter-key="">.\\src\\emos_console.c</file>
 <file filter-key="">.\\src\\emos_console_io.asm</file>
 <file filter-key="">.\\src\\emos_keyboard.c</file>
+<file filter-key="">.\\src\\emos_sdlink.c</file>
 <file filter-key="">.\\src\\emos_keyboard_io.asm</file>
 <file filter-key="">.\\src\\emos_uart_flow.c</file>
 <file filter-key="">.\\src\\emos_uart_probe.c</file>

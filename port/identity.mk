@@ -1,7 +1,7 @@
-# Standing Author preapproval: v0.1.13 private graphics diagnostic reception; visual review accepted.
+# PORT-017 commissioning: proposed v0.1.14, followed by Author card-preparation direction.
 # Existing candidate/rollback images retain their original identities.
 EMOS_PROFILE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-EMOS_SOURCE_IDENTITY := agon-emos-v0.1.13
+EMOS_SOURCE_IDENTITY := agon-emos-v0.1.14
 EMOS_ARTIFACT_STATUS := candidate
 # Expand once and export so nested Make invocations retain the same build ID.
 # A reviewed build wrapper may supply an already recorded UTC identity.

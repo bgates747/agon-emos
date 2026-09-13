@@ -3,7 +3,8 @@
 Author released Extender PORT-017 on 2026-09-12; this is its EMOS component.
 Highest EMOS priority until the SD capability is accepted. Wire contract:
 agon-extender `docs/tasks/PORT-017/PROTOCOL.md`; this task owns maintained eZ80
-transport code and qualification, not the P4 or application filesystem logic.
+transport code, the foreground `projects/sdserve` application and qualification.
+P4/network ownership remains in agon-extender.
 
 1. Add reserved `ext.sdlink` to the existing public gateway, preserving all
    existing APIs and ordinary VDU/input behavior. Validate request/output memory,
@@ -23,6 +24,29 @@ transport code and qualification, not the P4 or application filesystem logic.
    firmware deployment authorization before flashing EMOS. Coordinate physical
    qualification through Extender PORT-017. Do not begin graphics/Golem work.
 
-Current phase: implementation gate. No firmware has been changed. Source edits
-are provisional until ROM/link and behavioral qualification. Existing private
-QTG/8C diagnostic behavior remains intact; no repurposing it for file bytes.
+Current phase: provisional implementation, no physical firmware changes.
+The latest exploratory wrapper build passes every link guard at 130954 bytes
+(118 bytes spare, including its longer UNVERSIONED identity); Core static RAM
+ends at BDAAA. Native eZ80 three-byte field loads reduce existing helper cost.
+The foreground application builds at 18855 bytes before subsequent refinements.
+Host checks cover mailbox guards, keyboard coexistence and the real filesystem
+engine with injected short-write, sync, close, read, rename and journal failures.
+These are not raw-FAT, emulator or physical qualification. See owning PORT-017
+progress notes for the acceptance boundary. Existing QTG/8C remains intact.
+
+Subsequent provisional headless testing passes actual eZ80/EMOS/FatFS raw-image
+transfers through 131731 bytes, dropped WRITE response replay, orphan recovery,
+STAT/LIST and stage/activation readback. The current application is 18939 bytes;
+87 host tests pass. See Extender PORT-017/PROGRESS.md and BOOTSTRAP.md for exact
+scope and the initial commissioning request. No physical firmware changed and
+no candidate version has been assigned. These maintained changes remain
+uncommitted pending Author disposition under the emulator/commit gate.
+
+Commissioning continuation, 2026-09-13 UTC: the Author returned the card and
+directed its preparation in response to the concrete candidate-freeze and
+version proposal. Freeze v0.1.14 and sdserve-v0.1.0 for that commissioning.
+Physical and human acceptance remain pending. The reviewed path bound is 112
+bytes for writable targets (120 including the stage suffix); an invalid transfer
+returns accepted BAD_REQUEST, reserving STALE exclusively for an unaccepted
+session. Host regression covers both. Identified service builds use
+`scripts/prepare_sdserve.py`. See Extender BOOTSTRAP.md for guarded installation.
