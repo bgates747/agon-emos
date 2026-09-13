@@ -4,14 +4,10 @@ This is the repository's single authoritative list of unfinished EMOS work.
 Cross-component Extender work remains in the `agon-extender` task list; generic
 port-infrastructure work remains in `mos-agondev`.
 
-## Current priority — mainboard SD-service transport
-
-- [ ] **INTEG-013 — Owned mainboard SD-service transport gateway**
-  - Started: 2026-09-12
-  - Status: v0.1.14 and sdserve v0.1.0 installed; ten physical transfer cycles
-    pass. Native-keyboard exit/restart and owning PORT-017 acceptance remain
-    pending. Other work waits.
-  - Details: [INTEG-013](docs/tasks/INTEG-013.md)
+INTEG-013 was accepted on 2026-09-13 UTC and removed from this unfinished list.
+See [the dated record](research/devlog/2026-09-13.md) and
+[SD service guide](projects/sdserve/README.md). The existing queue below is
+preserved; no downstream implementation was started during SD delivery.
 
 ## Queued graphics timing reception
 

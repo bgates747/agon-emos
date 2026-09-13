@@ -1,8 +1,15 @@
 # INTEG-013 — Owned mainboard SD-service transport gateway
 
+**Completed, scoped acceptance on 2026-09-13 UTC.** Ten physical transfer cycles,
+fresh native-keyboard interruption/restart and final whole-card delivery pass.
+The Author confirmed the fresh key check. See
+[the dated record](../../research/devlog/2026-09-13.md) and
+[operating instructions](../../projects/sdserve/README.md). The progress entries
+below retain their chronological meaning; earlier pending gates are superseded.
+
 Author released Extender PORT-017 on 2026-09-12; this is its EMOS component.
-Highest EMOS priority until the SD capability is accepted. Wire contract:
-agon-extender `docs/tasks/PORT-017/PROTOCOL.md`; this task owns maintained eZ80
+It was highest EMOS priority until that acceptance. Maintained wire contract:
+agon-extender `docs/protocols/mainboard-sd.md`; this task owns maintained eZ80
 transport code, the foreground `projects/sdserve` application and qualification.
 P4/network ownership remains in agon-extender.
 
@@ -24,7 +31,7 @@ P4/network ownership remains in agon-extender.
    firmware deployment authorization before flashing EMOS. Coordinate physical
    qualification through Extender PORT-017. Do not begin graphics/Golem work.
 
-Current phase: provisional implementation, no physical firmware changes.
+Initial implementation checkpoint: no physical firmware changes at that time.
 The latest exploratory wrapper build passes every link guard at 130954 bytes
 (118 bytes spare, including its longer UNVERSIONED identity); Core static RAM
 ends at BDAAA. Native eZ80 three-byte field loads reduce existing helper cost.
@@ -63,3 +70,17 @@ explicit recovery. Native-keyboard exit/restart is now being observed; do not
 close this component task or infer general hardware acceptance before that
 result and the Author's confirmation. No further EMOS source change is needed
 for these tests; the current physical candidate is unchanged.
+
+Final acceptance: all 45368 acknowledged bytes survive the fresh keyboard
+interruption as an exact prefix, the old target remains intact, and explicit
+orphan recovery plus a new verified upload pass. The Author's "keys worked
+fine" confirmation is separate from immutable machine evidence. Direct CLI
+restart provided whole-card scope; network delivery updated the now-closed
+startup batch, preserving its previous version. Full physical readback of the
+accepted 131731-byte Rally binary matches its original SHA-256. No game files
+or onboard VDP were changed, and no downstream optimization was started.
+
+Extender `docs/qualification/mainboard-sd/2026-09-13.md` composes the exact
+builds, ten-cycle run, keyboard evidence and final delivery. INTEG-013 is removed
+from TODO after recording that result in the dated log. Candidate lifecycle
+identities remain unchanged; no general firmware release or push is claimed.

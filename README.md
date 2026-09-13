@@ -11,6 +11,13 @@ translation, linking, runtime, emulator, and inspection infrastructure remains
 in the separate `mos-agondev` project. See [OWNERSHIP.md](OWNERSHIP.md) for the
 authoritative repository boundary.
 
+The [mainboard SD foreground service](projects/sdserve/README.md) uses the
+EMOS-owned `ext.sdlink` gateway to provide file access through the Extender
+network endpoint while preserving native Extender keyboard input. The exact
+v0.1.14/service v0.1.0/console r12 combination passed scoped physical checks;
+see [the acceptance log](research/devlog/2026-09-13.md). It is not a background
+service during gameplay or a general firmware release.
+
 The source lineage begins with official Agon Platform MOS v3.0.2. The original
 upstream README follows because its build, hardware, recovery, and licensing
 information still applies to this derivative.

@@ -155,3 +155,34 @@ RTS/CTS, flush/General Poll A7, bounded reply/quiet validation and cleanup.
 The old VDPTEXT command retains its fixed A6 exchange. Neither path changes
 ordinary VDU routing, committed mode or canonical VDP sysvars. The sample
 changes its text independently; this is not an ordinary printf-to-EDP API.
+
+## Resident foreground SD transport service
+
+`ext.sdlink` is a reserved Core service behind the existing 66-byte gateway,
+ABI 1.0, service operation 2. It does not load a transient module. Core validates
+the request, input and output wholly within ordinary application RAM
+040000..0AFFFF. Admission requires Legacy mode, healthy Extender keyboard
+selection and EMOS ownership of UART1; interrupt-context calls are rejected.
+
+The first input byte selects OPEN=0, RECEIVE=1, SEND=2 or CLOSE=3. OPEN/CLOSE
+carry only that selector. SEND carries one 20..240-byte record after it;
+RECEIVE requires capacity for 240 bytes and returns one complete record, or
+outputLength zero when none is ready. Other operations use no output buffer.
+EMOS retains only Core buffers: a 240-byte mailbox and 244-byte transmit buffer.
+No caller pointer survives in the receive ISR. Application entry/exit, explicit
+close and transport/input-source faults invalidate admission and pending input.
+
+The owned UART1 parser receives private 8D envelopes into the bounded mailbox;
+the owned writer sends private F6 envelopes to P4. Existing keyboard and console
+packets retain their meanings. The foreground `sdserve` application validates
+record CRCs and performs MOS/FatFS operations; filesystem work never runs in the
+keyboard ISR. P4 owns its network request queue and multiplexes whole service
+packets with keyboard traffic. Neither application nor HTTP code takes UART
+ownership from the existing EMOS/P4 transport owners.
+
+The cross-component wire/operation authority is agon-extender
+`docs/protocols/mainboard-sd.md`; avoid duplicating its record layouts here.
+See [the service guide](../projects/sdserve/README.md) and
+[physical acceptance](../research/devlog/2026-09-13.md). This provides cooperative
+foreground file access, not concurrent game execution or automatic hard-hang
+recovery. Exact firmware acceptance does not validate later builds.
