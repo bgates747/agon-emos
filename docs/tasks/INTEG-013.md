@@ -50,3 +50,16 @@ bytes for writable targets (120 including the stage suffix); an invalid transfer
 returns accepted BAD_REQUEST, reserving STALE exclusively for an unaccepted
 session. Host regression covers both. Identified service builds use
 `scripts/prepare_sdserve.py`. See Extender BOOTSTRAP.md for guarded installation.
+
+Hardware checkpoint, 2026-09-13 UTC: committed source 71f362a produces
+agon-emos-v0.1.14-b2026-09-13-01-07-47Z (130919 bytes) and
+sdserve-v0.1.0-b2026-09-13-01-07-48Z (18974 bytes), from clean inputs. Complete
+wrapper/link/runtime checks and 89 host checks pass. Author confirms good
+physical flash and matching visual observations. The paired console r12 passes
+ten physical upload/verify/activation/readback cycles through 131731 bytes.
+Extender preserves the source hashes and request audit in PORT-017 evidence.
+Actual raw-FAT disk exhaustion also preserves the old target and supports
+explicit recovery. Native-keyboard exit/restart is now being observed; do not
+close this component task or infer general hardware acceptance before that
+result and the Author's confirmation. No further EMOS source change is needed
+for these tests; the current physical candidate is unchanged.
