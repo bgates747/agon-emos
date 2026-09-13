@@ -8,8 +8,9 @@ port-infrastructure work remains in `mos-agondev`.
 
 - [ ] **INTEG-013 — Owned mainboard SD-service transport gateway**
   - Started: 2026-09-12
-  - Status: Author released Extender PORT-017; freeze and implement its bounded
-    transport while preserving input and fitting ROM. Other work waits.
+  - Status: v0.1.14 and sdserve v0.1.0 installed; ten physical transfer cycles
+    pass. Native-keyboard exit/restart and owning PORT-017 acceptance remain
+    pending. Other work waits.
   - Details: [INTEG-013](docs/tasks/INTEG-013.md)
 
 ## Queued graphics timing reception
