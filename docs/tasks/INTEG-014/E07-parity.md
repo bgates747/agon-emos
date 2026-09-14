@@ -426,3 +426,12 @@ remove it before final selection. [Evidence](E07P-results/tx02.json).
    profiles and the375 complete sender boundaries; compare physical timing and
    exact recovery. This is reversal of a rejected candidate, not a new deadline
    or routing policy. Final selection must include this disposition explicitly.
+
+
+## TX04 prepared reversal
+
+The four original JP branches are restored in the maintained candidate. Both
+canonical profiles and375 complete sender instruction cases pass; ordinary
+130928 bytes (144 free), bench130083. This adds back the eight bytes TX02 saved.
+The frozen RX02/TX03 images remain immutable for their separate observations.
+TX04 physical disposition and all final parity requirements remain pending.
