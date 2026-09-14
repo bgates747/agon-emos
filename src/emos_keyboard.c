@@ -138,8 +138,10 @@ static void deadline_start(Deadline *d) {
 }
 static BYTE deadline_step(Deadline *d) {
     BYTE now = emos_keyboard_clock(), delta = (BYTE)(now - d->last);
-    d->elapsed += delta; d->last = now;
-    if (delta) d->budget = (UINT24)262144;
+    /* Most attempts share a clock tick: avoid rewriting unchanged fields. */
+    if (delta) {
+        d->elapsed += delta; d->last = now; d->budget = (UINT24)262144;
+    }
     else if (!--d->budget) return 0;
     return d->elapsed < 600;
 }
