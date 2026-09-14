@@ -464,7 +464,7 @@ mainboard's85.052 ms handler measurement alone is not a scope-matched verdict.
    queued telemetry, its bounded16-byte drain, error/stall behavior, UART writes,
    RTS release order or ordinary composition. Prefer this small C change over
    another assembly rewrite.
-2. [ ] **RX03b — Prove and measure that isolated increment.** Extend complete
+2. [x] **RX03b — Prove and measure that isolated increment.** Extend complete
    IRQ comparisons to run the real idle transmitter and to record queued work
    only when length is nonzero; compare both idle and pending cases, all saved
    registers and port ordering. Existing host telemetry tests must still prove
@@ -608,3 +608,24 @@ C guard is next, SHA256
 `75c8d6dfb576f815ef91f96a00620871585601ac0cb84bab527ac3da4462e9d2`,
 identity14:13:11Z, source d7a3267. The original diagnostic P4 pair stays fixed
 through its isolated comparison.
+
+
+## RX03 disposition — reject as a throughput change
+
+All four original wire cases and twelve matched batch rows pass exact data and
+recovery, but return wire87.830 ms fails to improve TX04's87.716 ms. Batch median
+89.583 ms versus mainboard85.938 ms still misses parity. Its apparent half-bin
+change from RX02 falls within the conservative timing bounds. This does not
+establish useful throughput improvement; fewer idle instructions alone are not
+retention evidence. Restore only the two RX03 firmware files to TX04. Keep the
+stronger independent-idle/pending IRQ harness and the archived candidate for any
+future CPU-availability investigation. [Result](E07P-results/rx03.json),
+[matched batch](E07P-results/ep3rb1-analysis.json).
+
+RX03's rejection activates RX04. The last retained TX04 image, already verified
+and measured on the unchanged ESP pair, is RX04's comparison baseline; supersede
+the earlier assumption that RX03 would be retained. RX04 changes only the private
+argument path relative to TX04. It will not carry the rejected idle guard.
+P4 source preparation may now proceed under O02, but its physical O03 deployment
+waits for the new RX04 disposition so the installed firmware factors remain
+separate. No reflash of a known rejected receiver merely to repeat its result.

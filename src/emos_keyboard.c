@@ -17,12 +17,10 @@ static BYTE prepared_source;
 /* Core-owned packet: never retain application memory beyond a gateway call.
  * transitioning protects COMPLETE wire packets from foreground interleaving. */
 static BYTE async_data[144], async_at;
-/* RX03 private cross-file guard: existing pending length, no mirrored state. */
-volatile BYTE emos_keyboard_async_length;
-static volatile BYTE async_position;
+static volatile BYTE async_length, async_position;
 static void async_abort(void) {
-    if (emos_keyboard_async_length) transitioning = 0;
-    emos_keyboard_async_length = 0; /* queue() initializes the next position before admission. */
+    if (async_length) transitioning = 0;
+    async_length = 0; /* queue() initializes the next position before admission. */
     uart1_keyboard_tx_enable(0);
 }
 #endif
@@ -121,7 +119,7 @@ void emos_keyboard_tick(void) {
         emos_keyboard_fault();
     }
 #ifdef EMOS_BENCH_TELEMETRY
-    if (emos_keyboard_async_length && !emos_key_faulted) {
+    if (async_length && !emos_key_faulted) {
         if ((BYTE)(emos_keyboard_clock()-async_at) >= 30) {
             /* Never append a new packet after a timed-out partial record. */
             emos_keyboard_fault();
@@ -381,8 +379,8 @@ void emos_keyboard_async_irq(void) {
     BYTE budget=16, result;
     /* TX demand is disabled by completion/abort, so ordinary RX interrupts
      * need no UART register write when there is no resident packet. */
-    if (!emos_keyboard_async_length) return;
-    while (budget-- && async_position < emos_keyboard_async_length) {
+    if (!async_length) return;
+    while (budget-- && async_position < async_length) {
         result=uart1_keyboard_put(async_data[async_position]);
         if (result == UART_POLL_BLOCKED) {
             uart1_keyboard_tx_enable(0); /* Avoid level-triggered IRQ storm. */
@@ -392,8 +390,8 @@ void emos_keyboard_async_irq(void) {
         if (result != UART_POLL_READY) { emos_keyboard_fault(); return; }
         ++async_position;
     }
-    if (async_position == emos_keyboard_async_length) {
-        emos_keyboard_async_length=0;
+    if (async_position == async_length) {
+        async_length=0;
         transitioning=0;
         uart1_keyboard_tx_enable(0);
     }
@@ -409,7 +407,7 @@ BYTE emos_keyboard_queue_telemetry(const BYTE *data) {
     memcpy(async_data,"\x17\x00\xF5\x8C",4);
     memcpy(async_data+4,data,140);
     transitioning=1; async_position=0; async_at=emos_keyboard_clock();
-    emos_keyboard_async_length=sizeof(async_data); /* Publish complete Core copy before IRQ enable. */
+    async_length=sizeof(async_data); /* Publish complete Core copy before IRQ enable. */
     uart1_keyboard_tx_enable(1);
     emos_keyboard_unlock(irq);
     return EMOS_KEY_OK;

@@ -1,0 +1,180 @@
+{
+  "cases": 4,
+  "rows": {
+    "ep3rw1": {
+      "count": 4,
+      "sha256": "559d41f6957dcca03981f2fde474392c9bf07a7d1b9542775ce0c360841b42da"
+    }
+  },
+  "firmware_sha256": "75c8d6dfb576f815ef91f96a00620871585601ac0cb84bab527ac3da4462e9d2",
+  "wire_captures": 1,
+  "verdict": "rejected: fewer idle instructions but no demonstrated return throughput gain; restore TX04 receiver",
+  "forward": {
+    "0": {
+      "median_ms": 589.807,
+      "min_ms": 589.807,
+      "max_ms": 589.807,
+      "n": 1
+    },
+    "1": {
+      "median_ms": 590.066,
+      "min_ms": 590.066,
+      "max_ms": 590.066,
+      "n": 1
+    }
+  },
+  "wire": [
+    {
+      "acquisition_pass": true,
+      "coverage_pass": true,
+      "independent_decode_matches": true,
+      "trace_sha256": "7143c7209a0a4dadf56c6ff1470b47f5c4b9ed329e0ad6bba1f1ed49a565b163",
+      "analysis_sha256": "1c63829e3d87b48e338809e647a264828ecd6281ca5d50594f88fa0d13f72bd1",
+      "samples": 720000000,
+      "sample_rate_hz": 24000000,
+      "forward_bytes": 65535,
+      "return_wire_bytes": 4626,
+      "return_payload_bytes": 2048,
+      "forward": {
+        "wire_span_seconds": 0.5874617222222214,
+        "estimated_byte_time_seconds": 0.5683321110895276,
+        "idle_seconds": 0.019129611132693788,
+        "idle_cts_high_seconds": 0.016557902778933445,
+        "idle_cts_low_seconds": 0.002571708353760342,
+        "cts_high_seconds": 0.025651708333333332,
+        "idle_cts_high_fraction": 0.8655640025340023,
+        "longest_gaps": [
+          {
+            "start_seconds": 17.153609805555554,
+            "duration_seconds": 3.636111111193895e-05,
+            "cts_high_seconds": 0.0
+          },
+          {
+            "start_seconds": 16.943789638888887,
+            "duration_seconds": 2.5194444445272285e-05,
+            "cts_high_seconds": 2.2361111111938953e-05
+          },
+          {
+            "start_seconds": 17.29288163888889,
+            "duration_seconds": 2.515277777860562e-05,
+            "cts_high_seconds": 2.115277777860562e-05
+          },
+          {
+            "start_seconds": 17.010807805555554,
+            "duration_seconds": 2.377777777860562e-05,
+            "cts_high_seconds": 2.165277777860562e-05
+          },
+          {
+            "start_seconds": 16.876774680555556,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.9861111111938953e-05
+          },
+          {
+            "start_seconds": 17.063824222222223,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.8944444445272286e-05
+          },
+          {
+            "start_seconds": 17.17985376388889,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.965277777860562e-05
+          },
+          {
+            "start_seconds": 17.299886388888886,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.827777777860562e-05
+          },
+          {
+            "start_seconds": 17.412915847222223,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.827777777860562e-05
+          },
+          {
+            "start_seconds": 16.92572634722222,
+            "duration_seconds": 2.1569444445272285e-05,
+            "cts_high_seconds": 1.8861111111938953e-05
+          }
+        ]
+      },
+      "reverse": {
+        "wire_span_seconds": 0.0878298472222214,
+        "estimated_byte_time_seconds": 0.04013244444203377,
+        "idle_seconds": 0.04769740278018763,
+        "idle_cts_high_seconds": 0.04755734722413371,
+        "idle_cts_low_seconds": 0.0001400555560539166,
+        "cts_high_seconds": 0.054853638888888064,
+        "idle_cts_high_fraction": 0.9970636649400103,
+        "longest_gaps": [
+          {
+            "start_seconds": 18.044109638888887,
+            "duration_seconds": 9.531944444527229e-05,
+            "cts_high_seconds": 9.523611111193895e-05
+          },
+          {
+            "start_seconds": 17.981141388888886,
+            "duration_seconds": 8.752777777860562e-05,
+            "cts_high_seconds": 8.744444444527229e-05
+          },
+          {
+            "start_seconds": 17.989693180555555,
+            "duration_seconds": 8.752777777860562e-05,
+            "cts_high_seconds": 8.744444444527229e-05
+          },
+          {
+            "start_seconds": 18.016036180555556,
+            "duration_seconds": 8.752777777860562e-05,
+            "cts_high_seconds": 8.744444444527229e-05
+          },
+          {
+            "start_seconds": 17.957879513888887,
+            "duration_seconds": 8.748611111193895e-05,
+            "cts_high_seconds": 8.744444444527229e-05
+          },
+          {
+            "start_seconds": 17.95924788888889,
+            "duration_seconds": 8.748611111193895e-05,
+            "cts_high_seconds": 8.744444444527229e-05
+          },
+          {
+            "start_seconds": 17.95958988888889,
+            "duration_seconds": 8.748611111193895e-05,
+            "cts_high_seconds": 8.744444444527229e-05
+          },
+          {
+            "start_seconds": 17.979431055555555,
+            "duration_seconds": 8.748611111193895e-05,
+            "cts_high_seconds": 8.744444444527229e-05
+          },
+          {
+            "start_seconds": 17.979773055555555,
+            "duration_seconds": 8.748611111193895e-05,
+            "cts_high_seconds": 8.744444444527229e-05
+          },
+          {
+            "start_seconds": 17.98285176388889,
+            "duration_seconds": 8.748611111193895e-05,
+            "cts_high_seconds": 8.744444444527229e-05
+          }
+        ]
+      },
+      "forward_local_elapsed_us": 590066,
+      "return_enqueue_us": 592,
+      "return_request_to_completion_ms": 89.29751388888806,
+      "return_request_to_first_byte_ms": 1.3895277777786057,
+      "forward_starts_with_cts_high": 1008,
+      "reverse_starts_with_cts_high": 0,
+      "window_samples": [
+        [
+          404580085,
+          418913421.3333333
+        ],
+        [
+          430923174,
+          433066314.3333333
+        ]
+      ],
+      "limits": "Frame-end estimate has approximately one-sample uncertainty. CTS-low idle does not identify its software cause. No analogue-integrity claim."
+    }
+  ],
+  "symmetric_batch": "ep3rb1-analysis.json"
+}

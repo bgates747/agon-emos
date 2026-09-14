@@ -1,0 +1,43 @@
+{
+  "scope": "16 repeated 256-packet end-to-end returns; includes equal request/arming/mailbox-copy work, excludes verification/SD/output",
+  "rows": 12,
+  "exact_useful_bytes": 393216,
+  "clock_units_per_vblank": 2,
+  "vblank_hz": 60,
+  "transfers_per_interval": 16,
+  "per_transfer_uncertainty_ms": 1.0416666666666667,
+  "routes": {
+    "0": {
+      "samples_ms": [
+        85.41666666666667,
+        86.45833333333333,
+        86.45833333333333,
+        86.45833333333333,
+        85.41666666666667,
+        85.41666666666667
+      ],
+      "median_ms": 85.9375,
+      "min_ms": 85.41666666666667,
+      "max_ms": 86.45833333333333,
+      "median_lower_ms": 84.89583333333333,
+      "median_upper_ms": 86.97916666666667
+    },
+    "1": {
+      "samples_ms": [
+        89.58333333333333,
+        89.58333333333333,
+        89.58333333333333,
+        89.58333333333333,
+        89.58333333333333,
+        90.625
+      ],
+      "median_ms": 89.58333333333333,
+      "min_ms": 89.58333333333333,
+      "max_ms": 90.625,
+      "median_lower_ms": 88.54166666666666,
+      "median_upper_ms": 90.625
+    }
+  },
+  "elapsed_difference_percent": 4.2424242424242475,
+  "conservative_parity_pass": false
+}
