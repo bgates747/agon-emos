@@ -26,6 +26,18 @@ restoration status; matching `.raw` files retain bounded UART0 observations.
 A normal terminal row and visible pass/fail summary distinguish completion
 from a stuck test. MOS-clock timings have16.667ms granularity at60Hz.
 
+`native` leaves both original IRQ handlers installed and runs18quiet/service
+cases. Its IRQ counts and UART0 capture/error fields are unavailable (stored
+as zeros), not evidence of zero cost or validated UART0 bytes. P4 exact-data
+checks remain active. Bind it separately to each candidate ROM before use.
+
+The full observation variant has a retained concurrent-reception failure in
+E06: the additional UART0 copy work changes timing enough that normal recovery
+can fail. The original-handler comparison passes. Read the current E06 result
+and recovery procedure before using the heavier observer on physical hardware.
+The app's indexed UART0 helper also avoids an observed compiler ordering error;
+its generated argument load was inspected before the corrected deployment.
+
 The external batch must configure both displays to mode20 before invocation,
 return to Legacy/mode3 afterward and start the SD service. There is no mode
 switch inside the app. Use the established guarded SD staging/readback and
