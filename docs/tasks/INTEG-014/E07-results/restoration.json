@@ -7,5 +7,7 @@
   "keyboard_cli_sd_pass": true,
   "generated_builder_outputs_restored_and_verified": true,
   "human_visual_acceptance": "pending",
-  "voice_notification": "pending"
+  "voice_notification": "standard hardware voice command acknowledged; fresh service receipt verified",
+  "voice_receipt": "stage=6\r\naudio_commands=pass\r\n",
+  "human_hearing": "pending"
 }

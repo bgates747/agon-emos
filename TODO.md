@@ -3,7 +3,7 @@
 ## First priority — UART execution cost
 
 - [ ] **INTEG-014 — Diagnose and reduce EMOS UART execution cost**
-  - Status: E05 complete: upload time reduced 33.41%. E06 measurements complete; 0.70% RX alternative reverted. Physical recovery is blocked after original-ROM rollback: original ESP images verified, but EMOS admission/ROM readback/voice cue pending. Await one physical Agon reset and screen state; E07 not started.
+  - Status: E07 complete: large Extender uploads take 1,070.062 ms, 23.52% less time than E05; 384 exact physical cases and three wire captures pass. Both compositions save 24 bytes. Original firmware/startup restored and verified; keyboard/CLI/SD pass. Hardware voice sent and verified; paused for E07 review before E08/E09. Reverse bottleneck and remaining forward gap are open.
   - Details: [INTEG-014](docs/tasks/INTEG-014.md). Cross-component qualification remains Extender PORT-008.
 
 

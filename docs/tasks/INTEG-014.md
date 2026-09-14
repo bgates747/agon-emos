@@ -2,22 +2,21 @@
 
 ## Executive summary
 
-E05's small C changes reduce large Extender upload time33.41%. E06's native
-service checks pass; its four-byte RX trigger saves only0.70% and is reverted.
-The heavy IRQ observer has a retained timing-induced failure and is not a
-native performance oracle. Detailed evidence is in [E05](INTEG-014/E05.md) and
-[E06](INTEG-014/E06.md).
+E07 retains an 82-byte atomic UART transmit leaf: large Extender uploads now
+take **1,070.062 ms versus E05's 1,399.0955 ms (23.52% less time)**. All 384
+exact physical cases and three independently decoded wire captures pass.
+Both firmware compositions save 24 bytes. Reverse timing is effectively
+unchanged; Extender's forward result still takes 81.45% longer than today's
+mainboard control. [E07](INTEG-014/E07.md) contains worst-first tables and limits.
 
-**Bare-metal recovery now passes.** Extender
-[RECOVERY-001](../../../agon-extender/docs/tasks/RECOVERY-001.md) captured a
-mostly erased ROM, restored the full pre-E05 known-good EMOS image, and verified
-all 128 KiB independently. Original P4 restored/verified; onboard VDP unchanged.
-Fresh keyboard admission, MOS CLI COPY, SD read/write and the hardware spoken
-cue passed. Startup and its backup are unchanged. The Author confirms Rally works on hardware; recovery is accepted. The Author declined debugging the failed normal FLASH operation; retain its
-evidence without making it a prerequisite. The Author now authorizes resuming
-E07, with hardware voice notification at the next review/assistance checkpoint.
+E05's C block/deadline changes remain, and E06's ineffective FIFO experiment
+remains reverted. The Author declined investigation of the old normal FLASH
+failure after successful P4/ZDI recovery. This E07 run needed no ZDI recovery:
+the complete pre-run EMOS ROM and both ESP images are restored and independently
+verified. Keyboard/CLI/SD and unchanged startup checks pass. The hardware voice cue executed with a fresh service receipt; work is
+paused at this supervised checkpoint before E08/E09. No experimental push.
 
-Status: E05/E06 complete; E07 resumed by Author instruction.
+Status: E05–E07 complete; E07 review and approval to proceed to E08 pending.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
 
@@ -224,7 +223,7 @@ of emulator-coupled changes; do not push experimental code without review.
    Measurements and rejected alternative are recorded in E06.md; final physical
    recovery and hardware notification now pass through RECOVERY-001; the Author
    accepted Rally gameplay and directed continuation without a flash-failure audit.
-7. [ ] **E07 — Select and implement minimal fixes.** Choose C/C++ when timing is
+7. [x] **E07 — Select and implement minimal fixes.** Choose C/C++ when timing is
    within the frozen negligible-difference threshold. Select assembly only for
    demonstrated throughput or meaningful linked flash savings, documenting
    bytes saved, speed, ABI burden and readability tradeoff. Keep independent

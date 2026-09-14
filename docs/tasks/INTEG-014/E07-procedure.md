@@ -41,7 +41,7 @@ hardware voice is the attention cue, spoken emulator fallback only if needed.
    and diagnostic ESP images, verify flash where applicable and check actual
    CLI/keyboard/SD plus unchanged startup. Use maintained ZDI recovery if needed,
    never intentionally brick MOS to exercise it.
-6. [ ] Summarize worst-first milliseconds/percent tables, limitations and exact
+6. [x] Summarize worst-first milliseconds/percent tables, limitations and exact
    manifests. Hardware voice, then stop at this E07 checkpoint before E08/E09.
    No experimental push; emulator-coupled changes remain subject to human review.
 
