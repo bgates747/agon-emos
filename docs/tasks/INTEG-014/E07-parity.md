@@ -329,3 +329,24 @@ procedure changes. Service journals retain every request/receipt.
    then deploy only after RX01's isolated physical result has selected this step.
    Remeasure both directions and mixed traffic. No FIFO trigger change, early
    peer release, reduced saved-register set or new wire contract is included.
+
+## RX01 first physical observation
+
+The receiver-only increment passes all four app05 wire cases, independent
+bitstream decoding and clean recovery. Reverse UART1 wire time falls from
+109.608 to **95.528 ms**; Agon-stopped idle falls from69.335 to55.256 ms.
+Forward remains591.078 ms versus paired mainboard589.803 ms. No snapshots ran.
+The unchanged mainboard return handler reports85.017 ms (different scope from
+wire; not a final symmetric parity comparison). Both targets still need work.
+RX01 full/mixed controls are running against its immutable installed image.
+This measured result activates the already-frozen TX02 and RX02 contingencies.
+
+## TX02 prepared for physical selection
+
+Four in-range JP instructions now use JR, including the hot outer-fault branch;
+long branches back to the tick/attempt path remain where required. Both canonical
+compositions pass and save8ROM bytes (ordinary130950,122free). All375 complete
+sender instruction cases match the original C boundary, including every LSR value.
+The instruction count is unchanged: this candidate reduces instruction fetches,
+so only the next physical comparison can establish its benefit. RX01 full336
+physical cases have passed; mixed controls finish before replacing that image.

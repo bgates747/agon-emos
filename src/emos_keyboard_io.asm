@@ -102,7 +102,7 @@ keyboard_block_byte:
 keyboard_block_retry:
             LD A, (_emos_key_faulted)
             OR A
-            JP NZ, keyboard_block_fail
+            JR NZ, keyboard_block_fail
             LD A, (_clock)
             SUB E
             JR NZ, keyboard_block_tick
@@ -113,7 +113,7 @@ keyboard_block_retry:
             LD (IX+3), HL       ; low16 zero: examine the 24-bit high byte
             LD A, (IX+5)
             OR A
-            JP Z, keyboard_block_fail
+            JR Z, keyboard_block_fail
 keyboard_block_attempt:
             DI
             LD A, (_uart1_keyboard_owned)
@@ -185,11 +185,11 @@ keyboard_block_tick:
             LD A, (IX+2)
             CP 2
             JP C, keyboard_block_attempt
-            JP NZ, keyboard_block_fail
+            JR NZ, keyboard_block_fail
             LD A, (IX+1)
             CP 88              ; 600 = 0x258
             JP C, keyboard_block_attempt
-            JP keyboard_block_fail
+            JR keyboard_block_fail
 
             XDEF _emos_keyboard_byte
             XREF _emos_key_rx
