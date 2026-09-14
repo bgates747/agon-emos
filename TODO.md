@@ -3,7 +3,7 @@
 ## First priority — UART execution cost
 
 - [ ] **INTEG-014 — Diagnose and reduce EMOS UART execution cost**
-  - Status: Supervised run authorised; E01 preservation/recovery passed; supervised pause before E02. Notify on hardware and stop after each numbered step. No firmware implementation started.
+  - Status: Supervised run authorised; E02 builds and memory accounting passed; supervised pause before E03. Ordinary EMOS has 157 flash bytes free; bench has 1,001. No firmware implementation started.
   - Details: [INTEG-014](docs/tasks/INTEG-014.md). Cross-component qualification remains Extender PORT-008.
 
 

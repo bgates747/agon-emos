@@ -1,6 +1,6 @@
 # INTEG-014 — Diagnose and reduce EMOS UART execution cost
 
-Status: E01 complete; supervised pause before E02. No firmware implementation
+Status: E02 complete; supervised pause before E03. No firmware implementation
 started. Hardware notification and a review pause after each step.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
@@ -167,7 +167,7 @@ of emulator-coupled changes; do not push experimental code without review.
    Read Extender's local hardware record and bench constraints. Verify rollback,
    SD service and keyboard access before firmware experiments. Freeze this plan
    before code work. Do not infer current physical state from an old manifest.
-2. [ ] **E02 — Reproduce both compositions and budget.** Build ordinary and bench
+2. [x] **E02 — Reproduce both compositions and budget.** Build ordinary and bench
    EMOS using repository wrappers or generic repository-root EMOS-profile
    targets, with every FIRMWARE_LINK_CHECK including the UART divisor guard.
    Retain maps, ELF, disassembly and hashes. Account for text, constants, data
@@ -247,7 +247,8 @@ of emulator-coupled changes; do not push experimental code without review.
 
 ## Planning checkpoint
 
-The initial planning turn changed only this task and queue links. E01 is now
-complete; [its checkpoint record](INTEG-014/E01.md) identifies preservation,
-recovery checks and limits. Wait for the Author before E02. Existing dirty
-EMOS work is preserved; source optimisation starts only at its later step.
+E01 [preservation/recovery](INTEG-014/E01.md) and E02
+[reproduction/accounting](INTEG-014/E02.md) are complete. Ordinary EMOS has
+157 flash bytes free; the earlier 153-byte comment is superseded by measured
+binary/map evidence. Wait for the Author before E03. Existing dirty EMOS work
+is preserved; source optimisation starts only at its later step.
