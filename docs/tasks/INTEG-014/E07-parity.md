@@ -308,3 +308,24 @@ For subsequent host collection, precheck a unique next UDT result path as absent
 before launch and fetch that exact new file afterward. This replaces scanning
 hundreds of unrelated directory entries; no fixture timing, firmware or wire
 procedure changes. Service journals retain every request/receipt.
+
+## RX02 contingency — FIFO loop overhead
+
+1. [ ] **RX02a — If RX01 still misses reverse parity, replace only the C drain
+   loop with a short assembly loop.** The linked C loop spends roughly 23
+   instructions per delivered byte outside the parser, including redundant
+   bit/zero tests and saving/reloading its count around the call. A counted
+   assembly loop can keep the count in B, push BC as both saved count and the
+   existing three-byte byte argument, then use DJNZ. Preserve exact one-LSR-read
+   error priority, 16-byte cap, per-byte fault exit, Port C bit masking, and the
+   complete existing outer IRQ register save/restore. Keep the C reference for
+   host tests. A tiny C completion tail owns RTS reopening and the optional
+   telemetry call, so ordinary/bench composition remains profile-controlled.
+2. [ ] **RX02b — Prove and measure.** Compare full linked IRQ entry/exit against
+   RX01 with programmable FIFO/status responses and callback clobbers. Verify
+   exact port/read order, byte delivery, cap/error/fault behavior, no premature
+   RTS reopening, all primary/alternate registers, SP and IFF restoration.
+   Re-run ordinary/bench link guards with a narrow updated Port C owner ledger,
+   then deploy only after RX01's isolated physical result has selected this step.
+   Remeasure both directions and mixed traffic. No FIFO trigger change, early
+   peer release, reduced saved-register set or new wire contract is included.
