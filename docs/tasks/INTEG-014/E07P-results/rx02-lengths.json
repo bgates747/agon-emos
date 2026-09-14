@@ -1,0 +1,210 @@
+[
+  {
+    "bytes": 0,
+    "mainboard_ms": {
+      "median": 0.46,
+      "min": 0.435,
+      "max": 0.481,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 1.886,
+      "min": 1.877,
+      "max": 1.888,
+      "n": 3
+    },
+    "difference_ms": 1.426
+  },
+  {
+    "bytes": 1,
+    "mainboard_ms": {
+      "median": 0.751,
+      "min": 0.689,
+      "max": 0.79,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 2.054,
+      "min": 2.0,
+      "max": 2.078,
+      "n": 3
+    },
+    "difference_ms": 1.303
+  },
+  {
+    "bytes": 63,
+    "mainboard_ms": {
+      "median": 1.222,
+      "min": 1.169,
+      "max": 1.236,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 3.0,
+      "min": 2.995,
+      "max": 3.002,
+      "n": 3
+    },
+    "difference_ms": 1.778
+  },
+  {
+    "bytes": 64,
+    "mainboard_ms": {
+      "median": 1.163,
+      "min": 1.152,
+      "max": 1.251,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 3.0,
+      "min": 2.999,
+      "max": 3.001,
+      "n": 3
+    },
+    "difference_ms": 1.837
+  },
+  {
+    "bytes": 65,
+    "mainboard_ms": {
+      "median": 1.158,
+      "min": 1.147,
+      "max": 1.193,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 3.001,
+      "min": 3.0,
+      "max": 3.001,
+      "n": 3
+    },
+    "difference_ms": 1.843
+  },
+  {
+    "bytes": 255,
+    "mainboard_ms": {
+      "median": 2.784,
+      "min": 2.776,
+      "max": 2.786,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 4.998,
+      "min": 4.997,
+      "max": 4.998,
+      "n": 3
+    },
+    "difference_ms": 2.2140000000000004
+  },
+  {
+    "bytes": 256,
+    "mainboard_ms": {
+      "median": 2.805,
+      "min": 2.804,
+      "max": 2.82,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 4.999,
+      "min": 4.997,
+      "max": 4.999,
+      "n": 3
+    },
+    "difference_ms": 2.1939999999999995
+  },
+  {
+    "bytes": 257,
+    "mainboard_ms": {
+      "median": 2.808,
+      "min": 2.805,
+      "max": 2.809,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 4.998,
+      "min": 4.998,
+      "max": 4.998,
+      "n": 3
+    },
+    "difference_ms": 2.1900000000000004
+  },
+  {
+    "bytes": 4095,
+    "mainboard_ms": {
+      "median": 37.317,
+      "min": 37.293,
+      "max": 37.329,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 39.038,
+      "min": 39.037,
+      "max": 39.096,
+      "n": 3
+    },
+    "difference_ms": 1.7209999999999965
+  },
+  {
+    "bytes": 4096,
+    "mainboard_ms": {
+      "median": 37.317,
+      "min": 37.304,
+      "max": 37.327,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 39.038,
+      "min": 39.038,
+      "max": 39.038,
+      "n": 3
+    },
+    "difference_ms": 1.7209999999999965
+  },
+  {
+    "bytes": 4097,
+    "mainboard_ms": {
+      "median": 37.333,
+      "min": 37.331,
+      "max": 37.345,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 39.037,
+      "min": 39.029,
+      "max": 39.039,
+      "n": 3
+    },
+    "difference_ms": 1.7040000000000006
+  },
+  {
+    "bytes": 32768,
+    "mainboard_ms": {
+      "median": 295.251,
+      "min": 295.214,
+      "max": 295.285,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 297.042,
+      "min": 297.034,
+      "max": 297.043,
+      "n": 3
+    },
+    "difference_ms": 1.7909999999999968
+  },
+  {
+    "bytes": 65535,
+    "mainboard_ms": {
+      "median": 589.579,
+      "min": 589.508,
+      "max": 589.609,
+      "n": 3
+    },
+    "extender_ms": {
+      "median": 592.05,
+      "min": 592.039,
+      "max": 592.055,
+      "n": 3
+    },
+    "difference_ms": 2.4710000000000036
+  }
+]

@@ -542,3 +542,16 @@ analysis script and original captures remain in Extender's ignored E07P evidence
 RX03's guard executes after RTS reopening, so faster return may alter batching;
 physical measurement must decide its value. Do not infer throughput directly
 from its instruction saving or silently change FIFO policy at the same time.
+
+
+## Smaller forward transfers remain a separate limitation
+
+RX02's full matrix exposes a fixed-cost component as well as bulk throughput:
+zero-payload control elapsed0.460 ms mainboard versus1.886 ms P4;256 bytes
+2.805 versus4.999 ms;4096 bytes37.317 versus39.038 ms. These destination elapsed
+timers include the established READY/query sequence. The asymmetry in blocking
+versus queued READY replies is a known scope component, but these observations
+do not identify every cause of the additional latency. [All random lengths and
+ranges](E07P-results/rx02-lengths.json). Keep this visible even if the frozen
+large-transfer target passes; do not claim parity for every small VDU command.
+The objective and baseline are unchanged.
