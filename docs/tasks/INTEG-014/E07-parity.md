@@ -251,3 +251,23 @@ port sequence and deadlines. The C host keyboard/sender suites pass both
 compositions. The first harness attempt rebuilt the CPU decoder per byte and
 was stopped; reusing each immutable decoder while resetting CPU state runs the
 same exhaustive input set efficiently. RX01b physical disposition remains open.
+
+## TX01 first physical observation (not final qualification)
+
+The frozen transmitter-only ROM was independently read back after reboot.
+The first app05 wire run passes all four exact cases and independent decoding,
+with no snapshot observer and clean Legacy/SD recovery. Forward 65,535 bytes:
+P4 **591.051 ms**, paired mainboard **589.871 ms** (+0.20%). P4 wire span is
+589.226 ms, including 16.537 ms idle with P4 stopping the sender and 4.356 ms
+idle while it permits sending. Reverse is unchanged at 109.608 ms on the wire.
+This is 44.76% less forward elapsed time than E07, but not a parity claim.
+Raw evidence: Extender ignored `agents/integ-014/E07P/eptw1*`.
+The full exact/mixed control follows before changing the installed receiver.
+
+1. [ ] **TX02 — Remaining instruction-fetch cost.** After the separate RX01
+   observation, if TX parity remains unmet, shorten in-range long conditional
+   jumps in the fused TX loop. In particular the per-attempt outer fault branch
+   currently uses a 24-bit JP although its destination is nearby. Keep condition,
+   deadline and interrupt boundaries unchanged; prove actual linked equivalence
+   again. This is a byte-fetch/cycle candidate; instruction count alone will not
+   quantify it. Retain long jumps where the assembler requires them.
