@@ -384,3 +384,14 @@ profile and firmware are unchanged by this correction; the test continues to
 require the exact complete source order and linked guards. All91 host tests now
 pass against the freshly prepared ordinary worktree. This is a test-maintenance
 commit, separate from TX03's firmware experiment.
+
+
+## TX03 prepared implementation
+
+The clean-ready LSR path now classifies the single acknowledging sample directly,
+avoiding its temporary stack save. Clean-empty still samples CTS; errors stop
+the peer and disable IER in the same order. All375 linked public sender cases,
+including every possible LSR byte, pass against the original C implementation.
+Ready65535 instructions fall from2359376 to2162771; both canonical compositions
+pass with no ROM growth (ordinary130920,152free). Physical deployment follows
+TX02 and RX02 separately; no hardware performance claim yet.

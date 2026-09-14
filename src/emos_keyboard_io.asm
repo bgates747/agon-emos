@@ -124,15 +124,12 @@ keyboard_block_attempt:
             OR A
             JR NZ, keyboard_block_unavailable
             IN0 A, (0D5h)
-            PUSH AF
-            AND 09Eh
-            JR NZ, keyboard_block_error
+            AND 0BEh           ; TX03: errors or THRE, one acknowledging sample
+            CP 020h
+            JR NZ, keyboard_block_status
             IN0 A, (PC_DR)
             AND 08h
-            JR NZ, keyboard_block_blocked
-            POP AF
-            AND 020h
-            JR Z, keyboard_block_wait
+            JR NZ, keyboard_block_wait
             LD A, D
             OUT0 (0D0h), A
             EI
@@ -143,8 +140,10 @@ keyboard_block_count:
             JR NZ, keyboard_block_byte
             LD A, 1
             JR keyboard_block_return
-keyboard_block_blocked:
-            POP AF
+keyboard_block_status:
+            OR A
+            JR NZ, keyboard_block_error
+            IN0 A, (PC_DR)     ; clean-empty still samples CTS, exactly as C
 keyboard_block_wait:
             EI
             JR keyboard_block_retry
@@ -158,7 +157,6 @@ keyboard_block_return:
             POP IX
             RET
 keyboard_block_error:
-            POP AF
             IN0 A, (PC_DR)
             OR 04h
             OUT0 (PC_DR), A
