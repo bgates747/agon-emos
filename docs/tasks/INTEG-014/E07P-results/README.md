@@ -2,27 +2,26 @@
 
 ## Executive summary
 
-RX04 with the P4's extra owner-loop sleep removed is faster than mainboard for
-large forward transfers: **588.147 versus589.595ms** across four paired samples.
-All376 original exact/mixed/wire cases pass. The symmetric return benchmark
-still misses parity: **87.500 versus85.417ms** (+2.44%). The follow-up RX05
-receiver is prepared and instruction-tested; it has not been deployed. Final
-six-sample/three-capture qualification and original bench restoration remain.
-The [frozen task](../E07-parity.md) owns execution.
+RX05 with the retained P4 owner-loop alignment has passing candidate results
+in both directions. All376 original exact/mixed/wire cases pass; final captures
+and ordinary-profile qualification remain. The128-transfer reverse test
+verifies3MiB exactly and separates the timing bounds. Original bench restoration
+is still pending. The [frozen task](../E07-parity.md) owns execution.
 
-Current paired composition, worst percentage gap first. Negative means P4
-takes less time; these are transport measurements, not rendering/output.
+Current paired composition. Negative means P4 takes less elapsed time; these
+are transport measurements, not rendering/output.
 
 | Workload | Mainboard baseline (ms) | Extender (ms) | Difference |
 |---|---:|---:|---:|
-| Return, per256-packet transfer in16-transfer batch | 85.417 | 87.500 | +2.44% |
-| Forward65,535 pseudorandom bytes | 589.595 | 588.147 | -0.25% |
+| Forward65,535 pseudorandom bytes, four observations | 589.690 | 588.142 | -0.26% |
+| Return, per256-packet transfer in128-transfer batch | 86.068 | 85.286 | -0.91% |
 
-Forward combines three full-matrix samples and one wire-run endpoint result.
-Return uses six paired intervals with equal request/arming/mailbox-copy work,
-393,216 exact useful bytes and conservative ±1.042ms per-transfer bounds. It
-does not compare P4 enqueue time with mainboard blocking-handler time.
-[Batch evidence](epob1-analysis.json).
+Return uses six alternating paired intervals with equal request/arming/copy
+work and3,145,728 exact useful bytes. Conservative per-transfer bounds are
+±0.130208ms: P4 upper85.417ms is below mainboard lower85.938ms. It does not
+compare P4 enqueue time with mainboard blocking-handler time.
+[Long result](ep5rlong-analysis.json); the preserved [short control](ep5rb1-analysis.json)
+had overlapping bounds and was not called a pass.
 
 Short-command latency also improved after removing the sleep, but is not equal
 yet. These full-matrix medians include the unchanged READY/query sequence.
@@ -45,6 +44,8 @@ yet. These full-matrix medians include the unchanged READY/query sequence.
 | RX04 register argument | Retained receiver candidate: 85.960 ms return wire; 376 cases pass, combined parity still open | [RX04](rx04.json) |
 | P4 owner sleep removed | 588.147 ms forward; 376 cases and service/idle checks pass; retained | [Owner comparison](owner01.json) |
 
+| RX05 caller-proven private fault admission | Retained: 83.952ms return wire, strict matched reverse parity; 376 exact cases | [RX05](rx05.json) |
+
 Wire measurements in that table are UART1-only observations, not fabricated
 UART0 wire comparisons. The mainboard's individual blocking-handler timer and
 P4 enqueue timer are deliberately excluded from matched reverse claims.
@@ -52,4 +53,4 @@ P4 enqueue timer are deliberately excluded from matched reverse claims.
 Immutable firmware/source manifests and raw logic captures remain in the ignored
 E07P evidence directories in EMOS and Extender. Each JSON pins image/capture
 hashes and each CSV retains its terminal integrity/recovery result. No final
-parity qualification or restoration has been claimed yet.
+ordinary-profile qualification or restoration has been claimed yet.

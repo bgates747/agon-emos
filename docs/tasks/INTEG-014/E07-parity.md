@@ -666,7 +666,7 @@ This is a possible remaining per-byte cost, not yet a measured benefit.
    owner admission and all public checks, and rerun both canonical profiles,
    full parser/IRQ/sender equivalence and host checks. Commit the proof and
    source separately from any hardware disposition.
-2. [ ] **RX05b — Isolated physical disposition if still needed.** The already
+2. [x] **RX05b — Isolated physical disposition if still needed.** The already
    prepared P4 owner candidate takes its isolated O03 turn first, with exact
    selected EMOS fixed. If that establishes both targets, do not deploy RX05.
    Otherwise freeze the chosen P4 composition, install and read back the clean
@@ -773,3 +773,13 @@ long paired return measurement to measure diagnostic overhead explicitly.
 No new candidate unless one of those checks fails or changes the conclusion.
 Only then P08 restores exact pre-run firmware and startup, verifies services,
 freezes the final report and sends the hardware voice notification.
+
+
+## RX05 disposition
+
+Retain: all376 original full/mixed/wire controls pass exact bytes and recovery.
+Return wire83.952ms improves the fixed-owner RX04 value85.957ms, with unchanged
+forward timing. Four forward samples give P4 588.142ms versus mainboard589.690ms.
+The128-transfer comparison already proves strict matched reverse parity.
+[RX05 evidence](E07P-results/rx05.json). Two final independent captures are
+running; ordinary-profile qualification and original restoration remain.

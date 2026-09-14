@@ -1,0 +1,203 @@
+{
+  "cases": 376,
+  "rows": {
+    "ep5rw1": {
+      "count": 4,
+      "sha256": "b9548a9d1f99c9b2d2321e4f4bfedb55500e5ab31393033d6ec9663f0dec1b73"
+    },
+    "ep5rfull": {
+      "count": 336,
+      "sha256": "d18b64d0052a231f1a504ff07c810888393b925a8094b3d42402f93b8c76900b"
+    },
+    "ep5rmixed": {
+      "count": 36,
+      "sha256": "0e80c56c17ae2bc64962e0560bb54139a7940b968f60c8e390b6dc55ae90fe1e"
+    }
+  },
+  "firmware_sha256": "60729c6a7bd6d953e2311b933247b56b7e04bbf47c4e374058c8a82df22583ce",
+  "wire_captures": 1,
+  "verdict": "Retained: 376 exact controls and conservative long-interval reverse parity; final captures and ordinary composition pending.",
+  "forward": {
+    "0": {
+      "median_ms": 589.6904999999999,
+      "min_ms": 589.554,
+      "max_ms": 589.766,
+      "n": 4
+    },
+    "1": {
+      "median_ms": 588.1424999999999,
+      "min_ms": 588.112,
+      "max_ms": 588.205,
+      "n": 4
+    }
+  },
+  "duplex-forward": {
+    "0": {
+      "median_ms": 672.747,
+      "min_ms": 672.72,
+      "max_ms": 672.792,
+      "n": 3
+    },
+    "1": {
+      "median_ms": 655.773,
+      "min_ms": 655.759,
+      "max_ms": 655.878,
+      "n": 3
+    }
+  },
+  "wire": [
+    {
+      "acquisition_pass": true,
+      "coverage_pass": true,
+      "independent_decode_matches": true,
+      "trace_sha256": "6932eaa0cb01a11a162b01af0ed838104c80491ddb25030030f24c6d09625bb3",
+      "analysis_sha256": "1c63829e3d87b48e338809e647a264828ecd6281ca5d50594f88fa0d13f72bd1",
+      "samples": 720000000,
+      "sample_rate_hz": 24000000,
+      "forward_bytes": 65535,
+      "return_wire_bytes": 4626,
+      "return_payload_bytes": 2048,
+      "forward": {
+        "wire_span_seconds": 0.5873810972222214,
+        "estimated_byte_time_seconds": 0.5683322777561843,
+        "idle_seconds": 0.019048819466037054,
+        "idle_cts_high_seconds": 0.016513416667819022,
+        "idle_cts_low_seconds": 0.0025354027982180316,
+        "cts_high_seconds": 0.025598625,
+        "idle_cts_high_fraction": 0.8668997413336554,
+        "longest_gaps": [
+          {
+            "start_seconds": 17.601970972222222,
+            "duration_seconds": 3.548611111193895e-05,
+            "cts_high_seconds": 0.0
+          },
+          {
+            "start_seconds": 17.786674263888887,
+            "duration_seconds": 2.3111111111938955e-05,
+            "cts_high_seconds": 1.6361111111938953e-05
+          },
+          {
+            "start_seconds": 17.50984372222222,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 2.0444444445272285e-05
+          },
+          {
+            "start_seconds": 17.625873763888887,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 2.065277777860562e-05
+          },
+          {
+            "start_seconds": 17.855430680555553,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.7361111111938954e-05
+          },
+          {
+            "start_seconds": 17.629371763888887,
+            "duration_seconds": 2.1569444445272285e-05,
+            "cts_high_seconds": 1.7361111111938954e-05
+          },
+          {
+            "start_seconds": 17.687054222222223,
+            "duration_seconds": 2.1444444445272286e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 17.38693863888889,
+            "duration_seconds": 2.1236111111938953e-05,
+            "cts_high_seconds": 1.7194444445272287e-05
+          },
+          {
+            "start_seconds": 17.72026901388889,
+            "duration_seconds": 2.102777777860562e-05,
+            "cts_high_seconds": 1.7194444445272287e-05
+          },
+          {
+            "start_seconds": 17.83678584722222,
+            "duration_seconds": 2.077777777860562e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          }
+        ]
+      },
+      "reverse": {
+        "wire_span_seconds": 0.08395243055555472,
+        "estimated_byte_time_seconds": 0.04013197221983969,
+        "idle_seconds": 0.04382045833571504,
+        "idle_cts_high_seconds": 0.04367877777968844,
+        "idle_cts_low_seconds": 0.00014168055602659782,
+        "cts_high_seconds": 0.051089875,
+        "idle_cts_high_fraction": 0.9967667942918086,
+        "longest_gaps": [
+          {
+            "start_seconds": 18.42034713888889,
+            "duration_seconds": 8.590277777860562e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 18.43179313888889,
+            "duration_seconds": 8.590277777860562e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 18.407923805555555,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.577777777860562e-05
+          },
+          {
+            "start_seconds": 18.409558930555555,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 18.411194055555555,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 18.41282922222222,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 18.41446434722222,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 18.416099513888888,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 18.417734638888888,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 18.419369805555554,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.577777777860562e-05
+          }
+        ]
+      },
+      "forward_local_elapsed_us": 588132,
+      "return_enqueue_us": 645,
+      "return_request_to_completion_ms": 84.81263888888806,
+      "return_request_to_first_byte_ms": 0.7820694444452723,
+      "forward_starts_with_cts_high": 1007,
+      "reverse_starts_with_cts_high": 0,
+      "window_samples": [
+        [
+          415380196,
+          429617390.3333333
+        ],
+        [
+          441748069,
+          443783572.3333333
+        ]
+      ],
+      "limits": "Frame-end estimate has approximately one-sample uncertainty. CTS-low idle does not identify its software cause. No analogue-integrity claim."
+    }
+  ],
+  "p4_factory_sha256": "368ff0a00e798f598964471656608d8a944a24cc062434c918e71cda203f91c5",
+  "mainboard_app_sha256": "1c5b15b35d277e8f1af8f68023bea95807f11d120e557eff7d2cadb0655dd71d"
+}
