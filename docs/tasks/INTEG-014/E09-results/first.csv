@@ -1,0 +1,147 @@
+# graphics-timing-probe-r01-framebuffer-b2026-09-13-19-00-37Z (experimental reduced corpus)
+# MOS ticks are raw; local us never subtracted across processors.
+repeat,route,detail,case,phase,metric,value,count,send_ticks,reply_ticks,bytes,upload_bytes,status
+0,0,0,EMPTY,draw,1,15420,15099,0,2,0,0,0
+0,0,0,EMPTY,draw,2,0,0,0,2,0,0,0
+0,0,0,EMPTY,draw,3,0,0,0,2,0,0,0
+0,0,0,EMPTY,draw,4,0,0,0,2,0,0,0
+0,0,0,EMPTY,draw,5,0,0,0,2,0,0,0
+0,0,0,EMPTY,draw,6,0,0,0,2,0,0,0
+0,0,0,EMPTY,draw,7,0,0,0,2,0,0,0
+0,0,0,EMPTY,draw,8,283,256,0,2,0,0,0
+0,0,0,EMPTY,output,1,999453,0,0,0,0,0,0
+0,0,0,EMPTY,output,2,0,0,0,0,0,0,0
+0,0,0,EMPTY,output,3,0,0,0,0,0,0,0
+0,0,0,EMPTY,output,4,0,0,0,0,0,0,0
+0,0,0,EMPTY,output,5,0,0,0,0,0,0,0
+0,0,0,EMPTY,output,6,0,0,0,0,0,0,0
+0,0,0,EMPTY,output,7,0,0,0,0,0,0,0
+0,0,0,EMPTY,output,8,307,256,0,0,0,0,0
+0,0,0,SHP20,draw,1,48775,16678,0,6,478,0,0
+0,0,0,SHP20,draw,2,0,0,0,6,478,0,0
+0,0,0,SHP20,draw,3,0,0,0,6,478,0,0
+0,0,0,SHP20,draw,4,0,0,0,6,478,0,0
+0,0,0,SHP20,draw,5,0,0,0,6,478,0,0
+0,0,0,SHP20,draw,6,0,0,0,6,478,0,0
+0,0,0,SHP20,draw,7,0,0,0,6,478,0,0
+0,0,0,SHP20,draw,8,281,256,0,6,478,0,0
+0,0,0,SHP20,output,1,999506,1,0,0,478,0,0
+0,0,0,SHP20,output,2,0,0,0,0,478,0,0
+0,0,0,SHP20,output,3,0,0,0,0,478,0,0
+0,0,0,SHP20,output,4,0,0,0,0,478,0,0
+0,0,0,SHP20,output,5,0,0,0,0,478,0,0
+0,0,0,SHP20,output,6,0,0,0,0,478,0,0
+0,0,0,SHP20,output,7,0,0,0,0,478,0,0
+0,0,0,SHP20,output,8,308,256,0,0,478,0,0
+# probe,rep=0,route=0,case=SHP20,index=0,expected=255/255/255,actual=255/255/255,match=1
+# probe,rep=0,route=0,case=SHP20,index=1,expected=255/255/255,actual=255/255/255,match=1
+# probe,rep=0,route=0,case=SHP20,index=2,expected=255/255/255,actual=255/255/255,match=1
+# probe,rep=0,route=0,case=SHP20,index=3,expected=255/255/255,actual=255/255/255,match=1
+# probe,rep=0,route=0,case=SHP20,index=4,expected=0/0/0,actual=0/0/0,match=1
+# probe,rep=0,route=0,case=SHP20,index=5,expected=0/0/0,actual=0/0/0,match=1
+# probe,rep=0,route=0,case=SHP20,index=6,expected=0/0/0,actual=0/0/0,match=1
+# probe,rep=0,route=0,case=SHP20,index=7,expected=0/255/255,actual=0/255/255,match=1
+# probe,rep=0,route=0,case=SHP20,index=8,expected=255/255/255,actual=255/255/255,match=1
+# probe,rep=0,route=0,case=SHP20,index=9,expected=0/0/0,actual=0/0/0,match=1
+# probe,rep=0,route=0,case=SHP20,index=10,expected=255/255/255,actual=255/255/255,match=1
+# probe,rep=0,route=0,case=SHP20,index=11,expected=0/0/0,actual=0/0/0,match=1
+0,0,0,SHP23,draw,1,49269,6487,2,4,1247,0,0
+0,0,0,SHP23,draw,2,0,0,2,4,1247,0,0
+0,0,0,SHP23,draw,3,0,0,2,4,1247,0,0
+0,0,0,SHP23,draw,4,0,0,2,4,1247,0,0
+0,0,0,SHP23,draw,5,0,0,2,4,1247,0,0
+0,0,0,SHP23,draw,6,0,0,2,4,1247,0,0
+0,0,0,SHP23,draw,7,0,0,2,4,1247,0,0
+0,0,0,SHP23,draw,8,270,256,2,4,1247,0,0
+0,0,0,SHP23,output,1,999797,1,0,0,1247,0,0
+0,0,0,SHP23,output,2,0,0,0,0,1247,0,0
+0,0,0,SHP23,output,3,0,0,0,0,1247,0,0
+0,0,0,SHP23,output,4,0,0,0,0,1247,0,0
+0,0,0,SHP23,output,5,0,0,0,0,1247,0,0
+0,0,0,SHP23,output,6,0,0,0,0,1247,0,0
+0,0,0,SHP23,output,7,0,0,0,0,1247,0,0
+0,0,0,SHP23,output,8,279,256,0,0,1247,0,0
+# probe,rep=0,route=0,case=SHP23,index=0,expected=0/0/0,actual=0/0/0,match=1
+# probe,rep=0,route=0,case=SHP23,index=1,expected=255/255/255,actual=0/0/0,match=0
+# probe,rep=0,route=0,case=SHP23,index=2,expected=255/255/255,actual=255/255/255,match=1
+0,0,0,BSP03_01,draw,1,882553,4449,104,2,94683,93788,0
+0,0,0,BSP03_01,draw,2,0,0,104,2,94683,93788,0
+0,0,0,BSP03_01,draw,3,0,0,104,2,94683,93788,0
+0,0,0,BSP03_01,draw,4,0,0,104,2,94683,93788,0
+0,0,0,BSP03_01,draw,5,0,0,104,2,94683,93788,0
+0,0,0,BSP03_01,draw,6,0,0,104,2,94683,93788,0
+0,0,0,BSP03_01,draw,7,0,0,104,2,94683,93788,0
+0,0,0,BSP03_01,draw,8,282,256,104,2,94683,93788,0
+0,0,0,BSP03_01,output,1,999775,0,0,0,94683,93788,0
+0,0,0,BSP03_01,output,2,0,0,0,0,94683,93788,0
+0,0,0,BSP03_01,output,3,0,0,0,0,94683,93788,0
+0,0,0,BSP03_01,output,4,0,0,0,0,94683,93788,0
+0,0,0,BSP03_01,output,5,0,0,0,0,94683,93788,0
+0,0,0,BSP03_01,output,6,0,0,0,0,94683,93788,0
+0,0,0,BSP03_01,output,7,0,0,0,0,94683,93788,0
+0,0,0,BSP03_01,output,8,278,256,0,0,94683,93788,0
+# probe,rep=0,route=0,case=BSP03_01,index=0,expected=170/85/0,actual=170/85/0,match=1
+# probe,rep=0,route=0,case=BSP03_01,index=1,expected=255/255/0,actual=255/255/0,match=1
+# probe,rep=0,route=0,case=BSP03_01,index=2,expected=170/85/0,actual=170/85/0,match=1
+# probe,rep=0,route=0,case=BSP03_01,index=3,expected=255/255/0,actual=255/255/0,match=1
+0,0,0,BSP07_01,draw,1,115572,6341,12,2,9765,9248,0
+0,0,0,BSP07_01,draw,2,0,0,12,2,9765,9248,0
+0,0,0,BSP07_01,draw,3,0,0,12,2,9765,9248,0
+0,0,0,BSP07_01,draw,4,0,0,12,2,9765,9248,0
+0,0,0,BSP07_01,draw,5,0,0,12,2,9765,9248,0
+0,0,0,BSP07_01,draw,6,0,0,12,2,9765,9248,0
+0,0,0,BSP07_01,draw,7,0,0,12,2,9765,9248,0
+0,0,0,BSP07_01,draw,8,283,256,12,2,9765,9248,0
+0,0,0,BSP07_01,output,1,1000092,0,0,0,9765,9248,0
+0,0,0,BSP07_01,output,2,0,0,0,0,9765,9248,0
+0,0,0,BSP07_01,output,3,0,0,0,0,9765,9248,0
+0,0,0,BSP07_01,output,4,0,0,0,0,9765,9248,0
+0,0,0,BSP07_01,output,5,0,0,0,0,9765,9248,0
+0,0,0,BSP07_01,output,6,0,0,0,0,9765,9248,0
+0,0,0,BSP07_01,output,7,0,0,0,0,9765,9248,0
+0,0,0,BSP07_01,output,8,267,256,0,0,9765,9248,0
+# probe,rep=0,route=0,case=BSP07_01,index=0,expected=0/0/0,actual=0/0/0,match=1
+# probe,rep=0,route=0,case=BSP07_01,index=1,expected=255/255/255,actual=255/255/255,match=1
+0,0,0,BSP07_02,draw,1,49687,16537,0,6,372,0,0
+0,0,0,BSP07_02,draw,2,0,0,0,6,372,0,0
+0,0,0,BSP07_02,draw,3,0,0,0,6,372,0,0
+0,0,0,BSP07_02,draw,4,0,0,0,6,372,0,0
+0,0,0,BSP07_02,draw,5,0,0,0,6,372,0,0
+0,0,0,BSP07_02,draw,6,0,0,0,6,372,0,0
+0,0,0,BSP07_02,draw,7,0,0,0,6,372,0,0
+0,0,0,BSP07_02,draw,8,270,256,0,6,372,0,0
+0,0,0,BSP07_02,output,1,999460,0,0,0,372,0,0
+0,0,0,BSP07_02,output,2,0,0,0,0,372,0,0
+0,0,0,BSP07_02,output,3,0,0,0,0,372,0,0
+0,0,0,BSP07_02,output,4,0,0,0,0,372,0,0
+0,0,0,BSP07_02,output,5,0,0,0,0,372,0,0
+0,0,0,BSP07_02,output,6,0,0,0,0,372,0,0
+0,0,0,BSP07_02,output,7,0,0,0,0,372,0,0
+0,0,0,BSP07_02,output,8,307,256,0,0,372,0,0
+0,0,0,BSP07_03,draw,1,32661,9849,0,4,337,0,0
+0,0,0,BSP07_03,draw,2,0,0,0,4,337,0,0
+0,0,0,BSP07_03,draw,3,0,0,0,4,337,0,0
+0,0,0,BSP07_03,draw,4,0,0,0,4,337,0,0
+0,0,0,BSP07_03,draw,5,0,0,0,4,337,0,0
+0,0,0,BSP07_03,draw,6,0,0,0,4,337,0,0
+0,0,0,BSP07_03,draw,7,0,0,0,4,337,0,0
+0,0,0,BSP07_03,draw,8,281,256,0,4,337,0,0
+0,0,0,BSP07_03,output,1,999531,0,0,0,337,0,0
+0,0,0,BSP07_03,output,2,0,0,0,0,337,0,0
+0,0,0,BSP07_03,output,3,0,0,0,0,337,0,0
+0,0,0,BSP07_03,output,4,0,0,0,0,337,0,0
+0,0,0,BSP07_03,output,5,0,0,0,0,337,0,0
+0,0,0,BSP07_03,output,6,0,0,0,0,337,0,0
+0,0,0,BSP07_03,output,7,0,0,0,0,337,0,0
+0,0,0,BSP07_03,output,8,307,256,0,0,337,0,0
+# probe,rep=0,route=0,case=BSP07_03,index=0,expected=0/0/0,actual=0/0/0,match=1
+# probe,rep=0,route=0,case=BSP07_03,index=1,expected=0/255/0,actual=0/255/0,match=1
+0,0,0,BSP21_01,draw,1,0,0,48,1200,43203,42644,15
+0,0,0,BSP21_01,draw,2,0,0,48,1200,43203,42644,15
+0,0,0,BSP21_01,draw,3,0,0,48,1200,43203,42644,15
+0,0,0,BSP21_01,draw,4,0,0,48,1200,43203,42644,15
+0,0,0,BSP21_01,draw,5,0,0,48,1200,43203,42644,15
+0,0,0,BSP21_01,draw,6,0,0,48,1200,43203,42644,15
+0,0,0,BSP21_01,draw,7,0,0,48,1200,43203,42644,15
+0,0,0,BSP21_01,draw,8,0,0,48,1200,43203,42644,15
+# terminal,status=15,saved=15,probe_mismatches=1,phase=draw

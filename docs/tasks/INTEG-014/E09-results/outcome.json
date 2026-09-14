@@ -1,0 +1,18 @@
+{
+  "status": "incomplete",
+  "first_run": {
+    "saved_intervals": 15,
+    "status": 15,
+    "case": "BSP21_01",
+    "route": "mainboard",
+    "submit_ticks": 48,
+    "reply_wait_ticks": 1200,
+    "csv_sha256": "761ebc45f5d85540825eadd5ed8853ab882b5a896a55335134b687a8f25b0454"
+  },
+  "retry": {
+    "collection_deadline_seconds": 1200,
+    "normal_service_return": false,
+    "full_csv_validated": false
+  },
+  "limits": "No completed paired matrix or defensible current P4-versus-mainboard rendering comparison. Diagnostic counters advancing do not prove individual graphics-case progress. Restoration underway."
+}
