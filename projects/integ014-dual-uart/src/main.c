@@ -54,7 +54,9 @@ static unsigned restore(void){
     mos_setintvector(0x18,(void(*)(void))ROM_UART0_IRQ);mos_setintvector(0x1A,(void(*)(void))ROM_UART1_IRQ);
     diag_unlock(irq);return 0;
 }
-static void uart0(const uint8_t *p,unsigned n){while(n--)diag_uart0_put(*p++);}
+/* Indexed loads avoid the observed AgonDev -Oz postincrement-argument
+ * miscompile: the first probe emitted INC IY before loading the byte. */
+static void uart0(const uint8_t *p,unsigned n){for(unsigned i=0;i<n;++i)diag_uart0_put(p[i]);}
 static void burst(uint16_t id){uint8_t p[]={23,0,0xEE,4,id,id>>8,0,1,3};uart0(p,sizeof p);}
 static void query(void){const uint8_t p[]={23,0,0x86};uart0(p,sizeof p);}
 static unsigned raw_size(void){return sizeof raw0-diag0_left;}
