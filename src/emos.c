@@ -14,6 +14,7 @@
 #include "emos_uart_probe.h"
 #include "emos_keyboard.h"
 #include "emos_sdlink.h"
+#include "emos_telemetry.h"
 #include "emos_console.h"
 #include "uart.h"
 #include "emos_uart_flow.h"
@@ -586,12 +587,23 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
         emosBusy = FALSE;
         return result;
     }
-    if (strcmp(namespaceName,"ext") == 0 && strcmp(providerName,"sdlink") == 0) {
-        if (emosBusy || emosRecoveryRequired) return EMOS_BUSY;
-        emosBusy = TRUE;
-        result = emos_sdlink_gateway(request);
-        emosBusy = FALSE;
-        return result;
+    if (strcmp(namespaceName,"ext") == 0) {
+#ifdef EMOS_BENCH_TELEMETRY
+        BYTE telemetry = strcmp(providerName,"telemetry") == 0;
+#else
+        BYTE telemetry = 0;
+#endif
+        if (telemetry || strcmp(providerName,"sdlink") == 0) {
+            if (emosBusy || emosRecoveryRequired) return EMOS_BUSY;
+            emosBusy = TRUE;
+#ifdef EMOS_BENCH_TELEMETRY
+            result = telemetry ? emos_telemetry_gateway(request) : emos_sdlink_gateway(request);
+#else
+            result = emos_sdlink_gateway(request);
+#endif
+            emosBusy = FALSE;
+            return result;
+        }
     }
 	entry = emos_find(EMOS_PROVIDER_SERVICE, namespaceName, providerName);
 	memset(&providerRequest, 0, sizeof(providerRequest));
@@ -633,6 +645,9 @@ BYTE emos_application_enter(UINT8 *image, UINT24 address) {
 	BYTE previous = emosPolicy;
 	BYTE flags;
     emos_sdlink_reset();
+#ifdef EMOS_BENCH_TELEMETRY
+    emos_telemetry_reset();
+#endif
 	if (address == EMOS_MODULE_BASE) {
 		emosPolicy = EMOS_POLICY_MOSLET;
 		return previous;
@@ -652,6 +667,9 @@ BYTE emos_application_enter(UINT8 *image, UINT24 address) {
 
 void emos_application_leave(BYTE previousPolicy) {
     emos_sdlink_reset();
+#ifdef EMOS_BENCH_TELEMETRY
+    emos_telemetry_reset();
+#endif
 	/* Once the application exits there is no live owner to recover. Retain a
 	 * failed-restore image while a nested caller returns to an outer live
 	 * application; only leaving the top-level application discards it. */
@@ -968,7 +986,14 @@ int emos_cmd(char *args) {
             return FR_INVALID_PARAMETER;
         }
         emos_print_identity();
+#ifdef EMOS_BENCH_TELEMETRY
+        /* BENCH-001 composition trades this old standalone diagnostic for the
+         * resident telemetry experiment; full/default EMOS retains UARTFLOW. */
+        printf("UARTFLOW is absent from the telemetry bench build\r\n");
+        return EMOS_UNAVAILABLE;
+#else
         return emos_uart_flow() ? FR_OK : FR_TIMEOUT;
+#endif
     }
 	if (strcasecmp(operation, "uarttest") == 0) {
         if (args && *args) return FR_INVALID_PARAMETER;

@@ -6,6 +6,12 @@
   - Status: E07 complete: large Extender uploads take 1,070.062 ms, 23.52% less time than E05; 384 exact physical cases and three wire captures pass. Both compositions save 24 bytes. Original firmware/startup restored and verified; keyboard/CLI/SD pass. Hardware voice sent and verified; paused for E07 review before E08/E09. Reverse bottleneck and remaining forward gap are open.
   - Details: [INTEG-014](docs/tasks/INTEG-014.md). Cross-component qualification remains Extender PORT-008.
 
+## Current BENCH-001 component work
+
+- [ ] **BENCH-001 — Resident telemetry transport**
+  - Status: Scope registered; implementation and validation underway.
+  - Details: [BENCH-001](docs/tasks/BENCH-001.md)
+
 
 This is the repository's single authoritative list of unfinished EMOS work.
 Cross-component Extender work remains in the `agon-extender` task list; generic

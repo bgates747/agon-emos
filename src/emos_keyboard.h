@@ -19,6 +19,9 @@ BYTE emos_keyboard_select(BYTE source);
 BYTE emos_keyboard_transport_claim(void);
 void emos_keyboard_transport_release(void);
 BYTE emos_keyboard_send(const BYTE *data, UINT16 length);
+/* BENCH-001: copy one bounded packet; ISR owner drains it without waiting. */
+BYTE emos_keyboard_queue_telemetry(const BYTE *snapshot);
+void emos_keyboard_async_irq(void);
 BYTE emos_keyboard_text(const BYTE *text, UINT16 length);
 BYTE emos_keyboard_layout(BYTE layout);
 void emos_keyboard_byte(BYTE value);

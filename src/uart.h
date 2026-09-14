@@ -199,5 +199,6 @@ void uart1_keyboard_close(void);
 void uart1_keyboard_stop(void);
 BYTE uart1_keyboard_put(BYTE value);
 void uart1_keyboard_irq(void);
+void uart1_keyboard_tx_enable(BYTE enabled);
 
 #endif UART_H

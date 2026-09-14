@@ -8,10 +8,22 @@
 #include "uart.h"
 #include "emos_console.h"
 #include "emos_sdlink.h"
+#include "emos_telemetry.h"
 
 volatile BYTE emos_key_source, emos_key_faulted;
 static volatile BYTE transitioning, preparing, stop_requested, fault_requested;
 static BYTE prepared_source;
+#ifdef EMOS_BENCH_TELEMETRY
+/* Core-owned packet: never retain application memory beyond a gateway call.
+ * transitioning protects COMPLETE wire packets from foreground interleaving. */
+static BYTE async_data[144], async_at;
+static volatile BYTE async_length, async_position;
+static void async_abort(void) {
+    if (async_length) transitioning = 0;
+    async_length = 0; /* queue() initializes the next position before admission. */
+    uart1_keyboard_tx_enable(0);
+}
+#endif
 static BYTE layout, token;
 static volatile BYTE text_pending;
 static BYTE state, command, length, remaining, used, payload[EMOS_SDLINK_LIMIT], partial_at;
@@ -67,6 +79,10 @@ void emos_keyboard_mainboard_settings(BYTE *p) {
 void emos_keyboard_fault(void) {
     /* ISR only. Foreground TX errors request this through fault_requested. */
     uart1_keyboard_stop();
+    #ifdef EMOS_BENCH_TELEMETRY
+    async_abort();
+    emos_telemetry_reset();
+    #endif
     emos_sdlink_reset();
     parser_reset();
     preparing = text_pending = 0;
@@ -75,6 +91,10 @@ void emos_keyboard_fault(void) {
 }
 void emos_keyboard_tick(void) {
     if (stop_requested) {
+        #ifdef EMOS_BENCH_TELEMETRY
+        async_abort();
+        emos_telemetry_reset();
+        #endif
         emos_sdlink_reset();
         if (!emos_console_owned) uart1_keyboard_stop();
         cleanup();
@@ -90,6 +110,19 @@ void emos_keyboard_tick(void) {
         fault_requested = 0;
         emos_keyboard_fault();
     }
+#ifdef EMOS_BENCH_TELEMETRY
+    if (async_length && !emos_key_faulted) {
+        if ((BYTE)(emos_keyboard_clock()-async_at) >= 30) {
+            /* Never append a new packet after a timed-out partial record. */
+            emos_keyboard_fault();
+        } else {
+            /* CTS is GPIO flow control, not a modem interrupt: retry on VBlank.
+             * No polling wait here; at most 16 ready bytes per invocation. */
+            uart1_keyboard_tx_enable(1);
+            emos_keyboard_async_irq();
+        }
+    }
+#endif
 }
 static void dispatch(void) {
     if (command == 0x8D) { emos_sdlink_packet(payload,length); return; }
@@ -314,3 +347,48 @@ BYTE emos_keyboard_send(const BYTE *data, UINT16 length) {
     transitioning = 0;
     return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
 }
+
+
+#ifdef EMOS_BENCH_TELEMETRY
+/* BENCH-001 resident asynchronous transmitter. Runs with all CPU registers
+ * saved and interrupts disabled from the existing UART/VBlank vector owners.
+ * One bounded drain, no waits, filesystem or application callbacks. */
+void emos_keyboard_async_irq(void) {
+    BYTE budget=16, result;
+    /* TX demand is disabled by completion/abort, so ordinary RX interrupts
+     * need no UART register write when there is no resident packet. */
+    if (!async_length) return;
+    while (budget-- && async_position < async_length) {
+        result=uart1_keyboard_put(async_data[async_position]);
+        if (result == UART_POLL_BLOCKED) {
+            uart1_keyboard_tx_enable(0); /* Avoid level-triggered IRQ storm. */
+            return;
+        }
+        if (result == UART_POLL_EMPTY) return;
+        if (result != UART_POLL_READY) { emos_keyboard_fault(); return; }
+        ++async_position;
+    }
+    if (async_position == async_length) {
+        async_length=0;
+        transitioning=0;
+        uart1_keyboard_tx_enable(0);
+    }
+}
+BYTE emos_keyboard_queue_telemetry(const BYTE *data) {
+    BYTE irq=emos_keyboard_lock();
+    if (!irq || transitioning ||
+        preparing || emos_key_faulted || !uart1_keyboard_owned) {
+        emos_keyboard_unlock(irq); return EMOS_KEY_BUSY;
+    }
+    /* Private fixed-size telemetry envelope: copy once into the UART owner's
+     * resident slot. Gateway validation establishes the 140-byte input bound. */
+    memcpy(async_data,"\x17\x00\xF5\x8C",4);
+    memcpy(async_data+4,data,140);
+    transitioning=1; async_position=0; async_at=emos_keyboard_clock();
+    async_length=sizeof(async_data); /* Publish complete Core copy before IRQ enable. */
+    uart1_keyboard_tx_enable(1);
+    emos_keyboard_unlock(irq);
+    return EMOS_KEY_OK;
+}
+
+#endif

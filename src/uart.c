@@ -305,4 +305,14 @@ void uart1_keyboard_irq(void) {
         if (emos_key_faulted) return;
     }
     RESETREG(PC_DR, PORTPIN_TWO);
+#ifdef EMOS_BENCH_TELEMETRY
+    emos_keyboard_async_irq(); /* RX remains first; bounded TX next. */
+#endif
 }
+#ifdef EMOS_BENCH_TELEMETRY
+void uart1_keyboard_tx_enable(BYTE enabled) {
+    if (!uart1_keyboard_owned || emos_key_faulted) return;
+    if (enabled) UART1_IER |= UART_IER_TRANSMITINT;
+    else UART1_IER &= (BYTE)~UART_IER_TRANSMITINT;
+}
+#endif

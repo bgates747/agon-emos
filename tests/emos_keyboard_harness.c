@@ -7,6 +7,9 @@
 
 volatile BYTE uart1_keyboard_owned, emos_console_owned;
 static unsigned sd_packets, sd_resets;
+void emos_telemetry_reset(void) {}
+static BYTE tx_irq_enabled, tx_blocked;
+void uart1_keyboard_tx_enable(BYTE enabled) { tx_irq_enabled=enabled; }
 void emos_sdlink_reset(void) { ++sd_resets; }
 void emos_sdlink_packet(const BYTE *data, BYTE length) {
     (void)data; (void)length; ++sd_packets;
@@ -16,7 +19,8 @@ void emos_console_packet(BYTE command, BYTE *payload, BYTE length) {
 }
 static BYTE irq_enabled = 1, in_irq, clock_byte, frozen_clock;
 static BYTE occupied, reply, tx_error, rx_stopped, edit_key, interleave;
-static BYTE tx[64], tx_count, pending_reply;
+static BYTE tx[256], pending_reply;
+static unsigned tx_count;
 static BYTE events[600][4], settings[5], mainboard_layout;
 static unsigned event_count, settings_count, closed;
 
@@ -60,6 +64,7 @@ void uart1_keyboard_close(void) {
 }
 BYTE uart1_keyboard_put(BYTE value) {
     if (tx_error) return UART_POLL_ERROR;
+    if (tx_blocked) return UART_POLL_BLOCKED;
     assert(tx_count < sizeof(tx)); tx[tx_count++] = value;
     if (tx_count>=4 && tx[tx_count-4]==23 && tx[tx_count-3]==0 && tx[tx_count-2]==0x80 && reply) {
         if (interleave) key('q',0,38,1);
@@ -219,6 +224,32 @@ int main(void) {
     /* Oversized packet is consumed without dispatch or resynchronizing its body. */
     p[1]=241;p[242]=0x81;frame(p,243);assert(sd_packets==1 && event_count==before+2);
     assert(sd_resets>0);
+#ifdef EMOS_BENCH_TELEMETRY
+    /* Resident copy stays valid after caller changes its source. Each ISR is
+     * bounded to 16 bytes, and foreground packets cannot interleave. */
+    tx_count=0;reply=0;frozen_clock=1;
+    memset(p,0xA5,144);
+    assert(emos_keyboard_queue_telemetry(p)==EMOS_KEY_OK && tx_irq_enabled);
+    memset(p,0xCC,144);
+    assert(emos_keyboard_send(p,1)==EMOS_KEY_BUSY);
+    assert(emos_keyboard_queue_telemetry(p)==EMOS_KEY_BUSY);
+    in_irq=1;emos_keyboard_async_irq();in_irq=0;
+    assert(tx_count==16 && tx[0]==23 && tx[2]==0xF5 && tx[3]==140);
+    before=event_count;key('q',0,38,1);key('q',0,38,0);
+    assert(event_count==before+2);
+    tx_blocked=1;in_irq=1;emos_keyboard_async_irq();in_irq=0;
+    assert(tx_count==16 && !tx_irq_enabled);
+    tx_blocked=0;tick();assert(tx_count==32 && tx_irq_enabled);
+    while(tx_irq_enabled) {in_irq=1;emos_keyboard_async_irq();in_irq=0;}
+    assert(tx_count==144);
+    for(count=4;count<144;++count)assert(tx[count]==0xA5);
+    assert(emos_keyboard_send((BYTE *)"!",1)==EMOS_KEY_OK && tx[144]=='!');
+    tx_count=0;assert(emos_keyboard_queue_telemetry(p)==EMOS_KEY_OK);
+    tx_blocked=1;clock_byte+=30;tick();
+    assert(emos_key_faulted && !tx_irq_enabled && rx_stopped);
+    tx_blocked=0;frozen_clock=0;reply=1;
+    assert(emos_keyboard_select(EMOS_KEY_EXTENDER)==EMOS_KEY_OK);
+#endif
     puts("resident keyboard parser, admission, ownership and IRQ cleanup scenarios passed");
     return 0;
 }
