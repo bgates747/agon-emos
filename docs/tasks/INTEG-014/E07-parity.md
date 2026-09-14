@@ -104,7 +104,7 @@ milestone wakeups during this unattended run. No subagents are authorized.
    correctness consolidation as needed; E09 graphics follows only if both pure
    transfer targets are met and sufficient run budget remains. No graphics
    parity claim from pure-data tests.
-8. [ ] **P08 — Restore, report and notify.** Preserve final candidates and raw
+8. [x] **P08 — Restore, report and notify.** Preserve final candidates and raw
    evidence; restore the agreed working pre-run firmware/startup, complete ROM/
    ESP verification, actual CLI/SD/keyboard proof and neutral input. Restore
    generic generated outputs after preserving current evidence. Lead the durable
@@ -843,3 +843,22 @@ records ranges, bytes/s, short-command limits and linked flash/SRAM budgets.
 Both frozen firmware source sets still match maintained inputs. P08 now
 restores the exact pre-run EMOS/ESP/startup and verifies CLI/SD/neutral input.
 No graphics claim or further optimization is needed for this frozen goal.
+
+
+## P08 completion — restored, frozen and notified
+
+The full pre-run128KiB EMOS ROM matches its original hash. All affected
+mainboard VDP application sectors and the exact pre-run2MiB P4 prefix, including
+old tail bytes, are restored and device-verified. Fresh reset/admission,257-byte
+SD roundtrip, actual keyboard-launched CLI COPY, unchanged startup/backup and
+neutral input pass. Original generic outputs are restored byte-exact, current
+outputs preserved, and all129 original source files plus the original dirty
+patch and generic Git refs remain unchanged. No ZDI recovery was needed.
+
+The standard British hardware voice command completed with a fresh service
+receipt and returned to the Legacy MOS prompt. Human hearing/visual review is
+not claimed. [Restoration receipt](E07P-results/restoration.json). All task-owned
+work is committed locally; no experimental push. The frozen bulk-throughput
+goal is achieved in both measured directions and both profiles. Short-command
+setup and graphics qualifications remain explicitly outside that conclusion.
+Stop here for Author review before E08/E09; no new autonomous task is started.

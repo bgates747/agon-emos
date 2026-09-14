@@ -2,24 +2,20 @@
 
 ## Executive summary
 
-E07 retains an 82-byte atomic UART transmit leaf: large Extender uploads now
-take **1,070.062 ms versus E05's 1,399.0955 ms (23.52% less time)**. All 384
-exact physical cases and three independently decoded wire captures pass.
-Both firmware compositions save 24 bytes. Reverse timing is effectively
-unchanged; Extender's forward result still takes 81.45% longer than today's
-mainboard control. [E07](INTEG-014/E07.md) contains worst-first tables and limits.
+E07P's unattended bulk-throughput goal is complete. Ordinary and bench EMOS
+each pass384 exact controls, three captures and both symmetric return scopes.
+Ordinary forward588.096ms versus589.670ms and return85.156ms versus86.068ms
+meet the frozen mainboard targets with separated reverse timing bounds.
+[Full report](INTEG-014/E07P-results/README.md) records ranges, profile overhead,
+remaining short-command latency and136 free flash bytes in ordinary EMOS.
 
-E05's C block/deadline changes remain, and E06's ineffective FIFO experiment
-remains reverted. The Author declined investigation of the old normal FLASH
-failure after successful P4/ZDI recovery. This E07 run needed no ZDI recovery:
-the complete pre-run EMOS ROM and both ESP images are restored and independently
-verified. Keyboard/CLI/SD and unchanged startup checks pass. The hardware voice cue executed with a fresh service receipt; work is
-paused at this supervised checkpoint before E08/E09. No experimental push.
+Exact original EMOS/ESP/startup is restored and verified, with actual CLI/SD
+proof and neutral input. The hardware voice command has a fresh completion
+receipt; human hearing/review remains open. No experimental push.
 
-Status: E05–E07 complete; Author now authorizes the unattended
-[E07P parity goal](INTEG-014/E07-parity.md). Optimize remaining TX/RX costs before
-advancing to E08/E09. The previous supervised pause is superseded by that
-explicit authorization; no experimental push.
+Status: E01–E07 and [E07P](INTEG-014/E07-parity.md) complete. Stop for Author
+review before E08 correctness stress and E09 rendering; transport parity does
+not qualify graphics or all-size latency.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
 
@@ -232,7 +228,7 @@ of emulator-coupled changes; do not push experimental code without review.
    bytes saved, speed, ABI burden and readability tradeoff. Keep independent
    TX, RX and space changes in separate commits. If a broader rewrite appears
    necessary, present the measured size ledger and bounded proposal first.
-7P. [ ] **E07P — Unattended mainboard parity.** Follow [the frozen authorization and granular continuation](INTEG-014/E07-parity.md). Both directions must meet measured mainboard performance; an improvement alone is insufficient.
+7P. [x] **E07P — Unattended mainboard parity.** Follow [the frozen authorization and granular continuation](INTEG-014/E07-parity.md). Both directions must meet measured mainboard performance; an improvement alone is insufficient.
 8. [ ] **E08 — Preserve correctness under stress.** Test simultaneous packet
    streams with independent parser state, required callback/register/sysvar
    behavior, routing/leases, source switching, interrupted and partial packets,

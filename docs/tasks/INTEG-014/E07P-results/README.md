@@ -7,8 +7,8 @@ and bench EMOS profiles**. Ordinary EMOS takes **588.096 ms versus mainboard
 589.670 ms forward**, and **85.156 ms versus 86.068 ms return**. Each profile
 passes 384 original exact/mixed/wire cases and three independent captures.
 The longer symmetric return test separates the timing bounds. The exact pre-run bench
-firmware and startup are restored and verified; the final attention cue is
-pending. Nothing was pushed.
+firmware and startup are restored and verified. The hardware voice cue has a
+fresh completion receipt; human review remains open. Nothing was pushed.
 
 This qualifies the specified transport workloads, not every short command or
 graphics operation. Short-command setup still adds about 0.24–0.33 ms. The
@@ -127,4 +127,5 @@ affected mainboard VDP sectors and exact P4 prefix, unchanged startup/backup,
 All129 original generic-port source files and136 generated files are preserved
 or restored byte-exact, with current outputs retained separately. Qualified
 images remain available; the bench deliberately runs its original working
-firmware for review. The hardware voice cue is the final pending step.
+firmware for review. The hardware voice command has a fresh completion receipt and the Agon is back
+at the MOS prompt. Human hearing and visual review remain unconfirmed.

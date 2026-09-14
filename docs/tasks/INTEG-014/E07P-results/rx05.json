@@ -24,7 +24,7 @@
   },
   "firmware_sha256": "60729c6a7bd6d953e2311b933247b56b7e04bbf47c4e374058c8a82df22583ce",
   "wire_captures": 3,
-  "verdict": "Both frozen transport targets and profile qualification passed; exact original bench restoration pending.",
+  "verdict": "Both frozen transport targets and profile qualification passed. Original bench firmware/startup restored and hardware cue acknowledged; human review pending.",
   "forward": {
     "0": {
       "median_ms": 589.6565,
