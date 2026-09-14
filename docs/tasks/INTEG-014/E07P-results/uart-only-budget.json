@@ -1,0 +1,93 @@
+{
+  "scope": "Compile/link size experiment only; no deployment, runtime or hardware qualification. Parallel dispatch bridges retained; transfer and GPIO implementation absent.",
+  "emos_head": "cdbd043f4eaa65f8a6ae6ea0a70d1e37105f1200",
+  "stock_head": "8336409351ee5314e02801a7b72a4f1bb5282519",
+  "builds": {
+    "full-control": {
+      "flash_used": 130936,
+      "flash_free": 136,
+      "sha256": "429f85ebb413bf3eed779307a71126b6cafb7bf884ad1824c6673e1814718b61",
+      "map_sha256": "8550453af21b9b8d5aa3b5d1d9bc91d65e07f0335e85f6a3e5f793cf291e0bbb",
+      "commands": [
+        [
+          "/home/smith/Agon/mystuff/agon-emos/.venv/bin/python",
+          "/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/builder/scripts/prepare_mos_worktree.py",
+          "--upstream",
+          "/home/smith/Agon/mystuff/agon-emos",
+          "--destination",
+          "/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/builder/projects/mos-port/worktree-full-control"
+        ],
+        [
+          "make",
+          "-C",
+          "/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/builder",
+          "PYTHON=/home/smith/Agon/mystuff/agon-emos/.venv/bin/python",
+          "TOOLCHAIN=/home/smith/Agon/mystuff/mos-agondev/toolchains/agondev",
+          "MOS_MAINTAINED_SOURCE=/home/smith/Agon/mystuff/agon-emos",
+          "MOS_WORKTREE=/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/builder/projects/mos-port/worktree-full-control",
+          "SOURCE_PROFILE=/home/smith/Agon/mystuff/agon-emos/port/mos-agondev.mk",
+          "EMOS_SOURCE_IDENTITY=agon-emos-v0.1.17",
+          "EMOS_BUILD_ID=agon-emos-v0.1.17-b2026-09-14-16-10-16Z",
+          "firmware-check"
+        ]
+      ]
+    },
+    "uart-only": {
+      "flash_used": 127898,
+      "flash_free": 3174,
+      "sha256": "293341530135b0fc9544c5a0a9a0aae37494ab7207f02fdee33c4fad25ff00b7",
+      "map_sha256": "1ca3093503a2f966db90ee1a0a09861b94b9c8e4d7c769090e08c5afb8c6eb9e",
+      "commands": [
+        [
+          "make",
+          "-C",
+          "/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/builder",
+          "PYTHON=/home/smith/Agon/mystuff/agon-emos/.venv/bin/python",
+          "TOOLCHAIN=/home/smith/Agon/mystuff/mos-agondev/toolchains/agondev",
+          "MOS_MAINTAINED_SOURCE=/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/source",
+          "MOS_WORKTREE=/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/builder/projects/mos-port/worktree-uart-only",
+          "SOURCE_PROFILE=/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/source/port/mos-agondev.mk",
+          "EMOS_SOURCE_IDENTITY=agon-emos-v0.1.17",
+          "EMOS_BUILD_ID=agon-emos-v0.1.17-b2026-09-14-16-10-16Z",
+          "firmware-check"
+        ]
+      ]
+    },
+    "stock": {
+      "flash_used": 102055,
+      "flash_free": 29017,
+      "sha256": "f891721bbb2a0bc2845dbb13edbeb449365a315f11be48500d8e65e2ab1aebb4",
+      "map_sha256": "5c51043fdb5ee5618a0b94afafbc897106902287b0be272b9c381f4d98c99694",
+      "commands": [
+        [
+          "/home/smith/Agon/mystuff/agon-emos/.venv/bin/python",
+          "/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/builder/scripts/prepare_mos_worktree.py",
+          "--upstream",
+          "/home/smith/Agon/agon-mos",
+          "--destination",
+          "/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/builder/projects/mos-port/worktree-stock"
+        ],
+        [
+          "make",
+          "-C",
+          "/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/builder",
+          "PYTHON=/home/smith/Agon/mystuff/agon-emos/.venv/bin/python",
+          "TOOLCHAIN=/home/smith/Agon/mystuff/mos-agondev/toolchains/agondev",
+          "MOS_MAINTAINED_SOURCE=/home/smith/Agon/agon-mos",
+          "MOS_WORKTREE=/home/smith/Agon/mystuff/agon-emos/build/integ-014/E07P/uart-only-budget/builder/projects/mos-port/worktree-stock",
+          "firmware-check"
+        ]
+      ]
+    }
+  },
+  "patch_sha256": "291b515ede52085778d6305dc2308ea682107546ae69e866f39ab81ce21f2aa1",
+  "saved_flash": 3038,
+  "parallel_object_bytes_before": 3059,
+  "rejection_stub_bytes_after": 21,
+  "stock_zds_release": {
+    "flash_used": 108490,
+    "flash_free": 22582,
+    "source": "../E02.md; previously verified official binary, not freshly rebuilt"
+  },
+  "validation": "Root firmware-check passed for all three. UART-only explicitly substitutes a parallel-absence check for production parallel-presence check; retained UART baud, keyboard and console linked guards pass. No maintained source/profile or original generic build outputs changed."
+}

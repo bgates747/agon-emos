@@ -14,6 +14,10 @@ This qualifies the specified transport workloads, not every short command or
 graphics operation. Short-command setup still adds about 0.24–0.33 ms. The
 [frozen contract](../E07-parity.md) owns scope, decisions and execution gates.
 
+A subsequent compile/link size experiment finds **3,174 bytes free without the
+parallel engine**, versus 136 with it; same-toolchain stock has 29,017 free.
+See the flash comparison below. No deployed firmware changed.
+
 ## Paired transport results
 
 Ordinary profile, worst percentage gap first; negative means the P4 route takes
@@ -87,6 +91,62 @@ The 128-transfer fixture retains every byte and leaves 178,210 application RAM
 bytes below its stack top; its rebuilt default-16 binary matches the original
 after replacing only its identity. These tests do not validate new gameplay,
 every interrupted CPU mode, graphics timing or analogue wiring integrity.
+
+## Flash budget without parallel support — 2026-09-14
+
+A fresh compile/link experiment saves **3,038 bytes**, leaving **3,174 bytes
+free** in ordinary EMOS without the parallel engine. The full-build control
+reproduces 130,936 bytes exactly. Much of forward parallel support is therefore
+already paid for, but removing it would recover only about 3 KiB, not the full
+EMOS overhead. All figures below are bytes; capacity is 131,072.
+
+| Composition | Flash used | Flash free | Extra versus same-toolchain stock |
+|---|---:|---:|---:|
+| Ordinary optimized EMOS, full control | 130,936 | **136** | 28,881 |
+| Ordinary optimized EMOS, parallel engine omitted | 127,898 | **3,174** | 25,843 |
+| Official MOS 3.0.2 ZDS release, prior verified artifact | 108,490 | **22,582** | Different compiler; not the comparison baseline |
+| Stock MOS 3.0.2, fresh AgonDev rebuild | 102,055 | **29,017** | 0 |
+
+The UART-only experiment remains 25.32% larger than same-toolchain stock.
+The official ZDS release row comes from [E02](../E02.md); the other three rows
+are freshly linked with the same local AgonDev toolchain and generic port
+source. This reproduces E02's stock size and adds the new UART-only comparison.
+
+### What is already included, and what is unfinished
+
+The full ordinary map includes 1,256 bytes of parallel lifecycle/routing code,
+1,398 bytes of record-engine code, 393 bytes of GPIO assembly and 12 bytes of
+constants: **3,059 bytes**, excluding shared dispatch/library overhead. The
+experiment removes these implementations and substitutes **21 bytes** of
+rejection/no-op bridges. Existing assembly dispatch wrappers remain. Parallel
+writes return NOT_OWNED; UART1 admission no longer needs to arbitrate against
+an absent parallel owner. This is a conservative engine-removal measurement,
+not a fully pruned or supported UART-only product profile.
+
+Forward support already includes record splitting up to 4,096 bytes, READY
+handshaking, bounded waits, pin ownership and cleanup. [INTEG-002](../INTEG-002.md)
+remains on hold with target proof and physical qualification incomplete;
+production activation and whole-mode integration also remain outstanding.
+Reverse transfer through these same parallel data pins is **not implemented**
+in this engine. E07P's qualified reverse transport is UART. Current parallel
+ownership excludes UART1 because of shared Port C pins, so future parallel
+operation needs an explicit contract for keyboard/response services and bus
+turnaround. None of this experiment qualifies those features.
+
+### Reproduction and limits
+
+[Build sizes, hashes and commands](uart-only-budget.json) and the
+[exact isolated-source patch](uart-only-size-experiment.patch) preserve the
+comparison. Machine-local sources, ELF/map/binary outputs and successful logs
+remain under `build/integ-014/E07P/uart-only-budget/`. Builds used an isolated
+copy of the generic builder and source checkout; maintained product source,
+profiles, original generated outputs and the physical bench were untouched.
+
+All three builds passed repository-root `firmware-check`. The experimental
+profile explicitly replaces the production parallel-presence check with an
+absence/bridge check, retaining the UART baud, keyboard and console guards.
+It is **size evidence only**, not a production-qualified image; no firmware was
+flashed, no emulator launched and no new gameplay/performance claim made.
 
 ## Linked resource budgets
 
