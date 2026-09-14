@@ -130,14 +130,16 @@ void emos_keyboard_byte(BYTE value) {
     }
 }
 
-typedef struct { BYTE last; UINT16 elapsed; UINT32 budget; } Deadline;
+/* INTEG-014 E05: 262144 fits native 24 bits. Preserve the exact poll
+ * limit without pulling 32-bit arithmetic helpers into every byte attempt. */
+typedef struct { BYTE last; UINT16 elapsed; UINT24 budget; } Deadline;
 static void deadline_start(Deadline *d) {
-    d->last = emos_keyboard_clock(); d->elapsed = 0; d->budget = 262144UL;
+    d->last = emos_keyboard_clock(); d->elapsed = 0; d->budget = (UINT24)262144;
 }
 static BYTE deadline_step(Deadline *d) {
     BYTE now = emos_keyboard_clock(), delta = (BYTE)(now - d->last);
     d->elapsed += delta; d->last = now;
-    if (delta) d->budget = 262144UL;
+    if (delta) d->budget = (UINT24)262144;
     else if (!--d->budget) return 0;
     return d->elapsed < 600;
 }
