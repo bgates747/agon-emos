@@ -1,0 +1,337 @@
+{
+  "correctness": [
+    {
+      "run": "e04m1",
+      "rows": 336,
+      "raw_sd_sha256": "0a545967dce2b97390f93740b68a4bcbb8bd3c8e8a9b6081fde0c7f53e745d8f",
+      "published_lf_sha256": "3b4e7f64ddd090272fb243789e46cea580b802c293507f455471426b43724611",
+      "complete": true
+    },
+    {
+      "run": "e04m2",
+      "rows": 36,
+      "raw_sd_sha256": "08d6139ace8fe86acc868611a4946afc57af6c67f5b359bba69701457931a9c7",
+      "published_lf_sha256": "f39f948ec25f3a8820317445df01288751d0384ad4c41629480c2a76504d57b1",
+      "complete": true
+    },
+    {
+      "run": "e04m3",
+      "rows": 336,
+      "raw_sd_sha256": "9d0ff3a64dabecd17d4243a8f3bb086a2961213f66640c49d3d219f072869692",
+      "published_lf_sha256": "dc2018df3777b0b8fc31dd602e4dde75e40e719cc47c52a4b302da400b379675",
+      "complete": true
+    },
+    {
+      "run": "e04m4",
+      "rows": 36,
+      "raw_sd_sha256": "12e0a3cb5659c400c55355b4eb02bca69743d460f995900de89640880a0edb03",
+      "published_lf_sha256": "28626a2b8a60681a3998f0d316d3b7015520e1c1bfbd77dae96dea9d0b72fbfd",
+      "complete": true
+    },
+    {
+      "run": "e04w1",
+      "rows": 4,
+      "raw_sd_sha256": "7a16ad09fdc9f41d5277e68dec31a3dcc70c2cb4355568fad5a1af09a385407b",
+      "published_lf_sha256": "ba8798858e06af4b49c16ea44998ab11be3d146c96d3d6438760e471d0d72642",
+      "complete": true
+    },
+    {
+      "run": "e04w2",
+      "rows": 4,
+      "raw_sd_sha256": "1483f027796fb6139467938e11b649ad7d4972960e91a38e2b32a8657ebab8cd",
+      "published_lf_sha256": "54a18413ea1f1967452bf43351ca319f9ad41bef60e92503e33f94300a51011a",
+      "complete": true
+    },
+    {
+      "run": "e04w3",
+      "rows": 4,
+      "raw_sd_sha256": "4b2a23d289d2623a5b883a780ae71682a1b5eda7693a6745a319334fd86f1112",
+      "published_lf_sha256": "b61bea9d218524ff9ad24039c9687034b38f545c33878c422e5f770950af7df1",
+      "complete": true
+    }
+  ],
+  "total_rows": 756,
+  "wire": [
+    {
+      "run": "e04w1",
+      "trace_sha256": "80601690f937bc8aa178032f08e92ada17946771668b754fa4fbf67a5e225179",
+      "samples": 720000000,
+      "sample_rate_hz": 24000000,
+      "forward": {
+        "wire_span_seconds": 2.0993940555555546,
+        "estimated_byte_time_seconds": 0.5688802082790807,
+        "idle_seconds": 1.530513847276474,
+        "idle_cts_high_seconds": 0.0,
+        "idle_cts_low_seconds": 1.530513847276474,
+        "cts_high_seconds": 0.0
+      },
+      "reverse": {
+        "wire_span_seconds": 0.10961030555555473,
+        "estimated_byte_time_seconds": 0.0401321111087203,
+        "idle_seconds": 0.06947819444683442,
+        "idle_cts_high_seconds": 0.0693378888907979,
+        "idle_cts_low_seconds": 0.00014030555603653191,
+        "cts_high_seconds": 0.0724399722222214
+      }
+    },
+    {
+      "run": "e04w2",
+      "trace_sha256": "2259ddd5dadd199cc3d831b7c0f1c236e7af2e8586aff3807f3328098abb1c9a",
+      "samples": 720000000,
+      "sample_rate_hz": 24000000,
+      "forward": {
+        "wire_span_seconds": 2.099394013888888,
+        "estimated_byte_time_seconds": 0.5688802082790807,
+        "idle_seconds": 1.5305138056098073,
+        "idle_cts_high_seconds": 0.0,
+        "idle_cts_low_seconds": 1.5305138056098073,
+        "cts_high_seconds": 0.0
+      },
+      "reverse": {
+        "wire_span_seconds": 0.1096033472222214,
+        "estimated_byte_time_seconds": 0.04013215277538448,
+        "idle_seconds": 0.06947119444683691,
+        "idle_cts_high_seconds": 0.0693311388907979,
+        "idle_cts_low_seconds": 0.00014005555603901546,
+        "cts_high_seconds": 0.07243980555555472
+      }
+    },
+    {
+      "run": "e04w3",
+      "trace_sha256": "6643b195f93c09d37192eef590b22892d8904c9d60d463d61a748084a16406bc",
+      "samples": 720000000,
+      "sample_rate_hz": 24000000,
+      "forward": {
+        "wire_span_seconds": 2.099394013888888,
+        "estimated_byte_time_seconds": 0.5688802082790807,
+        "idle_seconds": 1.5305138056098073,
+        "idle_cts_high_seconds": 0.0,
+        "idle_cts_low_seconds": 1.5305138056098073,
+        "cts_high_seconds": 0.0
+      },
+      "reverse": {
+        "wire_span_seconds": 0.10961151388888805,
+        "estimated_byte_time_seconds": 0.040132333330929276,
+        "idle_seconds": 0.06947918055795878,
+        "idle_cts_high_seconds": 0.06933897222413123,
+        "idle_cts_low_seconds": 0.00014020833382755518,
+        "cts_high_seconds": 0.07243951388888806
+      }
+    }
+  ],
+  "snapshot_counts": {
+    "e04m1": 0,
+    "e04m2": 0,
+    "e04m3": 0,
+    "e04m4": 0,
+    "e04w1": 0,
+    "e04w2": 0,
+    "e04w3": 0
+  },
+  "inputs": {
+    "emos": "1da8330462eed54317e5889cf3f09cb1abaca8b478f7d92b88a3a1d74c9fc70c",
+    "probe_identities": {
+      "p4-order01": {
+        "build_id": "uart-excom-console-r17-b2026-09-13-21-13-50Z",
+        "source_commit": "f2444b42676f0896f3bacab1be905f958725e75d",
+        "dirty": false,
+        "outputs": {
+          "firmware.bin": {
+            "bytes": 1447216,
+            "sha256": "6dcb412c70a5af3468d438126376667e3d54cded28c92f6b893c6a618660bffe"
+          },
+          "firmware.elf": {
+            "bytes": 28130232,
+            "sha256": "01e2da4adf8d05c9d5c0304499eb9cc3d54d8433ec7514d996ededfeb7866e5c"
+          },
+          "partitions.bin": {
+            "bytes": 3072,
+            "sha256": "e29396a4f5ecc129c0e275d2df19d69adb5ee33389e3d5659e9a50932ac6864a"
+          },
+          "bootloader.bin": {
+            "bytes": 24256,
+            "sha256": "5a7cb53a505f01489c69e6b87af6a9e7342b68b83e3371ec0542e8708c38e49e"
+          },
+          "firmware.factory.bin": {
+            "bytes": 1578288,
+            "sha256": "803905e615e46a78aca831ab5a10365c60ab707ce1abe243210cc1e3171b0520"
+          }
+        }
+      },
+      "mainboard01": {
+        "build_id": "uart-data-probe-r01-b2026-09-13-20-18-15Z",
+        "source_commit": "8064c81f820faa2e54e1a058c0bac6505dc5bd84",
+        "dirty": false,
+        "outputs": {
+          "firmware.bin": {
+            "bytes": 1078928,
+            "sha256": "1c5b15b35d277e8f1af8f68023bea95807f11d120e557eff7d2cadb0655dd71d"
+          },
+          "firmware.elf": {
+            "bytes": 24738216,
+            "sha256": "58c16469814383c01311d39e3ec505c1c3d8e0a8beafc796a3b1aaf10a4367b8"
+          },
+          "partitions.bin": {
+            "bytes": 3072,
+            "sha256": "148b959cbff1c38aa8e1d5c0ba9d612c54997b945e56a63f41223eef650653a1"
+          },
+          "bootloader.bin": {
+            "bytes": 18992,
+            "sha256": "f2dfacdea6ae72d0aeeb7c30e525c4c6fc768a041849feac694cbb2ee2224448"
+          }
+        }
+      },
+      "app05": {
+        "build_id": "uart-data-probe-r01-b2026-09-13-21-30-31Z",
+        "source_commit": "21e3f1ce836edb3cbbd950aec5bcbe150a0b39e2",
+        "dirty": false,
+        "outputs": {
+          "UARTDATA.bin": {
+            "bytes": 14929,
+            "sha256": "7fd452a40912b103d21a1c0dcedaa56351b692ef25c78ebdae427c3a4f017fdc"
+          },
+          "UARTDATA.map": {
+            "bytes": 39143,
+            "sha256": "b5211756df1badaf35569918f59cdf2db9682daf33f6f0a10be8fa5541962d6a"
+          },
+          "UARTDATA.noname.bin": {
+            "bytes": 14929,
+            "sha256": "5045d7b850f5accfaf663cc9a605c8abcc081d8976224a241d1188a9cd706852"
+          }
+        }
+      }
+    },
+    "p4_deployment": {
+      "run_id": "PORT-008-2026-09-14-04-43-37Z",
+      "build_id": "uart-excom-console-r17-b2026-09-13-21-13-50Z",
+      "factory_sha256": "803905e615e46a78aca831ab5a10365c60ab707ce1abe243210cc1e3171b0520",
+      "write_verified": true,
+      "usb_host_startup_observed": true,
+      "mainboard_sd_commissioning": "pending"
+    },
+    "mainboard_flash_verified": true,
+    "limits": [
+      "EMOS unchanged from previously verified deployment; no new EMOS flash read in E04",
+      "Route0 is EMOS stock UART0 path, not independently flashed stock MOS",
+      "Same stock VDP observer probe, no render workload",
+      "No keyboard/telemetry producer during timed cases"
+    ]
+  },
+  "wire_repeatability": {
+    "forward": {
+      "wire_span_seconds": {
+        "median_ms": 2099.394013888888,
+        "minimum_ms": 2099.394013888888,
+        "maximum_ms": 2099.3940555555546,
+        "sample_stdev_ms": 2.4056261221135314e-05,
+        "range_percent": 1.984699699032319e-06,
+        "material_reduction_ms": 104.9697006944444
+      },
+      "estimated_byte_time_seconds": {
+        "median_ms": 568.8802082790806,
+        "minimum_ms": 568.8802082790806,
+        "maximum_ms": 568.8802082790806,
+        "sample_stdev_ms": 0.0,
+        "range_percent": 0.0,
+        "material_reduction_ms": 28.444010413954032
+      },
+      "idle_seconds": {
+        "median_ms": 1530.5138056098074,
+        "minimum_ms": 1530.5138056098074,
+        "maximum_ms": 1530.513847276474,
+        "sample_stdev_ms": 2.4056261221135314e-05,
+        "range_percent": 2.7223973101342854e-06,
+        "material_reduction_ms": 76.52569028049037
+      },
+      "idle_cts_high_seconds": {
+        "median_ms": 0.0,
+        "minimum_ms": 0.0,
+        "maximum_ms": 0.0,
+        "sample_stdev_ms": 0.0,
+        "range_percent": null,
+        "material_reduction_ms": null
+      },
+      "idle_cts_low_seconds": {
+        "median_ms": 1530.5138056098074,
+        "minimum_ms": 1530.5138056098074,
+        "maximum_ms": 1530.513847276474,
+        "sample_stdev_ms": 2.4056261221135314e-05,
+        "range_percent": 2.7223973101342854e-06,
+        "material_reduction_ms": 76.52569028049037
+      },
+      "cts_high_seconds": {
+        "median_ms": 0.0,
+        "minimum_ms": 0.0,
+        "maximum_ms": 0.0,
+        "sample_stdev_ms": 0.0,
+        "range_percent": null,
+        "material_reduction_ms": null
+      }
+    },
+    "reverse": {
+      "wire_span_seconds": {
+        "median_ms": 109.61030555555473,
+        "minimum_ms": 109.6033472222214,
+        "maximum_ms": 109.61151388888806,
+        "sample_stdev_ms": 0.004407813453901695,
+        "range_percent": 0.0074506376250492,
+        "material_reduction_ms": 5.480515277777737
+      },
+      "estimated_byte_time_seconds": {
+        "median_ms": 40.13215277538448,
+        "minimum_ms": 40.1321111087203,
+        "maximum_ms": 40.13233333092928,
+        "sample_stdev_ms": 0.00011812361168285222,
+        "range_percent": 0.0005537261113784837,
+        "material_reduction_ms": 2.0066076387692244
+      },
+      "idle_seconds": {
+        "median_ms": 69.47819444683442,
+        "minimum_ms": 69.47119444683692,
+        "maximum_ms": 69.47918055795878,
+        "sample_stdev_ms": 0.0043541242128477195,
+        "range_percent": 0.011494413730018953,
+        "material_reduction_ms": 3.4739097223417215
+      },
+      "idle_cts_high_seconds": {
+        "median_ms": 69.3378888907979,
+        "minimum_ms": 69.33113889079789,
+        "maximum_ms": 69.33897222413123,
+        "sample_stdev_ms": 0.004244549882347589,
+        "range_percent": 0.01129733462995175,
+        "material_reduction_ms": 3.466894444539895
+      },
+      "idle_cts_low_seconds": {
+        "median_ms": 0.14020833382755518,
+        "minimum_ms": 0.14005555603901546,
+        "maximum_ms": 0.14030555603653191,
+        "sample_stdev_ms": 0.00012602460695411457,
+        "range_percent": 0.17830608972497933,
+        "material_reduction_ms": 0.007010416691377759
+      },
+      "cts_high_seconds": {
+        "median_ms": 72.43980555555473,
+        "minimum_ms": 72.43951388888806,
+        "maximum_ms": 72.4399722222214,
+        "sample_stdev_ms": 0.00023199018178845702,
+        "range_percent": 0.0006327092264072176,
+        "material_reduction_ms": 3.6219902777777366
+      }
+    }
+  },
+  "restoration": {
+    "mainboard_region_bytes": 1081344,
+    "mainboard_region_sha256": "7923bee5ff89cc80eaeb12622c2bd9e8ddb8311ae04eeaefe847ef940178298e",
+    "mainboard_flash_verified": true,
+    "p4_factory_sha256": "5bddd14bc5611c99c6b1e90b18fc0f2ed7167298a499199c6248dd8b1fbb489c",
+    "p4_build_id": "uart-excom-console-r17-b2026-09-13-13-07-24Z",
+    "p4_flash_verified": true,
+    "native_usb_startup_observed": true,
+    "sd_read_write_verified": true,
+    "cli_copy_verified": true,
+    "startup_and_backup_unchanged": true,
+    "keys_released": true,
+    "final_state": "Legacy mode3 MOS prompt",
+    "source_build_test_hashes_unchanged": 166
+  }
+}

@@ -3,7 +3,7 @@
 ## First priority — UART execution cost
 
 - [ ] **INTEG-014 — Diagnose and reduce EMOS UART execution cost**
-  - Status: Supervised run authorised; E03 stock-reuse/execution audit complete; supervised pause before E04 controlled baseline. Ordinary EMOS has 157 flash bytes free; bench has 1,001. No firmware implementation started.
+  - Status: Supervised run authorised; E04 baseline passed 756 rows and three wire captures; firmware/CLI/SD restored. Supervised pause before E05; selected high-resolution improvement floor 5%. Ordinary EMOS has 157 flash bytes free; bench has 1,001. No firmware implementation started.
   - Details: [INTEG-014](docs/tasks/INTEG-014.md). Cross-component qualification remains Extender PORT-008.
 
 

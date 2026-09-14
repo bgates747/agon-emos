@@ -1,6 +1,6 @@
 # INTEG-014 — Diagnose and reduce EMOS UART execution cost
 
-Status: E04 authorised and in progress; E05 remains paused. No firmware implementation
+Status: E04 complete; supervised pause before E05. No firmware implementation
 started. Hardware notification and a review pause after each step.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
@@ -183,7 +183,7 @@ of emulator-coupled changes; do not push experimental code without review.
    Identify required EMOS work separately from accidental duplication or
    compiler overhead. Record costs of C helpers and register saves, not guesses
    based on source language. Rank candidates by measured cost and bytes.
-4. [ ] **E04 — Establish controlled baseline.** Reuse existing pure-data fixtures
+4. [x] **E04 — Establish controlled baseline.** Reuse existing pure-data fixtures
    and exact-byte validation in forward, reverse and mixed directions. Lock one
    verified aligned P4 image throughout EMOS comparisons: the previous pass
    restored pre-test P4 firmware, so deployment identity matters. Keep stock VDP,
@@ -239,9 +239,10 @@ of emulator-coupled changes; do not push experimental code without review.
 
 1. Accepted Author preference: C/C++ for negligible performance differences;
    targeted assembly may win on speed or constrained flash space.
-2. Pending measurement: negligible-difference threshold and required flash
-   reserve. Establish from repeatability and actual release composition before
-   candidate selection; merely fitting below 128 KiB is not a growth budget.
+2. E04 froze a 5% material-reduction floor for the selected high-resolution
+   forward/return metrics; full rule and measured noise are in its report.
+   Required flash reserve remains unresolved; merely fitting below 128 KiB is
+   not a growth budget.
 3. Pending evidence: whether dual-UART servicing materially causes the gap.
    Do not change production receive/clock contracts to make a benchmark pass.
 
@@ -251,7 +252,9 @@ E01 [preservation/recovery](INTEG-014/E01.md) and E02
 [reproduction/accounting](INTEG-014/E02.md), plus E03
 [stock-reuse/execution audit](INTEG-014/E03.md), are complete. Ordinary EMOS has
 157 flash bytes free; the earlier 153-byte comment is superseded by measured
-binary/map evidence. Wait for the Author before E04. Existing dirty EMOS work
+binary/map evidence. E04 [controlled baseline](INTEG-014/E04.md) passed
+756 rows and three independent wire captures; original firmware/CLI/SD restored.
+Wait for the Author before E05. Existing dirty EMOS work
 is preserved; source optimisation starts only at its later step.
 
 E04 approval on 2026-09-14: [bounded baseline procedure](INTEG-014/E04-procedure.md)
