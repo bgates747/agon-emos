@@ -208,12 +208,12 @@ _emos_keyboard_byte:
             ADD HL, SP
             LD C, (HL)
             JR keyboard_rx_state
-; RX04: private same-file entry. The FIFO caller already holds its byte in C.
-; Keep the same guards; the public C entry above still checks before stack load.
+; RX04/RX05: private same-file entry, called only by the masked FIFO drain.
+; That caller checks fault before its first byte and after every parser return.
+; No interrupt or intervening writer can invalidate fault-clear here. Retain
+; owner admission: a dispatch may release it without faulting. Public C above
+; retains both checks. The complete-IRQ harness enforces this private contract.
 keyboard_rx_register:
-            LD A, (_emos_key_faulted)
-            OR A
-            RET NZ
             LD A, (_uart1_keyboard_owned)
             OR A
             RET Z

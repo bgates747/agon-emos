@@ -655,7 +655,7 @@ owner guard is different: a dispatch callback may release ownership without
 faulting. Keep that guard. Public C entry keeps both guards unconditionally.
 This is a possible remaining per-byte cost, not yet a measured benefit.
 
-1. [ ] **RX05a — Prove the private precondition, then prepare if necessary.**
+1. [x] **RX05a — Prove the private precondition, then prepare if necessary.**
    After RX04's isolated observation, if the reverse target still fails, extend
    the complete-IRQ harness to assert fault-clear at every byte-call boundary
    and exercise callbacks releasing ownership as well as setting faults at
@@ -688,3 +688,15 @@ every parser call, including callbacks setting fault and/or releasing owner at
 all sixteen positions. The separate admitted-entry parser test passes8,582,356
 byte comparisons. Public parser coverage remains unchanged. This freezes the
 caller precondition evidence before removing its redundant private test.
+
+
+## RX05a prepared candidate
+
+Only the private fault-load/test/return is removed; public fault and owner
+checks and private owner admission are unchanged. Both canonical profiles pass:
+bench130091 bytes, ordinary130936 (136 free). Public parser8,683,703 cases and
+private admitted-entry8,582,356 cases pass against the original C reference;
+the admitted path drops from215,900,424 to190,153,356 interpreted instructions.
+All3906 bench/1302 ordinary IRQ cases,375 sender cases and91 host tests pass.
+This is instruction/behavior evidence only. RX05b remains gated behind the
+independent P4 owner comparison and a remaining measured reverse gap.
