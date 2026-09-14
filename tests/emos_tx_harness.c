@@ -53,10 +53,14 @@ static void activate(void) {
 }
 
 static unsigned attempts, fail_after, clock_reads;
+static BYTE *mutate_during_wait;
 static BYTE injected_result, lose_owner, inject_fault, busy_result, busy_enabled;
 BYTE emos_keyboard_clock(void) { ++clock_reads; return receiver_clock(); }
 BYTE uart1_keyboard_put(BYTE value) {
     ++attempts;
+    if (mutate_during_wait) {
+        *mutate_during_wait=0xEE;mutate_during_wait=NULL;return UART_POLL_BLOCKED;
+    }
     if (fail_after && attempts > fail_after) {
         if (lose_owner) uart1_keyboard_owned = 0;
         if (inject_fault) { in_irq=1; emos_keyboard_fault(); in_irq=0; }
@@ -105,6 +109,9 @@ int main(void) {
         assert(attempts==262143U && clock_reads==262145U && irq_enabled);
         tick();assert(emos_key_faulted);
     }
+    fresh();
+    data[0]=0x42;mutate_during_wait=data;
+    assert(emos_keyboard_send(data,1)==EMOS_KEY_OK && tx_count==1 && tx[0]==0x42);
     fresh();clock_byte=254;
     assert(emos_keyboard_send(data,sizeof(data))==EMOS_KEY_OK && tx_count==sizeof(data));
     puts("TX partial/error/ownership/IRQ/clock-wrap/stall boundaries passed");

@@ -148,13 +148,18 @@ static BYTE deadline_step(Deadline *d) {
 /* One C frame per block, matching stock's counted-output shape. Keep the
  * deadline and atomic UART ownership/error check on EVERY attempt. */
 static BYTE transmit_block(const BYTE *data, UINT16 length, Deadline *d) {
-    BYTE result;
+    BYTE result, value;
     while (length) {
-        if (emos_key_faulted || !deadline_step(d)) return 0;
-        result = uart1_keyboard_put(*data);
-        if (result == UART_POLL_ERROR) { fault_requested = 1; return 0; }
-        if (result == UART_POLL_UNAVAILABLE) return 0;
-        if (result == UART_POLL_READY) { ++data; --length; }
+        /* Match the byte helper: retain this byte across blocked retries,
+         * even if an interrupt changes the caller's source buffer. */
+        value = *data++;
+        do {
+            if (emos_key_faulted || !deadline_step(d)) return 0;
+            result = uart1_keyboard_put(value);
+            if (result == UART_POLL_ERROR) { fault_requested = 1; return 0; }
+            if (result == UART_POLL_UNAVAILABLE) return 0;
+        } while (result != UART_POLL_READY);
+        --length;
     }
     return 1;
 }
