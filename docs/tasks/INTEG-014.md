@@ -1,6 +1,6 @@
 # INTEG-014 — Diagnose and reduce EMOS UART execution cost
 
-Status: E02 complete; supervised pause before E03. No firmware implementation
+Status: E03 complete; supervised pause before E04. No firmware implementation
 started. Hardware notification and a review pause after each step.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
@@ -174,7 +174,7 @@ of emulator-coupled changes; do not push experimental code without review.
    initialisers, linker gaps, helper routines, static RAM and stack/heap margin.
    Compare stock ZDS and stock AgonDev outputs where available to separate
    compiler/translation overhead from added functionality; label missing outputs.
-3. [ ] **E03 — Refresh stock comparison.** Produce a side-by-side source and
+3. [x] **E03 — Refresh stock comparison.** Produce a side-by-side source and
    linked-instruction table for counted VDU writes, UART TX/CTS waits, UART0/1
    IRQ entry/exit, RX drain, packet parsing/dispatch and clock/deadline work.
    Trace `EMOS_vdu_WRITE` → `emos_console_write_stream` →
@@ -248,7 +248,8 @@ of emulator-coupled changes; do not push experimental code without review.
 ## Planning checkpoint
 
 E01 [preservation/recovery](INTEG-014/E01.md) and E02
-[reproduction/accounting](INTEG-014/E02.md) are complete. Ordinary EMOS has
+[reproduction/accounting](INTEG-014/E02.md), plus E03
+[stock-reuse/execution audit](INTEG-014/E03.md), are complete. Ordinary EMOS has
 157 flash bytes free; the earlier 153-byte comment is superseded by measured
-binary/map evidence. Wait for the Author before E03. Existing dirty EMOS work
+binary/map evidence. Wait for the Author before E04. Existing dirty EMOS work
 is preserved; source optimisation starts only at its later step.
