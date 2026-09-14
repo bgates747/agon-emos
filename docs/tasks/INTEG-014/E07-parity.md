@@ -98,7 +98,7 @@ milestone wakeups during this unattended run. No subagents are authorized.
    is material; wiring only where captures provide reason. Record additional
    numbered candidate steps before implementing discoveries. Recheck this
    contract after each candidate so testing does not replace optimization.
-7. [ ] **P07 — Final qualification.** Repeat paired exact/mixed matrices and
+7. [x] **P07 — Final qualification.** Repeat paired exact/mixed matrices and
    captures; check the ordinary composition and diagnostic overhead explicitly.
    Report timing resolution, variance, bytes/s and flash/RAM budgets. Apply E08
    correctness consolidation as needed; E09 graphics follows only if both pure
@@ -828,3 +828,18 @@ substitutes telemetry for UARTFLOW, so this is a profile comparison, not a
 single isolated instrumentation-cost attribution. Both frozen profiles'
 maintained firmware inputs still match current source. Full/mixed controls
 and the remaining ordinary captures are running; P07 remains open.
+
+
+## P07 completion — both profiles qualified
+
+Each profile passes384 original exact/mixed/wire cases, three independent
+captures, six forward observations and both symmetric return scopes. Ordinary
+forward588.096ms versus589.670ms and return85.156ms versus86.068ms meet both
+frozen targets; all conservative long-return bounds separate. The profiles
+verify6.75MiB of additional return data in total. Bench excess is0.010% for
+forward,0.153% return and1.934% mixed forward; composition differences prevent
+a single-cause instrumentation attribution. [Final qualification report](E07P-results/README.md)
+records ranges, bytes/s, short-command limits and linked flash/SRAM budgets.
+Both frozen firmware source sets still match maintained inputs. P08 now
+restores the exact pre-run EMOS/ESP/startup and verifies CLI/SD/neutral input.
+No graphics claim or further optimization is needed for this frozen goal.

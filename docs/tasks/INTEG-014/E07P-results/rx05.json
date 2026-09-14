@@ -24,7 +24,7 @@
   },
   "firmware_sha256": "60729c6a7bd6d953e2311b933247b56b7e04bbf47c4e374058c8a82df22583ce",
   "wire_captures": 3,
-  "verdict": "Bench composition passes both frozen transport targets and 384 exact controls; ordinary qualification and original restoration pending.",
+  "verdict": "Both frozen transport targets and profile qualification passed; exact original bench restoration pending.",
   "forward": {
     "0": {
       "median_ms": 589.6565,
@@ -511,5 +511,6 @@
   "forward_parity_pass": true,
   "reverse_analysis": "ep5rlong-analysis.json",
   "p4_factory_sha256": "368ff0a00e798f598964471656608d8a944a24cc062434c918e71cda203f91c5",
-  "mainboard_app_sha256": "1c5b15b35d277e8f1af8f68023bea95807f11d120e557eff7d2cadb0655dd71d"
+  "mainboard_app_sha256": "1c5b15b35d277e8f1af8f68023bea95807f11d120e557eff7d2cadb0655dd71d",
+  "reverse_parity_pass": true
 }
