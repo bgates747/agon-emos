@@ -43,7 +43,6 @@ yet. These full-matrix medians include the unchanged READY/query sequence.
 | RX03 idle telemetry guard | Rejected: no demonstrated wire gain | [RX03](rx03.json) |
 | RX04 register argument | Retained receiver candidate: 85.960 ms return wire; 376 cases pass, combined parity still open | [RX04](rx04.json) |
 | P4 owner sleep removed | 588.147 ms forward; 376 cases and service/idle checks pass; retained | [Owner comparison](owner01.json) |
-
 | RX05 caller-proven private fault admission | Retained: 83.952ms return wire, strict matched reverse parity; 376 exact cases | [RX05](rx05.json) |
 
 Wire measurements in that table are UART1-only observations, not fabricated

@@ -86,7 +86,7 @@ milestone wakeups during this unattended run. No subagents are authorized.
    heavy ISR observers that already changed E06 behavior. Retain a C reference
    and meaningful packet/error/ownership tests. No full shared-parser-global reuse
    that corrupts interleaved UART0/UART1 packets.
-5. [ ] **P05 — Iterate RX candidates and prove the reverse target.** Measure the
+5. [x] **P05 — Iterate RX candidates and prove the reverse target.** Measure the
    same return workload against mainboard; use a separately recorded symmetric
    timing extension if coarse ticks cannot decide parity. Validate simultaneous
    streams, callback/register/sysvar behavior, partial/oversize packets, stale
@@ -783,3 +783,14 @@ forward timing. Four forward samples give P4 588.142ms versus mainboard589.690ms
 The128-transfer comparison already proves strict matched reverse parity.
 [RX05 evidence](E07P-results/rx05.json). Two final independent captures are
 running; ordinary-profile qualification and original restoration remain.
+
+
+## P05 completion
+
+RX01/RX02/RX04/RX05 account for and reduce receiver work while keeping the
+stock effect bridge, independent parser state, full register protection and
+required services. RX03 was rejected on physical evidence. The final retained
+receiver passes exhaustive public/private and IRQ boundaries, exact/mixed
+controls, source/routing recovery and the symmetric long reverse target.
+P07 still checks repeatability and the ordinary composition; this checkbox
+does not claim graphics parity or final bench restoration.
