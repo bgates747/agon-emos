@@ -643,3 +643,35 @@ sender cases and91 host tests pass. Both canonical profiles pass: bench130097
 bytes, ordinary130942 (130 free). IRQ counts excluding the stubbed parser are
 unchanged, as expected; no physical throughput claim yet. The rejected RX03
 idle guard is absent. RX04b measures against the retained TX04 composition.
+
+
+## Conditional RX05 — caller-established fault admission
+
+The RX04 private register entry repeats a fault test that the masked FIFO drain
+already establishes before its first byte and immediately after every parser
+return. With interrupts disabled throughout the drain and parser, no other
+writer can change that fault between those checks and the private call. The
+owner guard is different: a dispatch callback may release ownership without
+faulting. Keep that guard. Public C entry keeps both guards unconditionally.
+This is a possible remaining per-byte cost, not yet a measured benefit.
+
+1. [ ] **RX05a — Prove the private precondition, then prepare if necessary.**
+   After RX04's isolated observation, if the reverse target still fails, extend
+   the complete-IRQ harness to assert fault-clear at every byte-call boundary
+   and exercise callbacks releasing ownership as well as setting faults at
+   each byte. Preserve all original public-parser cases. Add a separately
+   identified private-entry comparison that follows the actual IRQ caller:
+   never invoke its callee after a fault. First run these tests on RX04.
+   Remove only the three redundant private fault-test instructions, retain
+   owner admission and all public checks, and rerun both canonical profiles,
+   full parser/IRQ/sender equivalence and host checks. Commit the proof and
+   source separately from any hardware disposition.
+2. [ ] **RX05b — Isolated physical disposition if still needed.** The already
+   prepared P4 owner candidate takes its isolated O03 turn first, with exact
+   selected EMOS fixed. If that establishes both targets, do not deploy RX05.
+   Otherwise freeze the chosen P4 composition, install and read back the clean
+   RX05 ROM, repeat paired reverse batch and wire controls against RX04 on that
+   same P4, then full/mixed controls if improved. Retain only a demonstrated
+   physical gain with intact services. Do not use an invalid direct call with
+   a preexisting fault to excuse a public-API regression; only the private
+   masked-IRQ entry has this narrower precondition.
