@@ -510,7 +510,7 @@ HL,SP / LD C,(HL). That work is redundant for this assembly-only caller.
    the same fault/owner guards, then share the unchanged parser body. The FIFO
    loop still saves/restores BC and calls only this private entry. Do not remove
    guards, change callback/register protection, or expose a new public API.
-2. [ ] **RX04b — Prove and measure separately.** The public parser must still
+2. [x] **RX04b — Prove and measure separately.** The public parser must still
    pass the exhaustive8,683,703-byte comparison. Extend the complete IRQ harness
    to observe the private entry's register byte while retaining its existing
    callback/fault/port/IFF checks. Build both profiles, measure against RX03,
@@ -700,3 +700,21 @@ the admitted path drops from215,900,424 to190,153,356 interpreted instructions.
 All3906 bench/1302 ordinary IRQ cases,375 sender cases and91 host tests pass.
 This is instruction/behavior evidence only. RX05b remains gated behind the
 independent P4 owner comparison and a remaining measured reverse gap.
+
+
+## RX04 disposition and fixed-ROM owner comparison
+
+All376 original full/mixed/wire cases pass exact bytes and recovery. Return
+wire falls87.716→85.960ms, while the matched batch still misses parity at
+88.021ms P4 versus86.458ms mainboard (+1.81%). Retain as the receiver candidate
+for the next isolated P4 comparison, not as a fully qualified final composition.
+Forward four-sample median590.072ms versus589.618ms currently misses its target;
+the P4 observations span589.052–590.111ms, including the approximately1ms
+scheduling split. Do not conceal that loss behind the reverse improvement.
+The minimal owner-loop comparison must remeasure both directions.
+[Exact evidence](E07P-results/rx04.json), [batch](E07P-results/ep4rb1-analysis.json).
+
+The actual RX04 ROM is byte-exact, SHA256
+`f96f1c22e3dbb7f8900c93bead3a7ff39655c963b139bef7ca3174959fbaac45`,
+identity15:17:39Z. Hold it and mainboard01/app05/batch01 fixed for P4 O03.
+Prepared RX05 stays off the bench until that separate disposition.
