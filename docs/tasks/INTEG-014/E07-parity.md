@@ -471,3 +471,14 @@ mainboard's85.052 ms handler measurement alone is not a scope-matched verdict.
    real queue/drain/stall behavior. Build both profiles with all guards, then
    measure only after TX04 so receive and transmit effects remain separate.
    Require exact/mixed controls and symmetric reverse timing before retention.
+
+
+## RX02 symmetric reverse result
+
+Six paired batch intervals verify393216 useful bytes exactly. Mainboard median
+85.417 ms per transfer (85.417–86.458); P490.104 ms (89.583–90.625), **5.49% more
+elapsed time**. Conservative +/-1.042ms per-transfer bounds do not overlap in
+P4's favor. Reverse parity is unmet, activating the frozen RX03 guard candidate.
+The repeated workload includes identical request/arming/copy work on both routes;
+it is not the mainboard blocking-handler versus P4 enqueue comparison.
+[Batch CSV](E07P-results/ep2rb1.csv), [analysis](E07P-results/ep2rb1-analysis.json).
