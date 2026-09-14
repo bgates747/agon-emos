@@ -420,7 +420,7 @@ on this physical eZ80/link. Reject this as a speed improvement. The frozen RX02
 and TX03 images retain it only for their already-defined isolated comparisons;
 remove it before final selection. [Evidence](E07P-results/tx02.json).
 
-1. [ ] **TX04 — Restore the four original long branches.** After the already
+1. [x] **TX04 — Restore the four original long branches.** After the already
    frozen RX02 and TX03 comparisons, reverse exactly TX02's four JP-to-JR edits.
    Keep the measured FIFO/parser/status changes unchanged. Recheck canonical
    profiles and the375 complete sender boundaries; compare physical timing and
@@ -594,3 +594,17 @@ recovery pass, with zero snapshots. This is the first forward target observation
 not final qualification: full/mixed controls are running; six selected samples
 and three captures on the final composition remain required. The reverse
 matched target is still open. No baseline or threshold has changed.
+
+
+## TX04 disposition
+
+Retain the original long branches. All376 exact full/mixed/wire cases pass,
+with clean recovery. Four large-random observations give P4 median
+589.036 ms (589.023–589.061) versus mainboard
+589.663 ms (589.558–589.751). This is a
+forward win at the candidate stage; the final six-sample/three-capture gate
+remains. [Evidence](E07P-results/tx04.json). RX03's already-frozen idle-queue
+C guard is next, SHA256
+`75c8d6dfb576f815ef91f96a00620871585601ac0cb84bab527ac3da4462e9d2`,
+identity14:13:11Z, source d7a3267. The original diagnostic P4 pair stays fixed
+through its isolated comparison.
