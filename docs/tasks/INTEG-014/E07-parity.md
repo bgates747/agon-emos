@@ -582,3 +582,15 @@ P4 590.063 ms. This is a repeatable improvement from RX02's
 The separately frozen TX04 image now restores the rejected short branches;
 SHA256 `6ddc819a8fea7cffe59bdd5d663b7bb53b7e490d1361866ab198802c377c0622`,
 identity13:56:56Z, source6057bb6. It will be read back before measurement.
+
+
+## First forward target observation after TX04
+
+The original long branches restore the expected gain: P4 589.061 ms versus
+paired mainboard589.681 ms for65535 exact bytes. Independently decoded UART1
+wire time is587.378 ms; reverse remains
+87.716 ms. All four original wire cases and
+recovery pass, with zero snapshots. This is the first forward target observation,
+not final qualification: full/mixed controls are running; six selected samples
+and three captures on the final composition remain required. The reverse
+matched target is still open. No baseline or threshold has changed.
