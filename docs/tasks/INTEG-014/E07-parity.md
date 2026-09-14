@@ -454,7 +454,7 @@ falls55.257 to47.445 ms. Forward remains592.092 ms versus mainboard589.623 ms.
 The symmetric batch fixture is now measuring the residual reverse gap; the
 mainboard's85.052 ms handler measurement alone is not a scope-matched verdict.
 
-1. [ ] **RX03a — Avoid entering an idle optional transmitter.** Only if the
+1. [x] **RX03a — Avoid entering an idle optional transmitter.** Only if the
    symmetric return comparison still misses parity, check the existing pending
    length before UART RX completion enters `emos_keyboard_async_irq`. The linked
    function builds a C frame before discovering there is no queued packet.
@@ -482,3 +482,17 @@ P4's favor. Reverse parity is unmet, activating the frozen RX03 guard candidate.
 The repeated workload includes identical request/arming/copy work on both routes;
 it is not the mainboard blocking-handler versus P4 enqueue comparison.
 [Batch CSV](E07P-results/ep2rb1.csv), [analysis](E07P-results/ep2rb1-analysis.json).
+
+
+## RX03a instruction checkpoint
+
+The existing pending length is now a private shared symbol and the C RX
+completion tail calls the optional transmitter only when that length is nonzero.
+No additional state or public API was introduced. Complete IRQ comparisons pass
+3810 bench cases, including real idle execution and pending lengths1/144, plus
+1270 ordinary cases. Idle16-byte IRQ overhead falls300→286 modeled instructions;
+pending cases add three guard instructions. Both canonical profiles pass:
+bench130089 bytes; ordinary130928 (144 free), unchanged from TX04 ordinary.
+All91 host tests and375 linked sender cases pass. RX03b physical selection
+remains after the frozen TX03/TX04 comparisons; no timing claim from instruction
+counts alone. Source and build checkpoints remain separate from deployment.

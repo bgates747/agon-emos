@@ -314,9 +314,14 @@ void uart1_keyboard_irq(void) {
 /* RX02 completion tail: the assembly drain retains the same stop/error/cap
  * policy. Keep the profile-dependent telemetry dispatch in maintained C. */
 void uart1_keyboard_irq_done(void) {
+#ifdef EMOS_BENCH_TELEMETRY
+    /* RX03: private existing queue length; avoid a C frame for idle RX.
+     * The callee retains its own guard for all other invocation paths. */
+    extern volatile BYTE emos_keyboard_async_length;
+#endif
     RESETREG(PC_DR, PORTPIN_TWO);
 #ifdef EMOS_BENCH_TELEMETRY
-    emos_keyboard_async_irq();
+    if (emos_keyboard_async_length) emos_keyboard_async_irq();
 #endif
 }
 #endif

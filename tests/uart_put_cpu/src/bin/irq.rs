@@ -6,6 +6,7 @@ const EXIT: u32 = 0xa0000;
 const SWAP: u32 = EXIT + 16;
 #[derive(Clone, Debug)]
 struct Case {
+    pending: u8,
     owned: u8,
     fault: u8,
     n: usize,
@@ -30,6 +31,7 @@ struct Image {
     byte: u32,
     fail: u32,
     async_fn: Option<u32>,
+    async_length: Option<u32>,
 }
 impl Image {
     fn load(path: &str) -> Self {
@@ -48,6 +50,8 @@ impl Image {
             byte: address("_emos_keyboard_byte").unwrap(),
             fail: address("_emos_keyboard_fault").unwrap(),
             async_fn: address("_emos_keyboard_async_irq"),
+            async_length: address("_emos_keyboard_async_length")
+                .or_else(|| address("_async_length")),
         }
     }
 }
@@ -115,6 +119,9 @@ fn run(im: &Image, x: &Case) -> (Vec<Event>, u8, usize) {
     b.mem[..im.data.len()].copy_from_slice(&im.data);
     b.mem[im.owned as usize] = x.owned;
     b.mem[im.fault as usize] = x.fault;
+    if let Some(a) = im.async_length {
+        b.mem[a as usize] = x.pending;
+    }
     b.mem[SWAP as usize] = 0xd9;
     b.mem[SWAP as usize + 1] = 0x08;
     b.mem[SP as usize] = 3; // MADL interrupt frame: mode byte, then 24-bit PC
@@ -151,7 +158,8 @@ fn run(im: &Image, x: &Case) -> (Vec<Event>, u8, usize) {
     let mut steps = 0;
     while c.state.reg.pc != EXIT {
         let pc = c.state.reg.pc;
-        if pc == im.byte || pc == im.fail || im.async_fn == Some(pc) {
+        // Execute the real idle callee; only pending work is an effect boundary.
+        if pc == im.byte || pc == im.fail || (x.pending != 0 && im.async_fn == Some(pc)) {
             assert!(!c.state.reg.iff1);
             let sp = c.state.reg.get24(Reg16::SP);
             if pc == im.byte {
@@ -212,6 +220,7 @@ fn main() {
     assert_eq!(a.async_fn.is_some(), b.async_fn.is_some());
     let mut cases = vec![];
     let base = Case {
+        pending: 0,
         owned: 1,
         fault: 0,
         n: 16,
@@ -250,6 +259,22 @@ fn main() {
             ..base.clone()
         });
     }
+    assert_eq!(a.async_length.is_some(), a.async_fn.is_some());
+    assert_eq!(b.async_length.is_some(), b.async_fn.is_some());
+    if a.async_fn.is_some() {
+        for pending in [1, 144] {
+            let more: Vec<_> = cases
+                .iter()
+                .take(1270)
+                .cloned()
+                .map(|mut x| {
+                    x.pending = pending;
+                    x
+                })
+                .collect();
+            cases.extend(more);
+        }
+    }
     let n = cases.len();
     for x in cases {
         let (ea, fa, sa) = run(&a, &x);
@@ -262,7 +287,10 @@ fn main() {
             && x.n == 16
             && x.pcdr == 0xa3
         {
-            println!("Full 16-byte IRQ instructions: baseline={sa}, candidate={sb}");
+            println!(
+                "Full 16-byte IRQ pending={} instructions: baseline={sa}, candidate={sb}",
+                x.pending
+            );
         }
     }
     println!("PASS {n} complete IRQ comparisons: ports, FIFO cap, callback faults/clobbers, all LSR values, all primary/shadow registers, stack and IFF");
