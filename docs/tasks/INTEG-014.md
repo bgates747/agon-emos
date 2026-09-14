@@ -1,6 +1,6 @@
 # INTEG-014 — Diagnose and reduce EMOS UART execution cost
 
-Status: E03 complete; supervised pause before E04. No firmware implementation
+Status: E04 authorised and in progress; E05 remains paused. No firmware implementation
 started. Hardware notification and a review pause after each step.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
@@ -253,3 +253,6 @@ E01 [preservation/recovery](INTEG-014/E01.md) and E02
 157 flash bytes free; the earlier 153-byte comment is superseded by measured
 binary/map evidence. Wait for the Author before E04. Existing dirty EMOS work
 is preserved; source optimisation starts only at its later step.
+
+E04 approval on 2026-09-14: [bounded baseline procedure](INTEG-014/E04-procedure.md)
+freezes inputs, repetition count, recovery and threshold rule before deployment.
