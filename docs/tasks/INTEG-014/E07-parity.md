@@ -271,3 +271,22 @@ The full exact/mixed control follows before changing the installed receiver.
    deadline and interrupt boundaries unchanged; prove actual linked equivalence
    again. This is a byte-fetch/cycle candidate; instruction count alone will not
    quantify it. Retain long jumps where the assembler requires them.
+
+## Near-parity retention threshold correction
+
+The old 5% candidate-improvement floor is no longer physically attainable for
+TX01's 591 ms case: 5% less would be about 561 ms, below the nominal 568.88 ms
+needed for 65,535 ten-bit UART characters at 1,152,000 baud. Keep the parity
+objective unchanged. For remaining TX candidates require repeatable improvement
+beyond observed variance or completion of the strict paired parity target,
+with all correctness checks intact. The 5% floor remains useful for coarse
+improvements elsewhere; it must not prohibit the final fraction of a percent.
+This decision is recorded before implementing the next TX change.
+
+1. [ ] **TX03 — Avoid the temporary status stack slot.** If needed after RX01 /
+   TX02, classify the single LSR sample into clean-ready, clean-empty, or error
+   using its masked value. On clean-ready, sample CTS then write; on clean-empty,
+   still sample CTS before retrying; on error perform the same PC_DR/IER stop.
+   This preserves the exact port order and clock/owner/fault checks but avoids
+   pushing/popping LSR merely to retain THRE across the CTS read. Extend the full
+   linked block comparison to all 256 LSR values before physical selection.
