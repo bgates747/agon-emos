@@ -8,14 +8,16 @@ The heavy IRQ observer has a retained timing-induced failure and is not a
 native performance oracle. Detailed evidence is in [E05](INTEG-014/E05.md) and
 [E06](INTEG-014/E06.md).
 
-**The recovery checkpoint is incomplete.** Both original ESP images are
-restored/verified, but fresh EMOS keyboard/SD admission has not returned after
-the original-ROM flash command and reset checks. Actual EMOS ROM readback and
-the hardware spoken cue remain pending. Stop further bench mutations and ask
-the Author for one physical Agon reset and the resulting screen state. E07 has
-not started. E06 remains unchecked until that recovery/notification gate closes.
+**Bare-metal recovery now passes.** Extender
+[RECOVERY-001](../../../agon-extender/docs/tasks/RECOVERY-001.md) captured a
+mostly erased ROM, restored the full pre-E05 known-good EMOS image, and verified
+all 128 KiB independently. Original P4 restored/verified; onboard VDP unchanged.
+Fresh keyboard admission, MOS CLI COPY, SD read/write and the hardware spoken
+cue passed. Startup and its backup are unchanged. The Author confirms Rally works on hardware; recovery is accepted. The Author declined debugging the failed normal FLASH operation; retain its
+evidence without making it a prerequisite. The Author now authorizes resuming
+E07, with hardware voice notification at the next review/assistance checkpoint.
 
-Status: E05 complete; E06 measurements complete, physical recovery blocked.
+Status: E05/E06 complete; E07 resumed by Author instruction.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
 
@@ -210,7 +212,7 @@ of emulator-coupled changes; do not push experimental code without review.
    smallest stock-shaped C implementation; if still justified, compare a bounded
    assembly inner loop with identical contracts. Keep completion, partial-write
    errors and ownership semantics identical. One causal change per candidate.
-6. [ ] **E06 — Isolate receive and dual-UART cost.** Measure IRQ frequency, entry
+6. [x] **E06 — Isolate receive and dual-UART cost.** Measure IRQ frequency, entry
    saves, FIFO drain/packet work and RTS duration. Compare UART0 quiet, ordinary
    service traffic and controlled traffic while UART1 transfers run, then the
    converse where supported. Test-only gating must be separately labelled and
@@ -220,7 +222,8 @@ of emulator-coupled changes; do not push experimental code without review.
    additional UART0 capture channels only if needed; never infer unobserved
    signals or change wiring from legacy assumptions.
    Measurements and rejected alternative are recorded in E06.md; final physical
-   recovery and notification remain outstanding as described above.
+   recovery and hardware notification now pass through RECOVERY-001; the Author
+   accepted Rally gameplay and directed continuation without a flash-failure audit.
 7. [ ] **E07 — Select and implement minimal fixes.** Choose C/C++ when timing is
    within the frozen negligible-difference threshold. Select assembly only for
    demonstrated throughput or meaningful linked flash savings, documenting
