@@ -91,3 +91,30 @@ an IRQ count or validate suppressed mainboard reply payloads. Label those
 measurements unavailable, never zero-cost or error-free. P4 exact-data checking
 and terminal recovery remain mandatory. A failed native run stops the matrix
 for inspection; do not infer that the observer alone caused the first failure.
+
+## Bounded FIFO alternative — admission after native comparison
+
+If the original IRQ owners pass the native quiet/service comparison and normal
+recovery, test one independent receiver configuration: change the owned UART1
+receive FIFO trigger from one to four bytes, at the existing open/clear point.
+Keep all IRQ/parser code, maximum16byte drain, software RTS, line-error checks,
+timeouts and routing unchanged. Do not change an active FIFO, disable an IRQ,
+or use a diagnostic application to alter UART registers. Build ordinary and
+bench compositions through the canonical wrappers and verify the actual ROM.
+
+Zilog [PS015317-0120](https://zilog.com/docs/ez80acclaim/PS0153.pdf), UART receiver
+interrupts and Table59, specifies the trigger encodings and a receive timeout
+after four byte times without FIFO activity. Data-ready and timeout share the
+receive interrupt enable. Thus sub-four-byte packets must still be delivered;
+verify this on hardware through keyboard admission, control replies and SD
+round trips rather than treating the manual alone as qualification.
+
+Run the unchanged full336 and mixed36 exact-data cases and three independent
+wire4 captures. Compare their native return service/RTS measurements against
+the existing E05 captures, using the frozen5% improvement floor. Repeat the
+native quiet/service application with bindings to the new ROM. If either native
+comparison fails, stop and retain evidence instead of declaring the FIFO
+candidate safe. The longer instrumented burst is not an acceptance test for
+unchanged receiver code when its observer has already invalidated the simpler
+case. No E07 production selection is implied; original physical images still
+return at this checkpoint.
