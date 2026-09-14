@@ -1,0 +1,13 @@
+{
+  "original_full_rom_sha256": "1cd65eac21780a8a7c82e14209737c38796e24f32300524e58a93e5c44e096d8",
+  "p4_original_prefix_sha256": "4b1e99f05d2d81660351056c9ed37fd4af1e1e87ece18a9893f61d68c08ed7ef",
+  "p4_flash_verified": true,
+  "mainboard_original_app_sectors_verified": true,
+  "startup_and_backup_unchanged": true,
+  "sd_roundtrip": true,
+  "keyboard_cli_copy": true,
+  "keys_neutral": true,
+  "state": "Legacy MOS prompt",
+  "human_visual_acceptance": "not requested or inferred",
+  "voice": "Completed with fresh service receipt; human hearing unconfirmed"
+}

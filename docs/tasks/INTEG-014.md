@@ -14,8 +14,10 @@ proof and neutral input. The hardware voice command has a fresh completion
 receipt; human hearing/review remains open. No experimental push.
 
 Status: E01–E08, including [E07P](INTEG-014/E07-parity.md), complete.
-[E08](INTEG-014/E08.md) correctness checks pass; stop for Author review before
-E09 rendering. Transport parity does
+[E08](INTEG-014/E08.md) correctness checks pass. E09 was attempted after
+Author authorization: mainboard timeout followed by
+an incomplete 550/624-interval retry; see [E09](INTEG-014/E09.md).
+Await Author disposition; no full rendering pass. Transport parity does
 not qualify graphics or all-size latency.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.

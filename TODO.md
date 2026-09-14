@@ -3,7 +3,7 @@
 ## First priority — UART execution cost
 
 - [ ] **INTEG-014 — Diagnose and reduce EMOS UART execution cost**
-  - Status: E07P bulk parity complete in both profiles; exact original bench restored and hardware voice acknowledged. See docs/tasks/INTEG-014/E07P-results/README.md. E08 correctness consolidation complete; fresh linked/host and live service checks pass, unchanged-image physical evidence reused. Await Author review before E09 rendering. Short-command setup remains documented; no experimental push.
+  - Status: E07P bulk parity complete in both profiles; exact original bench restored and hardware voice acknowledged. See docs/tasks/INTEG-014/E07P-results/README.md. E08 correctness consolidation complete; fresh linked/host and live service checks pass, unchanged-image physical evidence reused. E09 attempted: mainboard timeout and incomplete 550/624-interval retry; partial gains recorded, no full pass. Await Author disposition. Short-command setup remains documented; no experimental push.
   - Details: [INTEG-014](docs/tasks/INTEG-014.md). Cross-component qualification remains Extender PORT-008.
 
 ## Current BENCH-001 component work
