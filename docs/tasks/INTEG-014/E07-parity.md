@@ -729,13 +729,13 @@ without changing storage, bounds, callback or fault policy. Preserve the old
 fallback for all other state values, including unexpected ones; no new state
 assumption. Instruction counts are a hypothesis, not a retention decision.
 
-1. [ ] **RX06a — Conditional preparation.** Only after RX05's physical result
+1. **RX06a — Not activated; condition resolved by B02.** Only after RX05's physical result
    leaves a reverse gap or unresolved bounds, put a state==2 fast branch ahead
    of the existing header/length tests. Retain every fallback, public/private
    guard and byte/callback contract. Extend direct parser coverage to seeded
    state values before preparing the candidate; compare against the original
    C parser. Build both canonical profiles and run all instruction/host checks.
-2. [ ] **RX06b — Physical disposition.** Hold the selected P4 and mainboard
+2. **RX06b — Not activated; no RX06 source or deployment.** Hold the selected P4 and mainboard
    images/fixtures fixed; install and read back the frozen ROM. Repeat matched
    batch/wire, then full/mixed if improved. Reject a physical non-improvement
    even if interpreted counts fall. Recheck forward parity. If timing alone
@@ -752,3 +752,24 @@ return87.500 versus85.417ms still misses parity. Details and small lengths are
 at [the results summary](E07P-results/README.md). RX05b is now released on this
 fixed P4 image and unchanged mainboard01. Clean RX05 identity15:43:02Z, SHA256
 `60729c6a7bd6d953e2311b933247b56b7e04bbf47c4e374058c8a82df22583ce`.
+
+
+## First strict matched reverse pass / final qualification sequence
+
+The128-transfer comparison resolves RX05's overlapping short bounds. All
+3145728 useful bytes across12 rows are exact, with successful recovery.
+Mainboard median86.068ms, P4 85.286ms (−0.91%); conservative mainboard lower
+85.938ms exceeds P4 upper85.417ms. [Long evidence](E07P-results/ep5rlong-analysis.json),
+[original short control](E07P-results/ep5rb1-analysis.json). Forward's first
+RX05 endpoint remains588.132ms. Final qualification is still pending.
+
+RX06 is not activated: the finer symmetric measurement established the target
+without another production change. Its conditional outline above is retained
+as decision history, not unfinished authorized work. Finish the active RX05
+full/mixed controls, then two additional independent wire captures to meet the
+six-forward-observation/three-capture gate. Freeze that disposition, install
+the clean ordinary RX05 image and repeat exact/mixed, three captures and the
+long paired return measurement to measure diagnostic overhead explicitly.
+No new candidate unless one of those checks fails or changes the conclusion.
+Only then P08 restores exact pre-run firmware and startup, verifies services,
+freezes the final report and sends the hardware voice notification.
