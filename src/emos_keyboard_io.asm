@@ -81,6 +81,116 @@ keyboard_put_done:
             EI
             RET
 
+            XDEF _emos_keyboard_transmit_block
+; TX01: enabled IRQs, private successful Deadline, 3-byte C argument slots.
+; IY source, BC low16 count, IX deadline, HL 24-bit poll budget,
+; D retained byte, E previous clock. IRQ entry preserves all these registers.
+_emos_keyboard_transmit_block:
+            PUSH IX
+            PUSH IY
+            LD IX, 0
+            ADD IX, SP
+            LD IY, (IX+9)
+            LD BC, (IX+12)
+            LD IX, (IX+15)
+            LD HL, (IX+3)
+            LD E, (IX+0)
+            JR keyboard_block_count
+keyboard_block_byte:
+            LD D, (IY+0)
+            INC IY
+keyboard_block_retry:
+            LD A, (_emos_key_faulted)
+            OR A
+            JP NZ, keyboard_block_fail
+            LD A, (_clock)
+            SUB E
+            JR NZ, keyboard_block_tick
+            DEC HL
+            LD A, L
+            OR H
+            JR NZ, keyboard_block_attempt
+            LD (IX+3), HL       ; low16 zero: examine the 24-bit high byte
+            LD A, (IX+5)
+            OR A
+            JP Z, keyboard_block_fail
+keyboard_block_attempt:
+            DI
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            JR Z, keyboard_block_unavailable
+            LD A, (_emos_key_faulted)
+            OR A
+            JR NZ, keyboard_block_unavailable
+            IN0 A, (0D5h)
+            PUSH AF
+            AND 09Eh
+            JR NZ, keyboard_block_error
+            IN0 A, (PC_DR)
+            AND 08h
+            JR NZ, keyboard_block_blocked
+            POP AF
+            AND 020h
+            JR Z, keyboard_block_wait
+            LD A, D
+            OUT0 (0D0h), A
+            EI
+            DEC BC
+keyboard_block_count:
+            LD A, B
+            OR C
+            JR NZ, keyboard_block_byte
+            LD A, 1
+            JR keyboard_block_return
+keyboard_block_blocked:
+            POP AF
+keyboard_block_wait:
+            EI
+            JR keyboard_block_retry
+keyboard_block_unavailable:
+            EI
+keyboard_block_fail:
+            XOR A
+keyboard_block_return:
+            LD (IX+3), HL
+            POP IY
+            POP IX
+            RET
+keyboard_block_error:
+            POP AF
+            IN0 A, (PC_DR)
+            OR 04h
+            OUT0 (PC_DR), A
+            XOR A
+            OUT0 (0D1h), A
+            EI
+            LD A, 2
+            JR keyboard_block_return
+keyboard_block_tick:
+            PUSH BC
+            LD BC, 0
+            LD C, A            ; modulo-8-bit clock delta
+            LD HL, 0
+            LD L, (IX+1)
+            LD H, (IX+2)
+            ADD HL, BC
+            LD (IX+1), L       ; elapsed uses exactly 16 bits
+            LD (IX+2), H
+            LD A, E
+            ADD A, C
+            LD E, A
+            LD (IX+0), A
+            POP BC
+            LD HL, 262144
+            LD A, (IX+2)
+            CP 2
+            JP C, keyboard_block_attempt
+            JP NZ, keyboard_block_fail
+            LD A, (IX+1)
+            CP 88              ; 600 = 0x258
+            JP C, keyboard_block_attempt
+            JP keyboard_block_fail
+
 _emos_keyboard_lock:
             LD A, I
             DI

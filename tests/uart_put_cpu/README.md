@@ -27,3 +27,20 @@ The original C body in `src/uart.c` remains compiled by host driver tests under
 `EMOS_UART_PUT_C_REFERENCE`. The target definition lives in
 `src/emos_keyboard_io.asm`. The linked Port C writer guard admits exactly the
 new error-stop label and one PC_DR write; it does not disable ownership checks.
+
+## E07P complete foreground sender
+
+`cargo run --offline --release --manifest-path tests/uart_put_cpu/Cargo.toml
+--bin block -- BASELINE_DIR CANDIDATE_DIR` executes `emos_keyboard_send`, not
+just its byte leaf. It compares complete port histories, status/fault request,
+clock read count and final private deadline. Its 119 cases cover 0..65,535-byte
+payloads, clock wrap/deltas, valid accumulated deadlines and 24-bit budget
+edges, CTS/THRE stalls, exact partial errors, source mutation during a stall,
+and fault/ownership changes between the clock check and port attempt.
+
+The harness models boundary state changes, not interrupt delivery/latency or
+physical UART timing. Public C preserves IX/SP and alternate registers; IY is
+caller-clobbered by the existing C implementation. TX01's private assembly
+additionally saves IY. Public IRQ-disabled refusal and enabled restoration are
+checked. The source data region is disjoint from the stack even at maximum
+length. No new graphical emulator or runtime profile is involved.

@@ -180,6 +180,7 @@ static BYTE deadline_step(Deadline *d) {
 }
 /* One C frame per block, matching stock's counted-output shape. Keep the
  * deadline and atomic UART ownership/error check on EVERY attempt. */
+#ifdef EMOS_TX_BLOCK_C_REFERENCE
 static BYTE transmit_block(const BYTE *data, UINT16 length, Deadline *d) {
     BYTE result, value;
     while (length) {
@@ -196,6 +197,17 @@ static BYTE transmit_block(const BYTE *data, UINT16 length, Deadline *d) {
     }
     return 1;
 }
+#else
+/* Private enabled-IRQ boundary; all four callers enforce this before sending.
+ * Deadline is fresh/successful (elapsed <600), private to this foreground call.
+ * Target assembly returns 2 only for an acknowledging UART error. */
+extern BYTE emos_keyboard_transmit_block(const BYTE *, UINT16, Deadline *);
+static BYTE transmit_block(const BYTE *data, UINT16 length, Deadline *d) {
+    BYTE result = emos_keyboard_transmit_block(data, length, d);
+    if (result == 2) fault_requested = 1;
+    return result == 1;
+}
+#endif
 static BYTE transmit(BYTE value, Deadline *d) {
     return transmit_block(&value, 1, d);
 }

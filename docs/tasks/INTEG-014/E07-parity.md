@@ -66,7 +66,7 @@ milestone wakeups during this unattended run. No subagents are authorized.
    recovery work separately. Commit this authorization and promote E07P in the
    authoritative INTEG-014 queue before firmware edits. Recheck current hardware
    admission; retain original ROM/ESP/startup hashes and recovery route.
-2. [ ] **P02 — Account for the remaining transmitter.** Inspect actual linked
+2. [x] **P02 — Account for the remaining transmitter.** Inspect actual linked
    E07 C loop/deadline instructions against stock. Extend the pinned CPU harness
    to the full block boundary, including exact port order, timeout, value
    retention, register/IFF preservation and interruptions at relevant boundaries.
@@ -171,3 +171,19 @@ source mutation during a retry, fault/ownership loss, error acknowledgement,
 partial output, and ABI/alternate register protection. Public IRQ-off refusal
 remains covered by the host sender suite. No hardware deployment before these
 checks and both canonical compositions pass.
+
+## P02 / TX01 instruction checkpoint
+
+The linked E07 block takes 6,094,852 interpreted instructions for 65,535 ready
+bytes; TX01 takes 2,359,376 (61.29% fewer). All 119 complete-public-sender
+comparisons pass, including identical clock reads, deadline bytes, port order,
+partial payload and error requests. This is instruction evidence, not timing.
+Both canonical compositions pass: bench 130,162 bytes, ordinary 131,006 bytes
+(66 ROM bytes free). TX01 grows ROM by 132 bytes; further changes must respect
+that narrow budget. Initial assembly branch-range and harness data/stack overlap
+were corrected before testing hardware. Existing C uses caller-clobbered IY;
+the new private assembly preserves it in addition to the required public ABI.
+
+Host sender and keyboard suites pass both ordinary and telemetry compositions.
+TX01 remains experimental pending physical timing and exact/mixed controls;
+P03 is still open. No transport or receive code changed in this candidate.
