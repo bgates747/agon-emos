@@ -395,3 +395,16 @@ including every possible LSR byte, pass against the original C implementation.
 Ready65535 instructions fall from2359376 to2162771; both canonical compositions
 pass with no ROM growth (ordinary130920,152free). Physical deployment follows
 TX02 and RX02 separately; no hardware performance claim yet.
+
+
+## TX02 initial result and isolation rule
+
+The first exact four-case wire capture gives592.060 ms forward versus the paired
+mainboard589.769 ms; UART1 wire589.612 ms, permitted idle4.735 ms. This fails to
+improve TX01/RX01 and is being repeated before disposition. The already-frozen
+RX02 and TX03 images include TX02 solely to preserve one-change physical
+comparisons. If the regression repeats, TX02 is rejected as a performance change;
+restore its original long branches in a separately measured TX04 after those
+isolated comparisons, before selecting any final candidate. Do not silently
+attribute its reversal to a receive improvement or ship it on the strength of
+ROM savings alone. No target or correctness boundary changes.
