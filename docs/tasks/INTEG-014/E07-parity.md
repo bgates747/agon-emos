@@ -145,3 +145,29 @@ all previous generic generated outputs. Fresh P4 status and keyboard snapshot
 in Extender `agents/integ-014/E07P/initial-*` show ready, physically neutral,
 no held or pending keys. E07 restoration hashes and the maintained recovery
 protocol remain the rollback authority; no bench mutation in this step.
+
+## Candidate TX01 — frozen implementation decision
+
+E07's linked block spills pointer/count/retained byte around both the deadline
+call and atomic leaf, in addition to those callees' frames. TX01 replaces only
+the private block implementation with a fused register loop. Keep the existing
+C block as the explicit host reference; keep the E07 atomic leaf for other
+callers. C owns the existing fault-request state via a rare error return.
+
+The private block is reached only from select/layout/text/send, each of which
+rejects entry with interrupts disabled and restores enabled interrupts before
+sending. A freshly started or previously successful Deadline has elapsed <600;
+all failed transmit chains short-circuit. Neither structure is ISR-owned.
+These are private preconditions, not new public restrictions. Cache its budget
+and last clock in registers, flush at return, and test elapsed only when a tick
+changes it. Preserve per-attempt clock read/budget decrement, modulo-8-bit clock
+delta, 16-bit elapsed arithmetic, and the original retained byte. Never mask
+interrupts across retries or across the whole block. Every port attempt keeps
+owner/fault, one acknowledging LSR read, error-before-CTS and THRE admission.
+
+Actual linked-instruction comparisons must cover valid elapsed/budget states,
+clock wraps and timeout edges, arbitrary payloads, transient CTS/THRE stalls,
+source mutation during a retry, fault/ownership loss, error acknowledgement,
+partial output, and ABI/alternate register protection. Public IRQ-off refusal
+remains covered by the host sender suite. No hardware deployment before these
+checks and both canonical compositions pass.
