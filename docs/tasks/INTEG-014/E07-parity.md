@@ -215,3 +215,21 @@ comparisons still require symmetric timing, as the contract specifies.
    bytes, fault behavior and ABI. Build both compositions and measure only after
    TX01's separate physical result. No reduction in register saves and no peer
    release before parsing are included in RX01.
+
+## Reverse timing resolution decision (P05)
+
+If individual completion ticks cannot resolve the RX comparison, add a separate
+fixture mode that performs 16 identical 256-packet returns under one eZ80 clock
+interval, using the same sequence on both routes. Keep the endpoint request and
+packet format unchanged. Retain all 32,768 returned useful bytes in the fixture's
+existing 65,535-byte data array, then validate outside the interval. Copying each
+2,048-byte mailbox to that array and preparing each request are included equally
+on both routes. No SD access or display output occurs in the interval. Report
+this as repeated end-to-end transfers, not inferred wire time or endpoint enqueue
+time. One clock tick uncertainty then contributes about 1.042 ms per transfer
+at 60 Hz; compare interval bounds, not only rounded medians. If the bounds still
+overlap, extend a separately recorded repeat count within available storage or
+repeat the test; do not manufacture a parity claim from coarse single samples.
+
+The original app05 exact/mixed/wire cases remain unchanged controls. The timing
+extension gets its own immutable fixture build/source and results alongside them.
