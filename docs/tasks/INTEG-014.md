@@ -1,6 +1,6 @@
 # INTEG-014 — Diagnose and reduce EMOS UART execution cost
 
-Status: E05 authorised; proceed to E06 if E05 exposes no reason to stop.
+Status: E05 complete; E06 authorised and now proceeding.
 Hardware spoken notification and review pause after this bounded pair.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
@@ -191,7 +191,7 @@ of emulator-coupled changes; do not push experimental code without review.
    off. Repeat paired runs to establish variance; retain host, MOS-clock and
    wire intervals separately. Freeze a numerical material-improvement threshold
    from baseline noise before comparing language variants.
-5. [ ] **E05 — Isolate transmit cost.** Distinguish C call/deadline/locking cost,
+5. [x] **E05 — Isolate transmit cost.** Distinguish C call/deadline/locking cost,
    CTS/THR polling and interrupt occupancy. Compare the existing path with the
    smallest stock-shaped C implementation; if still justified, compare a bounded
    assembly inner loop with identical contracts. Keep completion, partial-write
@@ -297,3 +297,10 @@ spoken hardware cue afterward; pause before E07. No experimental push.
    ESP images, agreed pre-run EMOS and startup unless a reviewed deployment is
    explicitly selected; verify CLI, keyboard and SD recovery. Send the standard
    British spoken hardware cue and stop for review before E07.
+
+E05 completed2026-09-14: [transmit results](INTEG-014/E05.md) confirm33.41%
+forward endpoint reduction,392exact cases including preliminaries, and three
+independent wire captures. Receive cost is unchanged. No new correctness or
+recovery issue blocks E06; [its observation procedure](INTEG-014/E06-procedure.md)
+uses a pinned temporary app and restores vectors before normal transitions.
+Original physical firmware restoration and the spoken cue follow this pair.

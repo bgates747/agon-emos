@@ -1,0 +1,119 @@
+{
+  "cases": 392,
+  "selected_cases": 384,
+  "csv_hashes": {
+    "e05a1": {
+      "raw_sha256": "4b311336f31ef831833ec7dbcd669385b8df264c32cd552a9012d4b4e6cad26f",
+      "published_sha256": "1e6c470613e87b2c9ab505ceea8cc9aa4e8e3a44848a791ca7efbf6b97e48ad3"
+    },
+    "e05c0": {
+      "raw_sha256": "ce08c11ed9a3bf771cec3813a6c72c5a046ed69690f3fa972eabc69435d1a761",
+      "published_sha256": "ec2bba9ddd6a906e8a7394063d8580bae73b949108058deb9e502b28860d052f"
+    },
+    "e05full": {
+      "raw_sha256": "b481969e0e8087dc141191e7014eb7e4c6dfdf36a59e5887e3fcf0d2f7368703",
+      "published_sha256": "82e0de2c14ef10a1123a8dff11e054b82dc76428e07c5543bd9ec79ba3a43ccd"
+    },
+    "e05mixed": {
+      "raw_sha256": "4180e6d46fed4ca686ed18ff3c554f771849ae6f776ba1e9250011c2a99f9c21",
+      "published_sha256": "394f8d62b23a42647df69c93f84abaae81e5171a034a2e0ed97fd605573fb981"
+    },
+    "e05w1": {
+      "raw_sha256": "13961c8a633769a50e0f7f342d5b3210642ac4fe1ea4ab88fea6af158f963eb6",
+      "published_sha256": "0ff44df3596f918d78748f518de95b1257deef2169083687a5fdcf429b6702be"
+    },
+    "e05w2": {
+      "raw_sha256": "43e7af523254ed342ac90be919022c5f8e6847641c5d75071cf14a68875489e1",
+      "published_sha256": "6c22dda854a407050de1357097926ee76a5351691d5aea11963f689792e11ec7"
+    },
+    "e05w3": {
+      "raw_sha256": "dc3566ac1de0ea223cd2d9896915ba9bc502bf26a00077eb52d02ea3ef5d67e3",
+      "published_sha256": "407876df7f4a651230cf3de4bb41a2bbe2ea7292c1773e018942f487a90ceaf6"
+    }
+  },
+  "forward_route0": {
+    "n": 6,
+    "median_ms": 589.6804999999999,
+    "min_ms": 589.591,
+    "max_ms": 589.797
+  },
+  "mixed_route0": {
+    "n": 3,
+    "median_ms": 672.862,
+    "min_ms": 672.693,
+    "max_ms": 673.141
+  },
+  "forward_route1": {
+    "n": 6,
+    "median_ms": 1399.0955,
+    "min_ms": 1399.05,
+    "max_ms": 1399.128
+  },
+  "mixed_route1": {
+    "n": 3,
+    "median_ms": 1503.103,
+    "min_ms": 1503.049,
+    "max_ms": 1503.176
+  },
+  "wire_hashes": [
+    "a2b605d49578254da4e9e97ca24abdde0c65802c017009e7cd3e5608fd938d26",
+    "75ff472220c9233e1f91d50707bc2b911824039a2b396ae153714d4f141cb33b",
+    "a5d4bb0efacad0125e45a1452778a812c5bcadc01c6306b51642127cb7ad94e5"
+  ],
+  "wire_forward": {
+    "wire_span_seconds": {
+      "n": 3,
+      "median_ms": 1396.6124722222212,
+      "min_ms": 1396.599138888888,
+      "max_ms": 1396.6324722222214
+    },
+    "estimated_byte_time_seconds": {
+      "n": 3,
+      "median_ms": 568.8802082790806,
+      "min_ms": 568.8802082790806,
+      "max_ms": 568.8802082790806
+    },
+    "idle_cts_low_seconds": {
+      "n": 3,
+      "median_ms": 826.6362778319741,
+      "min_ms": 826.6189861653074,
+      "max_ms": 826.6410417208622
+    },
+    "idle_cts_high_seconds": {
+      "n": 3,
+      "median_ms": 1.0999444444999098,
+      "min_ms": 1.0959861111665765,
+      "max_ms": 1.1112222222785155
+    }
+  },
+  "wire_reverse": {
+    "wire_span_seconds": {
+      "n": 3,
+      "median_ms": 109.60588888888806,
+      "min_ms": 109.60134722222139,
+      "max_ms": 109.60851388888807
+    },
+    "estimated_byte_time_seconds": {
+      "n": 3,
+      "median_ms": 40.13218055316061,
+      "min_ms": 40.132166664272546,
+      "max_ms": 40.13219444204867
+    },
+    "idle_cts_low_seconds": {
+      "n": 3,
+      "median_ms": 0.14012500048677126,
+      "min_ms": 0.14009722270816566,
+      "max_ms": 0.14025000048428773
+    },
+    "idle_cts_high_seconds": {
+      "n": 3,
+      "median_ms": 69.33356944635261,
+      "min_ms": 69.32906944635262,
+      "max_ms": 69.33609722413122
+    }
+  },
+  "forward_reduction_percent": 33.410523941066394,
+  "wire_forward_reduction_percent": 33.475447538252276,
+  "source_unchanged_during_measurements": true,
+  "matched_firmware_inputs": 88
+}
