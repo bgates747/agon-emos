@@ -374,3 +374,13 @@ stack and interrupt state. A full 16-byte drain uses 284 versus 445 modeled
 instructions in bench, 283 versus 443 in ordinary, excluding recorded callback
 bodies. All 375 linked TX boundary comparisons remain exact; the nine UART host
 checks pass. No physical RX02 conclusion yet: TX02 is installed separately first.
+
+
+## Host qualification maintenance
+
+The previously recorded 90/91 host result is resolved by adding the existing
+telemetry source/object to the explicit ordinary-profile expected lists. The
+profile and firmware are unchanged by this correction; the test continues to
+require the exact complete source order and linked guards. All91 host tests now
+pass against the freshly prepared ordinary worktree. This is a test-maintenance
+commit, separate from TX03's firmware experiment.

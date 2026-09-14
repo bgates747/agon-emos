@@ -117,11 +117,11 @@ class EmosPortTests(unittest.TestCase):
         linked_checks = _make_variable(PROFILE, "FIRMWARE_LINK_CHECKS")
         self.assertEqual(
             sources,
-            ["src/emos_sdlink.c", "src/emos_console.c", "src/emos_keyboard.c", "src/emos_uart_flow.c", "src/emos_uart_probe.c", "src/emos.c", "src/emos_parallel.c", "src/emos_parallel_engine.c"],
+            ["src/emos_telemetry.c", "src/emos_sdlink.c", "src/emos_console.c", "src/emos_keyboard.c", "src/emos_uart_flow.c", "src/emos_uart_probe.c", "src/emos.c", "src/emos_parallel.c", "src/emos_parallel_engine.c"],
         )
         self.assertEqual(
             objects,
-            ["src/emos_sdlink.o", "src/emos_console.o", "src/emos_keyboard.o", "src/emos_uart_flow.o", "src/emos_uart_probe.o", "src/emos.o", "src/emos_parallel.o", "src/emos_parallel_engine.o"],
+            ["src/emos_telemetry.o", "src/emos_sdlink.o", "src/emos_console.o", "src/emos_keyboard.o", "src/emos_uart_flow.o", "src/emos_uart_probe.o", "src/emos.o", "src/emos_parallel.o", "src/emos_parallel_engine.o"],
         )
         self.assertEqual(
             _make_variable(PROFILE, "ASM_SOURCES_EXTRA"),
