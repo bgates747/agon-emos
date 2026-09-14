@@ -496,3 +496,23 @@ bench130089 bytes; ordinary130928 (144 free), unchanged from TX04 ordinary.
 All91 host tests and375 linked sender cases pass. RX03b physical selection
 remains after the frozen TX03/TX04 comparisons; no timing claim from instruction
 counts alone. Source and build checkpoints remain separate from deployment.
+
+
+## Conditional next receive candidate: register argument
+
+The new FIFO loop already holds each received byte in C, but invokes the public
+C-ABI parser entry, which reconstructs its stack argument using LD HL,3 / ADD
+HL,SP / LD C,(HL). That work is redundant for this assembly-only caller.
+
+1. [ ] **RX04a — If RX03 still misses the reverse target, add a private
+   register-argument parser entry.** Keep the public C entry and its exact
+   fault/owner-before-argument-load order. Add a private entry accepting C with
+   the same fault/owner guards, then share the unchanged parser body. The FIFO
+   loop still saves/restores BC and calls only this private entry. Do not remove
+   guards, change callback/register protection, or expose a new public API.
+2. [ ] **RX04b — Prove and measure separately.** The public parser must still
+   pass the exhaustive8,683,703-byte comparison. Extend the complete IRQ harness
+   to observe the private entry's register byte while retaining its existing
+   callback/fault/port/IFF checks. Build both profiles, measure against RX03,
+   rerun symmetric reverse and forward controls; keep only a demonstrated gain.
+   This entry avoids argument marshaling, not any required receive work.
