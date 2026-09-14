@@ -250,7 +250,10 @@ BYTE uart1_keyboard_open(void) {
         close_UART1(); emos_keyboard_vector(0); return UART_POLL_UNAVAILABLE;
     }
     uart1_keyboard_owned = 1;
-    UART1_FCTL = 0x07;
+    /* INTEG-014 E06 candidate: batch four RX bytes per interrupt. The UART
+     * character timeout still delivers shorter packets; keep the same receive
+     * enable, bounded drain and software RTS. PS015317-0120, pp107/115. */
+    UART1_FCTL = 0x47;
     UART1_IER = UART_IER_RECEIVEINT | UART_IER_LINESTATUSINT;
     RESETREG(PC_DR, PORTPIN_TWO); /* Receiver/vector ready before admission. */
     return UART_POLL_READY;
