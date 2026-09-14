@@ -509,7 +509,8 @@ def verify_linked(
         "keyboard_put_error": [0x9E],
         "keyboard_block_error": [0x9E],
         "_uart1_keyboard_close": [0x9F, 0xA0, 0xA1],
-        "_uart1_keyboard_irq": [0x9E, 0x9E],
+        "_uart1_keyboard_irq": [0x9E],
+        "_uart1_keyboard_irq_done": [0x9E],
     }
     observed_rts_writes = {name: [] for name in rts_portc_writes}
     allowed_portc_writers = {

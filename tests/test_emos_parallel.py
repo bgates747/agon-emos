@@ -110,6 +110,7 @@ class EmosParallelTests(unittest.TestCase):
                     # every other host warning fatal while compiling them.
                     "-Wno-endif-labels",
                     "-DEMOS_UART_PUT_C_REFERENCE",
+                    "-DEMOS_UART_IRQ_C_REFERENCE",
                     f"-I{HOST_INCLUDE}",
                     f"-I{ROOT / 'src'}",
                     str(UART),

@@ -291,6 +291,7 @@ BYTE uart1_keyboard_put(BYTE value) {
     return result;
 }
 #endif
+#ifdef EMOS_UART_IRQ_C_REFERENCE
 void uart1_keyboard_irq(void) {
     BYTE count, status;
     if (!uart1_keyboard_owned || emos_key_faulted) return;
@@ -309,6 +310,16 @@ void uart1_keyboard_irq(void) {
     emos_keyboard_async_irq(); /* RX remains first; bounded TX next. */
 #endif
 }
+#else
+/* RX02 completion tail: the assembly drain retains the same stop/error/cap
+ * policy. Keep the profile-dependent telemetry dispatch in maintained C. */
+void uart1_keyboard_irq_done(void) {
+    RESETREG(PC_DR, PORTPIN_TWO);
+#ifdef EMOS_BENCH_TELEMETRY
+    emos_keyboard_async_irq();
+#endif
+}
+#endif
 #ifdef EMOS_BENCH_TELEMETRY
 void uart1_keyboard_tx_enable(BYTE enabled) {
     if (!uart1_keyboard_owned || emos_key_faulted) return;

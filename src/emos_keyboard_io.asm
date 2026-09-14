@@ -18,7 +18,8 @@
             XREF __2nd_jump_table
             XREF __default_mi_handler
             XREF _clock
-            XREF _uart1_keyboard_irq
+            XDEF _uart1_keyboard_irq
+            XREF _uart1_keyboard_irq_done
             XREF _emos_keyboard_tick
             XREF emos_keyboard_payload
             XREF _keydelay
@@ -270,6 +271,37 @@ keyboard_rx_body_start:
 keyboard_rx_empty:
             LD (_emos_key_rx), A
             RET
+
+; RX02: same bounded FIFO drain under the unchanged full IRQ register save.
+; BC on the stack is both saved count and the C byte argument (C is low byte).
+_uart1_keyboard_irq:
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            RET Z
+            LD A, (_emos_key_faulted)
+            OR A
+            RET NZ
+            IN0 A, (PC_DR)
+            OR 04h
+            OUT0 (PC_DR), A
+            LD B, 16
+keyboard_irq_drain:
+            IN0 C, (0D5h)
+            LD A, C
+            AND 09Eh
+            JP NZ, _emos_keyboard_fault
+            BIT 0, C
+            JR Z, keyboard_irq_complete
+            IN0 C, (0D0h)
+            PUSH BC
+            CALL _emos_keyboard_byte
+            POP BC
+            LD A, (_emos_key_faulted)
+            OR A
+            RET NZ
+            DJNZ keyboard_irq_drain
+keyboard_irq_complete:
+            JP _uart1_keyboard_irq_done
 
 _emos_keyboard_lock:
             LD A, I

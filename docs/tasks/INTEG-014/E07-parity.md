@@ -311,7 +311,7 @@ procedure changes. Service journals retain every request/receipt.
 
 ## RX02 contingency — FIFO loop overhead
 
-1. [ ] **RX02a — If RX01 still misses reverse parity, replace only the C drain
+1. [x] **RX02a — If RX01 still misses reverse parity, replace only the C drain
    loop with a short assembly loop.** The linked C loop spends roughly 23
    instructions per delivered byte outside the parser, including redundant
    bit/zero tests and saving/reloading its count around the call. A counted
@@ -362,3 +362,15 @@ SHA256 `c56ef6c58dad00b4fd0e19bf83e524a2a9b444a53457607e141754d1b0ba6042`,
 identity `agon-emos-v0.1.17-b2026-09-14-13-31-44Z`, from clean commit b0c3e12.
 RX02 FIFO-loop source preparation is separate and will not be included in the
 TX02 physical image, preserving attribution for each change.
+
+
+## RX02a instruction checkpoint
+
+The private FIFO drain now uses a counted assembly loop; the original C loop
+remains the host reference. Both canonical profiles pass all link guards. Bench
+size is 130075 bytes; ordinary is 130920 (152 free). Complete IRQ comparisons
+pass 1270 cases in each composition, preserving port order, all saved registers,
+stack and interrupt state. A full 16-byte drain uses 284 versus 445 modeled
+instructions in bench, 283 versus 443 in ordinary, excluding recorded callback
+bodies. All 375 linked TX boundary comparisons remain exact; the nine UART host
+checks pass. No physical RX02 conclusion yet: TX02 is installed separately first.
