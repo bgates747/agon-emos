@@ -79,7 +79,7 @@ milestone wakeups during this unattended run. No subagents are authorized.
    candidates. Reject failures; keep one causal change per candidate and commit
    each disposition. Continue on measured remaining TX costs until parity or a
    documented architectural limit, not merely one successful optimization.
-4. [ ] **P04 — Account for and reduce RX work.** Compare stock byte drain/parser/
+4. [x] **P04 — Account for and reduce RX work.** Compare stock byte drain/parser/
    effect paths with current generated code. First reduce per-byte call/frame/
    state work; keep register protection and dispatch policy intact. Consider
    cheaper IRQ entry only after the code's actual clobbers are proven. Avoid
@@ -435,3 +435,12 @@ canonical profiles and375 complete sender instruction cases pass; ordinary
 130928 bytes (144 free), bench130083. This adds back the eight bytes TX02 saved.
 The frozen RX02/TX03 images remain immutable for their separate observations.
 TX04 physical disposition and all final parity requirements remain pending.
+
+
+## P04 accounting checkpoint
+
+The stock/current receive comparison is complete and RX01 has demonstrated a
+13% wire-time improvement with376 exact physical cases. P04 is complete for
+accounting and the first proven reduction. P05 still owns reverse parity and
+further RX02 measurements; its checkbox remains open. Full register protection,
+independent parser storage and existing stock effect adapters are retained.
