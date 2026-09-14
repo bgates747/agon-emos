@@ -1,10 +1,6 @@
 {
-  "cases": 376,
+  "cases": 384,
   "rows": {
-    "ep5rw1": {
-      "count": 4,
-      "sha256": "b9548a9d1f99c9b2d2321e4f4bfedb55500e5ab31393033d6ec9663f0dec1b73"
-    },
     "ep5rfull": {
       "count": 336,
       "sha256": "d18b64d0052a231f1a504ff07c810888393b925a8094b3d42402f93b8c76900b"
@@ -12,23 +8,35 @@
     "ep5rmixed": {
       "count": 36,
       "sha256": "0e80c56c17ae2bc64962e0560bb54139a7940b968f60c8e390b6dc55ae90fe1e"
+    },
+    "ep5rw1": {
+      "count": 4,
+      "sha256": "b9548a9d1f99c9b2d2321e4f4bfedb55500e5ab31393033d6ec9663f0dec1b73"
+    },
+    "ep5rw2": {
+      "count": 4,
+      "sha256": "4475543657dcddccf9275e767ed1689ffd85319aad509b184541c2b9b904241a"
+    },
+    "ep5rw3": {
+      "count": 4,
+      "sha256": "5331dd54bb36ad53a6274fb786caa044d4fa55859b9471dbec2108136e10d56c"
     }
   },
   "firmware_sha256": "60729c6a7bd6d953e2311b933247b56b7e04bbf47c4e374058c8a82df22583ce",
-  "wire_captures": 1,
-  "verdict": "Retained: 376 exact controls and conservative long-interval reverse parity; final captures and ordinary composition pending.",
+  "wire_captures": 3,
+  "verdict": "Bench composition passes both frozen transport targets and 384 exact controls; ordinary qualification and original restoration pending.",
   "forward": {
     "0": {
-      "median_ms": 589.6904999999999,
+      "median_ms": 589.6565,
       "min_ms": 589.554,
       "max_ms": 589.766,
-      "n": 4
+      "n": 6
     },
     "1": {
-      "median_ms": 588.1424999999999,
+      "median_ms": 588.154,
       "min_ms": 588.112,
       "max_ms": 588.205,
-      "n": 4
+      "n": 6
     }
   },
   "duplex-forward": {
@@ -196,8 +204,312 @@
         ]
       ],
       "limits": "Frame-end estimate has approximately one-sample uncertainty. CTS-low idle does not identify its software cause. No analogue-integrity claim."
+    },
+    {
+      "acquisition_pass": true,
+      "coverage_pass": true,
+      "independent_decode_matches": true,
+      "trace_sha256": "f6e73583c07bb09d43c81faa9983c93f3fba67b3a768f60288b7d5f52a4e449f",
+      "analysis_sha256": "1c63829e3d87b48e338809e647a264828ecd6281ca5d50594f88fa0d13f72bd1",
+      "samples": 720000000,
+      "sample_rate_hz": 24000000,
+      "forward_bytes": 65535,
+      "return_wire_bytes": 4626,
+      "return_payload_bytes": 2048,
+      "forward": {
+        "wire_span_seconds": 0.5874104722222214,
+        "estimated_byte_time_seconds": 0.5683322916450724,
+        "idle_seconds": 0.019078180577148995,
+        "idle_cts_high_seconds": 0.016542819445602597,
+        "idle_cts_low_seconds": 0.002535361131546398,
+        "cts_high_seconds": 0.025636125,
+        "idle_cts_high_fraction": 0.867106765171143,
+        "longest_gaps": [
+          {
+            "start_seconds": 19.40871026388889,
+            "duration_seconds": 3.636111111193895e-05,
+            "cts_high_seconds": 0.0
+          },
+          {
+            "start_seconds": 19.177322013888887,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.852777777860562e-05
+          },
+          {
+            "start_seconds": 19.336364680555555,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.7486111111938953e-05
+          },
+          {
+            "start_seconds": 19.39637997222222,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.7819444445272286e-05
+          },
+          {
+            "start_seconds": 19.47339976388889,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.8111111111938955e-05
+          },
+          {
+            "start_seconds": 19.61843809722222,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.7694444445272286e-05
+          },
+          {
+            "start_seconds": 19.625439347222223,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.827777777860562e-05
+          },
+          {
+            "start_seconds": 19.34336584722222,
+            "duration_seconds": 2.1569444445272285e-05,
+            "cts_high_seconds": 1.806944444527229e-05
+          },
+          {
+            "start_seconds": 19.603297555555553,
+            "duration_seconds": 2.1569444445272285e-05,
+            "cts_high_seconds": 1.915277777860562e-05
+          },
+          {
+            "start_seconds": 19.678453680555556,
+            "duration_seconds": 2.1569444445272285e-05,
+            "cts_high_seconds": 1.7736111111938953e-05
+          }
+        ]
+      },
+      "reverse": {
+        "wire_span_seconds": 0.08394897222222139,
+        "estimated_byte_time_seconds": 0.04013244444203377,
+        "idle_seconds": 0.043816527780187624,
+        "idle_cts_high_seconds": 0.04367587500190983,
+        "idle_cts_low_seconds": 0.00014065277827779451,
+        "cts_high_seconds": 0.051089375,
+        "idle_cts_high_fraction": 0.9967899606517567,
+        "longest_gaps": [
+          {
+            "start_seconds": 20.227831513888887,
+            "duration_seconds": 8.590277777860562e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 20.22129097222222,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.577777777860562e-05
+          },
+          {
+            "start_seconds": 20.22292609722222,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 20.224561263888887,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.577777777860562e-05
+          },
+          {
+            "start_seconds": 20.226196388888887,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 20.229466680555554,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 20.231101805555554,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 20.23273697222222,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.577777777860562e-05
+          },
+          {
+            "start_seconds": 20.23437209722222,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 20.236007263888887,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.577777777860562e-05
+          }
+        ]
+      },
+      "forward_local_elapsed_us": 588155,
+      "return_enqueue_us": 700,
+      "return_request_to_completion_ms": 84.86218055555472,
+      "return_request_to_first_byte_ms": 0.8350694444452723,
+      "forward_starts_with_cts_high": 1008,
+      "reverse_starts_with_cts_high": 0,
+      "window_samples": [
+        [
+          458740628,
+          472979464.3333333
+        ],
+        [
+          485275539,
+          487312231.3333333
+        ]
+      ],
+      "limits": "Frame-end estimate has approximately one-sample uncertainty. CTS-low idle does not identify its software cause. No analogue-integrity claim."
+    },
+    {
+      "acquisition_pass": true,
+      "coverage_pass": true,
+      "independent_decode_matches": true,
+      "trace_sha256": "fc6e86169e59f0ecef6ea386a369f471a4d9e891379b9e3f307a476a4abe75ca",
+      "analysis_sha256": "1c63829e3d87b48e338809e647a264828ecd6281ca5d50594f88fa0d13f72bd1",
+      "samples": 720000000,
+      "sample_rate_hz": 24000000,
+      "forward_bytes": 65535,
+      "return_wire_bytes": 4626,
+      "return_payload_bytes": 2048,
+      "forward": {
+        "wire_span_seconds": 0.5873992638888881,
+        "estimated_byte_time_seconds": 0.5683322222006321,
+        "idle_seconds": 0.019067041688255966,
+        "idle_cts_high_seconds": 0.01654783333449314,
+        "idle_cts_low_seconds": 0.0025192083537628252,
+        "cts_high_seconds": 0.025642875,
+        "idle_cts_high_fraction": 0.8678762864763394,
+        "longest_gaps": [
+          {
+            "start_seconds": 18.351164805555555,
+            "duration_seconds": 3.636111111193895e-05,
+            "cts_high_seconds": 0.0
+          },
+          {
+            "start_seconds": 18.633145430555555,
+            "duration_seconds": 2.315277777860562e-05,
+            "cts_high_seconds": 1.552777777860562e-05
+          },
+          {
+            "start_seconds": 18.131435305555556,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.9444444445272288e-05
+          },
+          {
+            "start_seconds": 18.229896013888887,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.9319444445272288e-05
+          },
+          {
+            "start_seconds": 18.359340347222222,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.852777777860562e-05
+          },
+          {
+            "start_seconds": 18.412944097222223,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 1.8986111111938953e-05
+          },
+          {
+            "start_seconds": 18.458955097222223,
+            "duration_seconds": 2.1611111111938952e-05,
+            "cts_high_seconds": 2.002777777860562e-05
+          },
+          {
+            "start_seconds": 18.35642476388889,
+            "duration_seconds": 2.1569444445272285e-05,
+            "cts_high_seconds": 1.740277777860562e-05
+          },
+          {
+            "start_seconds": 18.51196938888889,
+            "duration_seconds": 2.1569444445272285e-05,
+            "cts_high_seconds": 1.952777777860562e-05
+          },
+          {
+            "start_seconds": 18.56498359722222,
+            "duration_seconds": 2.1569444445272285e-05,
+            "cts_high_seconds": 1.915277777860562e-05
+          }
+        ]
+      },
+      "reverse": {
+        "wire_span_seconds": 0.08395213888888806,
+        "estimated_byte_time_seconds": 0.04013265277535468,
+        "idle_seconds": 0.043819486113533375,
+        "idle_cts_high_seconds": 0.043679527779688435,
+        "idle_cts_low_seconds": 0.00013995833384493987,
+        "cts_high_seconds": 0.05109116666666667,
+        "idle_cts_high_fraction": 0.996806025212566,
+        "longest_gaps": [
+          {
+            "start_seconds": 19.249965763888888,
+            "duration_seconds": 9.348611111193895e-05,
+            "cts_high_seconds": 9.344444444527229e-05
+          },
+          {
+            "start_seconds": 19.199969555555555,
+            "duration_seconds": 9.265277777860562e-05,
+            "cts_high_seconds": 9.25694444452723e-05
+          },
+          {
+            "start_seconds": 19.21664447222222,
+            "duration_seconds": 9.265277777860562e-05,
+            "cts_high_seconds": 9.25694444452723e-05
+          },
+          {
+            "start_seconds": 19.233319055555555,
+            "duration_seconds": 9.265277777860562e-05,
+            "cts_high_seconds": 9.25694444452723e-05
+          },
+          {
+            "start_seconds": 19.169194972222222,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 19.17083013888889,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.577777777860562e-05
+          },
+          {
+            "start_seconds": 19.17246526388889,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 19.17410038888889,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 19.175735555555555,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          },
+          {
+            "start_seconds": 19.177370680555555,
+            "duration_seconds": 8.586111111193896e-05,
+            "cts_high_seconds": 8.581944444527229e-05
+          }
+        ]
+      },
+      "forward_local_elapsed_us": 588157,
+      "return_enqueue_us": 637,
+      "return_request_to_completion_ms": 84.79993055555472,
+      "return_request_to_first_byte_ms": 0.7696527777786056,
+      "forward_starts_with_cts_high": 1008,
+      "reverse_starts_with_cts_high": 0,
+      "window_samples": [
+        [
+          433359968,
+          447597237.3333333
+        ],
+        [
+          460018882,
+          462054080.3333333
+        ]
+      ],
+      "limits": "Frame-end estimate has approximately one-sample uncertainty. CTS-low idle does not identify its software cause. No analogue-integrity claim."
     }
   ],
+  "forward_parity_pass": true,
+  "reverse_analysis": "ep5rlong-analysis.json",
   "p4_factory_sha256": "368ff0a00e798f598964471656608d8a944a24cc062434c918e71cda203f91c5",
   "mainboard_app_sha256": "1c5b15b35d277e8f1af8f68023bea95807f11d120e557eff7d2cadb0655dd71d"
 }

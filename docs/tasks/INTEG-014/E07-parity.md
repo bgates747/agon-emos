@@ -72,7 +72,7 @@ milestone wakeups during this unattended run. No subagents are authorized.
    retention, register/IFF preservation and interruptions at relevant boundaries.
    Select a minimal fused/register-based implementation only after identifying
    repeated work; no global interrupt mask around a block.
-3. [ ] **P03 — Iterate TX candidates.** Build ordinary and bench through all
+3. [x] **P03 — Iterate TX candidates.** Build ordinary and bench through all
    canonical link guards; run host and actual-instruction boundary checks. Test
    the first plausible candidate on the frozen diagnostic pair. Measure selected
    endpoint cases early, then exact/mixed and independent captures for retained
@@ -794,3 +794,13 @@ receiver passes exhaustive public/private and IRQ boundaries, exact/mixed
 controls, source/routing recovery and the symmetric long reverse target.
 P07 still checks repeatability and the ordinary composition; this checkbox
 does not claim graphics parity or final bench restoration.
+
+
+## P03 completion — six observations / three captures
+
+Final bench RX05 on owner01/mainboard01 passes384 original exact cases and all
+three independent captures, with zero snapshots and clean recovery. Six large
+forward medians: P4 588.154ms (588.112–588.205), mainboard589.656ms
+(589.554–589.766), a0.255% elapsed advantage. The matched long return target
+also remains passed. [Final bench composition](E07P-results/rx05.json).
+P07's ordinary profile and P08's original restoration are still pending.
