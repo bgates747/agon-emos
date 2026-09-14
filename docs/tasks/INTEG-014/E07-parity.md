@@ -718,3 +718,26 @@ The actual RX04 ROM is byte-exact, SHA256
 `f96f1c22e3dbb7f8900c93bead3a7ff39655c963b139bef7ca3174959fbaac45`,
 identity15:17:39Z. Hold it and mainboard01/app05/batch01 fixed for P4 O03.
 Prepared RX05 stays off the bench until that separate disposition.
+
+
+## Conditional RX06 — common payload-state branch
+
+RX04/RX05 still route every admitted byte through both header/length tests
+before reaching the common payload state. In framed bulk replies, payload
+bytes dominate. A state==2 branch before those tests may save dispatch work
+without changing storage, bounds, callback or fault policy. Preserve the old
+fallback for all other state values, including unexpected ones; no new state
+assumption. Instruction counts are a hypothesis, not a retention decision.
+
+1. [ ] **RX06a — Conditional preparation.** Only after RX05's physical result
+   leaves a reverse gap or unresolved bounds, put a state==2 fast branch ahead
+   of the existing header/length tests. Retain every fallback, public/private
+   guard and byte/callback contract. Extend direct parser coverage to seeded
+   state values before preparing the candidate; compare against the original
+   C parser. Build both canonical profiles and run all instruction/host checks.
+2. [ ] **RX06b — Physical disposition.** Hold the selected P4 and mainboard
+   images/fixtures fixed; install and read back the frozen ROM. Repeat matched
+   batch/wire, then full/mixed if improved. Reject a physical non-improvement
+   even if interpreted counts fall. Recheck forward parity. If timing alone
+   remains unresolved, use the separately frozen symmetric longer-interval
+   measurement, preserving raw bytes outside the timed loop.
