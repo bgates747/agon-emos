@@ -1,0 +1,8 @@
+{
+  "collection_deadline_seconds": 1200,
+  "normal_service_return": false,
+  "sd_file": "/extender/gqt/GQT008.CSV",
+  "bytes": 208515,
+  "tail": "255/255,actual=255/255/255,match=1\r\n# probe,rep=3,route=1,case=SHP20,index=1,expected=255/255/255,actual=255/255/255,match=1\r\n# probe,rep=3,route=1,case=SHP20,index=2,expected=255/255/255,actual=255/255/255,match=1\r\n",
+  "recovery": "Original ESP restore plus Pi reset"
+}

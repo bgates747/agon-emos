@@ -12,7 +12,10 @@
   "retry": {
     "collection_deadline_seconds": 1200,
     "normal_service_return": false,
-    "full_csv_validated": false
+    "full_csv_validated": false,
+    "saved_intervals": 550,
+    "recorded_nonzero_statuses": 0,
+    "terminal_record": false
   },
-  "limits": "No completed paired matrix or defensible current P4-versus-mainboard rendering comparison. Diagnostic counters advancing do not prove individual graphics-case progress. Restoration underway."
+  "limits": "Incomplete test; exploratory two-repeat comparison retained separately, not qualification. Original ESP restored and verified; original EMOS readback underway."
 }
