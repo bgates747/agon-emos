@@ -555,3 +555,17 @@ do not identify every cause of the additional latency. [All random lengths and
 ranges](E07P-results/rx02-lengths.json). Keep this visible even if the frozen
 large-transfer target passes; do not claim parity for every small VDU command.
 The objective and baseline are unchanged.
+
+
+## P06 companion: P4 owner scheduling
+
+A focused read-only comparison found an unconditional one-millisecond sleep in
+the current P4 console owner, absent from stock VDP's hardware process loop.
+The maintained owner SHA exactly matches the installed diagnostic overlay.
+Extender PORT-008 `uart-alignment/E07P-owner.md` now freezes O01–O04 for a separate
+stock-alignment comparison after the existing TX03/TX04/RX03 observations. Fix
+independent virtual time in the host owner test first; do not alter UART rules,
+parser/queue/service logic, task priority, affinity or watchdog policy. Both
+stock and current P4 already disable IDLE task watchdogs for the process loop.
+This addresses the measured residual setup latency within P06, not a renderer
+redesign or a silent change to the paired baseline during EMOS selection.
