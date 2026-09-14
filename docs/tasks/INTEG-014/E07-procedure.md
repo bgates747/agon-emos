@@ -36,7 +36,7 @@ hardware voice is the attention cue, spoken emulator fallback only if needed.
    existing full exact-byte and mixed-transfer controls for the candidate.
    The E04 5% material-time-reduction floor remains unchanged; unmeasured
    production/rendering claims remain out of scope.
-5. [ ] Retain or reject the leaf from timing, correctness, size and ABI evidence.
+5. [x] Retain or reject the leaf from timing, correctness, size and ABI evidence.
    Keep RX and unrelated space changes separate. Restore agreed pre-run EMOS
    and diagnostic ESP images, verify flash where applicable and check actual
    CLI/keyboard/SD plus unchanged startup. Use maintained ZDI recovery if needed,

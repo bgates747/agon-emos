@@ -1,0 +1,11 @@
+{
+  "full_emos_rom_sha256": "1cd65eac21780a8a7c82e14209737c38796e24f32300524e58a93e5c44e096d8",
+  "emos_exact_pre_run_image": true,
+  "onboard_vdp_app_prefix_verified": true,
+  "p4_exact_pre_run_2mib_verified": true,
+  "startup_and_backup_unchanged": true,
+  "keyboard_cli_sd_pass": true,
+  "generated_builder_outputs_restored_and_verified": true,
+  "human_visual_acceptance": "pending",
+  "voice_notification": "pending"
+}
