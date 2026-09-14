@@ -1,5 +1,12 @@
 # EMOS TODO
 
+## First priority — UART execution cost
+
+- [ ] **INTEG-014 — Diagnose and reduce EMOS UART execution cost**
+  - Status: Supervised run authorised; E01 preservation/recovery checkpoint in progress. Notify on hardware and stop after each numbered step. No firmware implementation started.
+  - Details: [INTEG-014](docs/tasks/INTEG-014.md). Cross-component qualification remains Extender PORT-008.
+
+
 This is the repository's single authoritative list of unfinished EMOS work.
 Cross-component Extender work remains in the `agon-extender` task list; generic
 port-infrastructure work remains in `mos-agondev`.
