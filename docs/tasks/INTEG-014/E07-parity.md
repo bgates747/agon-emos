@@ -283,7 +283,7 @@ with all correctness checks intact. The 5% floor remains useful for coarse
 improvements elsewhere; it must not prohibit the final fraction of a percent.
 This decision is recorded before implementing the next TX change.
 
-1. [ ] **TX03 — Avoid the temporary status stack slot.** If needed after RX01 /
+1. [x] **TX03 — Avoid the temporary status stack slot.** If needed after RX01 /
    TX02, classify the single LSR sample into clean-ready, clean-empty, or error
    using its masked value. On clean-ready, sample CTS then write; on clean-empty,
    still sample CTS before retrying; on error perform the same PC_DR/IER stop.
@@ -569,3 +569,16 @@ parser/queue/service logic, task priority, affinity or watchdog policy. Both
 stock and current P4 already disable IDLE task watchdogs for the process loop.
 This addresses the measured residual setup latency within P06, not a renderer
 redesign or a silent change to the paired baseline during EMOS selection.
+
+
+## TX03 disposition
+
+Retain the status-classification change: all376 original exact cases pass
+(full336, mixed36, independently decoded wire4), with clean recovery. Combined
+large-random medians are mainboard589.661 ms and
+P4 590.063 ms. This is a repeatable improvement from RX02's
+592.053 ms but still misses the strict forward target. Return wire remains
+87.713 ms, as expected for a TX-only change. [Evidence](E07P-results/tx03.json).
+The separately frozen TX04 image now restores the rejected short branches;
+SHA256 `6ddc819a8fea7cffe59bdd5d663b7bb53b7e490d1361866ab198802c377c0622`,
+identity13:56:56Z, source6057bb6. It will be read back before measurement.
