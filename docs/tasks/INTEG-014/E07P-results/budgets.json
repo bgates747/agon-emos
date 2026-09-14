@@ -1,0 +1,23 @@
+{
+  "bench": {
+    "identity": "agon-emos-v0.1.17-b2026-09-14-15-43-02Z",
+    "sha256": "60729c6a7bd6d953e2311b933247b56b7e04bbf47c4e374058c8a82df22583ce",
+    "flash_occupied": 130091,
+    "flash_free": 981,
+    "static_sram": 6964,
+    "heap_arena": 7372,
+    "stack_reserve": 2048,
+    "map_sha256": "257ff0bcb1076a0d3f5d157bef16533c620de5f8fac03847bbb6d091d6fe8b80"
+  },
+  "ordinary": {
+    "identity": "agon-emos-v0.1.17-b2026-09-14-16-10-16Z",
+    "sha256": "429f85ebb413bf3eed779307a71126b6cafb7bf884ad1824c6673e1814718b61",
+    "flash_occupied": 130936,
+    "flash_free": 136,
+    "static_sram": 6826,
+    "heap_arena": 7510,
+    "stack_reserve": 2048,
+    "map_sha256": "8550453af21b9b8d5aa3b5d1d9bc91d65e07f0335e85f6a3e5f793cf291e0bbb"
+  },
+  "limits": "Heap arena precedes allocator metadata/live allocations; stack reserve is not a measured high-water mark. Existing external16KiB MOS reservation; no on-chip user SRAM appropriation. Bench replaces UARTFLOW with telemetry, so its flash delta is a composition difference."
+}

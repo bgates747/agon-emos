@@ -3,8 +3,8 @@
 ## Executive summary
 
 RX05 with the retained P4 owner-loop alignment has passing candidate results
-in both directions. All376 original exact/mixed/wire cases pass; final captures
-and ordinary-profile qualification remain. The128-transfer reverse test
+in both directions. All384 original exact/mixed/wire cases and three independent captures pass;
+ordinary-profile qualification remains. The128-transfer reverse test
 verifies3MiB exactly and separates the timing bounds. Original bench restoration
 is still pending. The [frozen task](../E07-parity.md) owns execution.
 
@@ -13,7 +13,7 @@ are transport measurements, not rendering/output.
 
 | Workload | Mainboard baseline (ms) | Extender (ms) | Difference |
 |---|---:|---:|---:|
-| Forward65,535 pseudorandom bytes, four observations | 589.690 | 588.142 | -0.26% |
+| Forward65,535 pseudorandom bytes, six observations | 589.656 | 588.154 | -0.25% |
 | Return, per256-packet transfer in128-transfer batch | 86.068 | 85.286 | -0.91% |
 
 Return uses six alternating paired intervals with equal request/arming/copy
@@ -43,7 +43,7 @@ yet. These full-matrix medians include the unchanged READY/query sequence.
 | RX03 idle telemetry guard | Rejected: no demonstrated wire gain | [RX03](rx03.json) |
 | RX04 register argument | Retained receiver candidate: 85.960 ms return wire; 376 cases pass, combined parity still open | [RX04](rx04.json) |
 | P4 owner sleep removed | 588.147 ms forward; 376 cases and service/idle checks pass; retained | [Owner comparison](owner01.json) |
-| RX05 caller-proven private fault admission | Retained: 83.952ms return wire, strict matched reverse parity; 376 exact cases | [RX05](rx05.json) |
+| RX05 caller-proven private fault admission | Retained: 83.952ms return wire, strict matched reverse parity; 384 exact cases | [RX05](rx05.json) |
 
 Wire measurements in that table are UART1-only observations, not fabricated
 UART0 wire comparisons. The mainboard's individual blocking-handler timer and
@@ -53,3 +53,11 @@ Immutable firmware/source manifests and raw logic captures remain in the ignored
 E07P evidence directories in EMOS and Extender. Each JSON pins image/capture
 hashes and each CSV retains its terminal integrity/recovery result. No final
 ordinary-profile qualification or restoration has been claimed yet.
+
+
+Linked [resource budgets](budgets.json): ordinary EMOS130936/131072 flash bytes
+(136 free),6826 static SRAM bytes,7510-byte heap arena and2048-byte stack reserve.
+The bench profile uses130091 flash bytes and6964 static SRAM bytes; it replaces
+UARTFLOW with telemetry, so profile size differences are not telemetry cost
+alone. No new on-chip user SRAM is reserved. Stack reserve is not a measured
+worst-case high-water mark.
