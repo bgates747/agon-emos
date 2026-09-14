@@ -321,7 +321,7 @@ procedure changes. Service journals retain every request/receipt.
    complete existing outer IRQ register save/restore. Keep the C reference for
    host tests. A tiny C completion tail owns RTS reopening and the optional
    telemetry call, so ordinary/bench composition remains profile-controlled.
-2. [ ] **RX02b — Prove and measure.** Compare full linked IRQ entry/exit against
+2. [x] **RX02b — Prove and measure.** Compare full linked IRQ entry/exit against
    RX01 with programmable FIFO/status responses and callback clobbers. Verify
    exact port/read order, byte delivery, cap/error/fault behavior, no premature
    RTS reopening, all primary/alternate registers, SP and IFF restoration.
@@ -516,3 +516,17 @@ HL,SP / LD C,(HL). That work is redundant for this assembly-only caller.
    callback/fault/port/IFF checks. Build both profiles, measure against RX03,
    rerun symmetric reverse and forward controls; keep only a demonstrated gain.
    This entry avoids argument marshaling, not any required receive work.
+
+
+## RX02 disposition
+
+Retain the FIFO-loop improvement after376 original exact cases (full336,
+mixed36, wire4) plus the separately scoped12 paired batch rows. Every payload,
+status and recovery check passes, with no snapshots during capture. P05 remains
+open because the symmetric return comparison is still5.49% slower. RX02b is
+complete as a candidate disposition. [Original controls](E07P-results/rx02.json)
+and [batch comparison](E07P-results/ep2rb1-analysis.json) remain distinct.
+The next installed image is the frozen TX03 status-classification candidate,
+identity13:49:22Z, SHA256
+`ee66855246b140c96a432cf26c8d85aa11549541579335cc048694769ec5169f`;
+it changes only TX relative to the measured RX02 image.
