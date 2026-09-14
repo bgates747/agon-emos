@@ -444,3 +444,30 @@ The stock/current receive comparison is complete and RX01 has demonstrated a
 accounting and the first proven reduction. P05 still owns reverse parity and
 further RX02 measurements; its checkbox remains open. Full register protection,
 independent parser storage and existing stock effect adapters are retained.
+
+
+## RX02 first physical result and conditional RX03
+
+RX02 passes the four original wire cases with independent exact decoding and
+clean recovery. Return wire87.718 ms versus RX01's95.530 ms; Agon-stopped idle
+falls55.257 to47.445 ms. Forward remains592.092 ms versus mainboard589.623 ms.
+The symmetric batch fixture is now measuring the residual reverse gap; the
+mainboard's85.052 ms handler measurement alone is not a scope-matched verdict.
+
+1. [ ] **RX03a — Avoid entering an idle optional transmitter.** Only if the
+   symmetric return comparison still misses parity, check the existing pending
+   length before UART RX completion enters `emos_keyboard_async_irq`. The linked
+   function builds a C frame before discovering there is no queued packet.
+   Expose its existing volatile length as a private cross-file symbol (same
+   storage, no mirrored flag), and guard the call in the existing C completion
+   tail. Keep the original callee guard for its other callers. No change to
+   queued telemetry, its bounded16-byte drain, error/stall behavior, UART writes,
+   RTS release order or ordinary composition. Prefer this small C change over
+   another assembly rewrite.
+2. [ ] **RX03b — Prove and measure that isolated increment.** Extend complete
+   IRQ comparisons to run the real idle transmitter and to record queued work
+   only when length is nonzero; compare both idle and pending cases, all saved
+   registers and port ordering. Existing host telemetry tests must still prove
+   real queue/drain/stall behavior. Build both profiles with all guards, then
+   measure only after TX04 so receive and transmit effects remain separate.
+   Require exact/mixed controls and symmetric reverse timing before retention.
