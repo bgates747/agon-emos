@@ -675,3 +675,16 @@ This is a possible remaining per-byte cost, not yet a measured benefit.
    physical gain with intact services. Do not use an invalid direct call with
    a preexisting fault to excuse a public-API regression; only the private
    masked-IRQ entry has this narrower precondition.
+
+
+## RX05 precondition proof on unchanged RX04
+
+RX04's exact wire test reduced return wire time to85.960ms from TX04's87.716ms,
+but the symmetric batch still misses parity (P4 88.021ms, mainboard86.458ms,
++1.81%). RX05a's preparation condition is satisfied; physical deployment still
+waits for the P4 owner comparison. On unchanged RX04, the strengthened IRQ
+harness passes3906 bench and1302 ordinary cases, asserting fault-clear before
+every parser call, including callbacks setting fault and/or releasing owner at
+all sixteen positions. The separate admitted-entry parser test passes8,582,356
+byte comparisons. Public parser coverage remains unchanged. This freezes the
+caller precondition evidence before removing its redundant private test.

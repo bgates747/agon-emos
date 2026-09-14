@@ -73,3 +73,10 @@ cap, full primary/alternate register restoration, SP and IFF. Parser/fault/
 telemetry calls are recorded at their existing boundaries; parser semantics
 are tested separately. It is an ADL instruction-boundary check, not a physical
 UART device, interrupt-arrival test or proof for every interrupted CPU mode.
+
+The optional receive flag `--irq-admitted` tests the private register entry
+under its masked caller's fault-clear precondition: both references stop calling
+after a fault. The ordinary public-entry comparison still exercises already
+faulted calls. Complete IRQ cases assert fault-clear at every byte-call boundary
+and include callbacks releasing ownership, setting faults, and doing both at
+each of sixteen byte positions. This does not weaken public API coverage.

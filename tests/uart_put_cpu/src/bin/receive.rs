@@ -214,7 +214,11 @@ fn byte(
 }
 fn main() {
     let args: Vec<_> = env::args().collect();
-    assert!(args.len() == 3 || (args.len() == 4 && args[3] == "--register"));
+    assert!(
+        args.len() == 3
+            || (args.len() == 4 && ["--register", "--irq-admitted"].contains(&args[3].as_str()))
+    );
+    let irq_admitted = args.len() == 4 && args[3] == "--irq-admitted";
     let a = Image::load(&args[1], false);
     let b = Image::load(&args[2], args.len() == 4);
     let mut ba = board(&a);
@@ -232,6 +236,14 @@ fn main() {
         ba.mem[a.fault as usize] = fault;
         bb.mem[b.fault as usize] = fault;
         for &v in bytes {
+            // RX05 private-only precondition: real masked drain checks before
+            // its first call and stops immediately after a callback faults.
+            if irq_admitted {
+                assert_eq!(ba.mem[a.fault as usize], bb.mem[b.fault as usize]);
+                if ba.mem[a.fault as usize] != 0 {
+                    break;
+                }
+            }
             let (ra, sa) = byte(&a, &mut ba, &mut ca, &initial, v);
             let (rb, sb) = byte(&b, &mut bb, &mut cb, &initial, v);
             assert!(
@@ -271,5 +283,6 @@ fn main() {
         1,
         0,
     );
+    println!("Private IRQ admission mode: {irq_admitted}");
     println!("PASS {count} linked parser byte comparisons, all 256 header/length values, bounded stores, call arguments, callback mutation, owner/fault, stack/IX and masked IRQs; interpreted instructions C={}, candidate={}",steps[0],steps[1]);
 }

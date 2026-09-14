@@ -13,6 +13,7 @@ struct Case {
     status_at: Option<usize>,
     status: u8,
     fault_after: Option<usize>,
+    release_after: Option<usize>,
     pcdr: u8,
 }
 #[derive(Clone, Debug, PartialEq)]
@@ -111,7 +112,7 @@ fn swap(c: &mut Cpu, b: &mut Board) {
     c.execute_instruction(b);
     c.execute_instruction(b);
 }
-fn run(im: &Image, x: &Case) -> (Vec<Event>, u8, usize) {
+fn run(im: &Image, x: &Case) -> (Vec<Event>, u8, u8, usize) {
     let mut b = Board {
         mem: vec![0; 0x100000],
         x: x.clone(),
@@ -167,12 +168,19 @@ fn run(im: &Image, x: &Case) -> (Vec<Event>, u8, usize) {
             assert!(!c.state.reg.iff1);
             let sp = c.state.reg.get24(Reg16::SP);
             if pc == im.byte {
+                assert_eq!(
+                    b.mem[im.fault as usize], 0,
+                    "private IRQ admission requires fault-clear"
+                );
                 b.events.push(Event::Byte(if im.byte_in_register {
                     c.state.reg.get24(Reg16::BC) as u8
                 } else {
                     b.mem[(sp + 3) as usize]
                 }));
                 delivered += 1;
+                if x.release_after == Some(delivered) {
+                    b.mem[im.owned as usize] = 0;
+                }
                 if x.fault_after == Some(delivered) {
                     b.mem[im.fault as usize] = 1;
                 }
@@ -218,7 +226,12 @@ fn run(im: &Image, x: &Case) -> (Vec<Event>, u8, usize) {
         assert_eq!(c.state.reg.get24(r), v, "shadow {r:?}");
     }
     assert_eq!(c.state.reg.get16(Reg16::AF), 0x4567);
-    (b.events, b.mem[im.fault as usize], steps)
+    (
+        b.events,
+        b.mem[im.fault as usize],
+        b.mem[im.owned as usize],
+        steps,
+    )
 }
 fn main() {
     let args: Vec<_> = env::args().collect();
@@ -235,6 +248,7 @@ fn main() {
         status_at: None,
         status: 0x61,
         fault_after: None,
+        release_after: None,
         pcdr: 0xa3,
     };
     for owned in [0, 1, 255] {
@@ -267,13 +281,25 @@ fn main() {
             ..base.clone()
         });
     }
+    for at in 1..=16 {
+        cases.push(Case {
+            release_after: Some(at),
+            ..base.clone()
+        });
+        cases.push(Case {
+            release_after: Some(at),
+            fault_after: Some(at),
+            ..base.clone()
+        });
+    }
+    let ordinary_cases = cases.len();
     assert_eq!(a.async_length.is_some(), a.async_fn.is_some());
     assert_eq!(b.async_length.is_some(), b.async_fn.is_some());
     if a.async_fn.is_some() {
         for pending in [1, 144] {
             let more: Vec<_> = cases
                 .iter()
-                .take(1270)
+                .take(ordinary_cases)
                 .cloned()
                 .map(|mut x| {
                     x.pending = pending;
@@ -285,11 +311,12 @@ fn main() {
     }
     let n = cases.len();
     for x in cases {
-        let (ea, fa, sa) = run(&a, &x);
-        let (eb, fb, sb) = run(&b, &x);
-        assert_eq!((ea, fa), (eb, fb), "{x:?}");
+        let (ea, fa, oa, sa) = run(&a, &x);
+        let (eb, fb, ob, sb) = run(&b, &x);
+        assert_eq!((ea, fa, oa), (eb, fb, ob), "{x:?}");
         if x.status_at.is_none()
             && x.fault_after.is_none()
+            && x.release_after.is_none()
             && x.owned == 1
             && x.fault == 0
             && x.n == 16
