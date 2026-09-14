@@ -290,3 +290,21 @@ This decision is recorded before implementing the next TX change.
    This preserves the exact port order and clock/owner/fault checks but avoids
    pushing/popping LSR merely to retain THRE across the CTS read. Extend the full
    linked block comparison to all 256 LSR values before physical selection.
+
+## TX01 disposition before RX deployment
+
+All 376 selected physical cases pass: 336 full, 36 mixed and four independently
+decoded wire cases; zero data/status/recovery errors. Full large-random medians:
+mainboard 589.663 ms (589.524–589.679), P4 591.042 ms (591.039–591.151).
+Retain this substantial improvement as the experimental baseline; P03 stays
+open because parity is still unmet. Tracked CSVs and metrics are in
+[E07P-results/tx01.json](E07P-results/tx01.json). Only one wire capture was needed
+to select the next candidate; final qualification still requires three.
+
+The separately frozen RX01 image is next, SHA256
+`48e2d07c05b3367f7b9b27f8351cf58378bfeeffeb45a728bf4469d314e8e0a2`,
+identity `agon-emos-v0.1.17-b2026-09-14-12-58-02Z` from clean commit `3bdf84e`.
+For subsequent host collection, precheck a unique next UDT result path as absent
+before launch and fetch that exact new file afterward. This replaces scanning
+hundreds of unrelated directory entries; no fixture timing, firmware or wire
+procedure changes. Service journals retain every request/receipt.
