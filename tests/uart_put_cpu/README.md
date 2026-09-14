@@ -61,3 +61,15 @@ state plus 240-byte payload layout is size-checked alongside the target bridge.
 
 The full sender also enumerates all 256 LSR values before TX status-path changes,
 using clock-progressing retries so clean-empty states reach the same timeout.
+
+## E07P complete receive IRQ comparison
+
+`cargo run --offline --release --manifest-path tests/uart_put_cpu/Cargo.toml
+--bin irq -- BASELINE_DIR CANDIDATE_DIR` uses the full maintained IRQ entry and
+return, with the actual four-byte MADL/ADL interrupt frame. Its 1,270 cases
+control FIFO occupancy/status, all LSR values, callback faults and legal C
+caller/shadow-register clobbers. Compare port order, delivered bytes, 16-byte
+cap, full primary/alternate register restoration, SP and IFF. Parser/fault/
+telemetry calls are recorded at their existing boundaries; parser semantics
+are tested separately. It is an ADL instruction-boundary check, not a physical
+UART device, interrupt-arrival test or proof for every interrupted CPU mode.
