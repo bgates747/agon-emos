@@ -1,7 +1,7 @@
 # INTEG-014 — Diagnose and reduce EMOS UART execution cost
 
-Status: E04 complete; supervised pause before E05. No firmware implementation
-started. Hardware notification and a review pause after each step.
+Status: E05 authorised; proceed to E06 if E05 exposes no reason to stop.
+Hardware spoken notification and review pause after this bounded pair.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
 
@@ -254,8 +254,46 @@ E01 [preservation/recovery](INTEG-014/E01.md) and E02
 157 flash bytes free; the earlier 153-byte comment is superseded by measured
 binary/map evidence. E04 [controlled baseline](INTEG-014/E04.md) passed
 756 rows and three independent wire captures; original firmware/CLI/SD restored.
-Wait for the Author before E05. Existing dirty EMOS work
-is preserved; source optimisation starts only at its later step.
+The Author authorised E05 followed conditionally by E06. Existing dirty EMOS
+work remains preserved separately from these experiments.
 
 E04 approval on 2026-09-14: [bounded baseline procedure](INTEG-014/E04-procedure.md)
 freezes inputs, repetition count, recovery and threshold rule before deployment.
+
+## E05–E06 execution amendment — 2026-09-14
+
+Author instruction supersedes the one-step notification cadence for this pair:
+complete E05, then E06 unless E05 reveals a correctness, recovery, scope or
+hardware problem that prevents a sound comparison. Notify by the established
+spoken hardware cue afterward; pause before E07. No experimental push.
+
+1. E05: preserve current dirty inputs and the E04 reference artifacts. Extend
+   sender boundary tests for partial progress, errors, stalls, stopped clock,
+   IRQ-off admission and ownership. First isolate the 32-bit countdown's
+   conversion to native-width C with unchanged numeric limits. Inspect both
+   linked compositions and compare hardware against retained E04 evidence.
+2. E05: if material overhead remains, try the smallest C loop consolidation
+   justified by the disassembly, separately from the counter change. Retain
+   per-byte fault/ownership and acknowledged-line-error handling, whole-call
+   deadline, stopped-clock bound, and interrupt availability. Do not remove
+   safety semantics simply because stock's sender blocks indefinitely. Consider
+   a bounded assembly alternative only if C results and linked costs justify it.
+3. E05: use the frozen pure-data app and endpoint pair, six matched forward
+   observations and three independent wire captures for the selected candidate;
+   retain reverse/mixed correctness controls. Reuse E04 as baseline. Preserve
+   intermediate candidates, exact source/build identities and raw failures.
+   Apply E04's threshold without relabelling host orchestration as wire time.
+4. E06: use retained wire traces and linked receiver code first. Add a narrowly
+   scoped diagnostic fixture or build only for missing IRQ/FIFO/dual-UART
+   evidence. Compare quiet UART0, ordinary live service and controlled UART0
+   replies during UART1 work; converse only if observable and supported.
+   Label probes and their overhead; never disable required service in a proposed
+   production fix. Do not change physical wiring without measured need.
+5. E06: assess a minimal receiver alternative only where those results justify
+   it, keeping parser ownership, register/ABI preservation and bounded FIFO work.
+   Keep RX and TX changes separate. Record unsupported comparisons explicitly.
+6. At the checkpoint: commit each discrete completed experiment with an
+   executive summary, tables, scope and rollback identity. Restore diagnostic
+   ESP images, agreed pre-run EMOS and startup unless a reviewed deployment is
+   explicitly selected; verify CLI, keyboard and SD recovery. Send the standard
+   British spoken hardware cue and stop for review before E07.
