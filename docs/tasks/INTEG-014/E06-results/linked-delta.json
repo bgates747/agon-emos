@@ -1,0 +1,24 @@
+{
+  "fifo4b": {
+    "identity": "agon-emos-v0.1.17-b2026-09-14-07-00-36Z",
+    "sha256": "9f29541b65179d497141736470fe082b3e13768e007ae6711d33a82d48a1de20",
+    "bytes": 130054,
+    "instruction_byte_change": {
+      "address": "0x128e0",
+      "before": 7,
+      "after": 71
+    },
+    "identity_only_other_change": true
+  },
+  "fifo4b-ordinary": {
+    "identity": "agon-emos-v0.1.17-b2026-09-14-07-00-50Z",
+    "sha256": "cd6f18a6426f58edf53ec8a9863a058034007f3497c3a1fade4c78368a48bf58",
+    "bytes": 130898,
+    "instruction_byte_change": {
+      "address": "0x129ee",
+      "before": 7,
+      "after": 71
+    },
+    "identity_only_other_change": true
+  }
+}

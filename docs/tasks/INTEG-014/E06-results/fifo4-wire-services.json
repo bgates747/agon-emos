@@ -1,0 +1,35 @@
+[
+  {
+    "run": "e06w1",
+    "uart_bytes": 4626,
+    "rts_service_pulses": 925,
+    "bytes_per_pulse": 5.0010810810810815,
+    "service_total_ms": 69.90316666666666,
+    "median_service_us": 55.041666666666664,
+    "p95_service_us": 129.625,
+    "max_service_us": 129.66666666666666,
+    "wire_span_ms": 108.88163888888806
+  },
+  {
+    "run": "e06w2",
+    "uart_bytes": 4626,
+    "rts_service_pulses": 924,
+    "bytes_per_pulse": 5.0064935064935066,
+    "service_total_ms": 69.87020833333332,
+    "median_service_us": 55.041666666666664,
+    "p95_service_us": 129.625,
+    "max_service_us": 129.66666666666666,
+    "wire_span_ms": 108.8423472222214
+  },
+  {
+    "run": "e06w3",
+    "uart_bytes": 4626,
+    "rts_service_pulses": 924,
+    "bytes_per_pulse": 5.0064935064935066,
+    "service_total_ms": 69.86991666666665,
+    "median_service_us": 55.041666666666664,
+    "p95_service_us": 129.625,
+    "max_service_us": 150.33333333333334,
+    "wire_span_ms": 108.84138888888806
+  }
+]

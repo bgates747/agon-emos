@@ -1,0 +1,256 @@
+{
+  "selected_cases": 384,
+  "csv_hashes": {
+    "e06full": {
+      "raw_sha256": "81ce5ce0207c22520ee01147c56458e6783cd4fb8e62bdf20a85a110e904673c",
+      "published_sha256": "aa6d7a02180f841bae76781c5a120ff10a6384a3b4e2e77e7e266eb8208e57ba"
+    },
+    "e06mixed": {
+      "raw_sha256": "ae50c39adbb6fb24b8965e2b1b548cc0776cd20eda6d3ef3b855cb7934c199b5",
+      "published_sha256": "c180928be404ad3508290e21d522abc54c7901ab110a00c665a37e97c32a67b5"
+    },
+    "e06w1": {
+      "raw_sha256": "23d284c1d8c662622e1cbdf8364e31774a0fb54950d9692fa0593e1469e9eecb",
+      "published_sha256": "72949250d905753712f1b01e3958da1011ec96609f3edcdc53417328f946c9fc"
+    },
+    "e06w2": {
+      "raw_sha256": "b01022117b744585f16bd9db7cc0fb73ba59f227438a7a241c8fc1137c4d3536",
+      "published_sha256": "9cd5e2099cb9d790294564f760d04d291b8bf1d22cea7ab5c006f8de10fc9bac"
+    },
+    "e06w3": {
+      "raw_sha256": "6d60013f6ee69b91173f77e77e91c73a3c2f17a6ccf3a728fd257a360862afe0",
+      "published_sha256": "994170dd729b88f90a3e1216a01f1771d107da0a2dc5736fb9f099e00cbd72c9"
+    },
+    "native-trigger1": {
+      "raw_sha256": "baffebc88291cdd6555607a5dd5801e7421df8eddf29893d808096d80dd36c79",
+      "published_sha256": "2ff8781b84fae02b3383664774696d2ef86156b03b73023d64873032e03463a3"
+    },
+    "native-trigger4": {
+      "raw_sha256": "bec58de71016e78a8642ae1fc0a9405fa7598c0156b352b4ad9ca40aff02dfab",
+      "published_sha256": "eb495ce84381bbe5ae85f61978db5137c6224f7b2cdb42cd83eb30a26588b882"
+    },
+    "failed-observer-query": {
+      "raw_sha256": "a6f834876fa29d3c811c0e375b7071bae866f91ef62c08f30cd2c34fde751cba",
+      "published_sha256": "8ef89bd26baf10d158b98f8f2f9c163b58744518ee2ced8e0c6f4306295571c2"
+    },
+    "failed-observer-concurrent": {
+      "raw_sha256": "3cd036c72ca64764ea425619d27caa671222d512135708300281de3244aad3f8",
+      "published_sha256": "4942c76083710b9752d6ee2c9bc2d27fe05105d6c4a3b0070543c8abd6161a16"
+    }
+  },
+  "forward_route0": {
+    "n": 6,
+    "median_ms": 589.6955,
+    "min_ms": 589.613,
+    "max_ms": 589.74
+  },
+  "mixed_route0": {
+    "n": 3,
+    "median_ms": 672.742,
+    "min_ms": 672.634,
+    "max_ms": 672.758
+  },
+  "forward_route1": {
+    "n": 6,
+    "median_ms": 1399.0685,
+    "min_ms": 1399.038,
+    "max_ms": 1399.097
+  },
+  "mixed_route1": {
+    "n": 3,
+    "median_ms": 1482.078,
+    "min_ms": 1482.066,
+    "max_ms": 1482.096
+  },
+  "wire_hashes": [
+    "d7c9b3ac9bd78751dc66b1861a1813ea424bf147cad697c889eb94c41271d22d",
+    "e9655bb676c4836f35ea9cf53f1b80c9b3e2993bfedb8ce876a4f7ccf2962c9f",
+    "bbdede9b43ff901dc2f8023e432064f7ec5fa4ef8b286bd24b515ea968c6bbeb"
+  ],
+  "wire_forward": {
+    "wire_span_seconds": {
+      "n": 3,
+      "median_ms": 1396.632388888888,
+      "min_ms": 1396.6124305555547,
+      "max_ms": 1396.6324305555547
+    },
+    "estimated_byte_time_seconds": {
+      "n": 3,
+      "median_ms": 568.8802082790806,
+      "min_ms": 568.8802082790806,
+      "max_ms": 568.8802082790806
+    },
+    "idle_cts_low_seconds": {
+      "n": 3,
+      "median_ms": 826.6331667208622,
+      "min_ms": 826.6292500541955,
+      "max_ms": 826.6359028319741
+    },
+    "idle_cts_high_seconds": {
+      "n": 3,
+      "median_ms": 1.1190138889451822,
+      "min_ms": 1.0963194444999098,
+      "max_ms": 1.1229722222785155
+    }
+  },
+  "wire_reverse": {
+    "wire_span_seconds": {
+      "n": 3,
+      "median_ms": 108.8423472222214,
+      "min_ms": 108.84138888888806,
+      "max_ms": 108.88163888888806
+    },
+    "estimated_byte_time_seconds": {
+      "n": 3,
+      "median_ms": 40.121847220443186,
+      "min_ms": 40.121652776010336,
+      "max_ms": 40.121888887107374
+    },
+    "idle_cts_low_seconds": {
+      "n": 3,
+      "median_ms": 0.08333333434661229,
+      "min_ms": 0.08329166768242915,
+      "max_ms": 0.08387500100086133
+    },
+    "idle_cts_high_seconds": {
+      "n": 3,
+      "median_ms": 68.6371666674316,
+      "min_ms": 68.63620833409826,
+      "max_ms": 68.67611111187686
+    }
+  },
+  "receive_reduction_percent": 0.696624674464974,
+  "native": {
+    "native-trigger1": {
+      "metrics": {
+        "load0-kind0-length4096": {
+          "n": 3,
+          "median_ms": 89.901,
+          "min_ms": 89.868,
+          "max_ms": 90.035
+        },
+        "load0-kind0-length65535": {
+          "n": 3,
+          "median_ms": 1409.907,
+          "min_ms": 1409.887,
+          "max_ms": 1409.93
+        },
+        "load0-kind1-length256": {
+          "n": 3,
+          "median_ms": 116.66666666666667,
+          "min_ms": 116.66666666666667,
+          "max_ms": 116.66666666666667
+        },
+        "load1-kind0-length4096": {
+          "n": 3,
+          "median_ms": 90.917,
+          "min_ms": 90.865,
+          "max_ms": 90.919
+        },
+        "load1-kind0-length65535": {
+          "n": 3,
+          "median_ms": 1423.925,
+          "min_ms": 1423.917,
+          "max_ms": 1424.059
+        },
+        "load1-kind1-length256": {
+          "n": 3,
+          "median_ms": 116.66666666666667,
+          "min_ms": 100.0,
+          "max_ms": 116.66666666666667
+        }
+      },
+      "artifact": {
+        "build": "integ014-dual-uart-r01-b2026-09-14-06-55-52Z",
+        "rom_sha256": "a1aa9ea25d5a16542d0e6c9017e5b9fea98f6ca43523adc67ec283ef4a4a9418",
+        "rom_identity": "agon-emos-v0.1.17-b2026-09-14-05-58-35Z",
+        "rom_bytes": 130054,
+        "symbols": {
+          "ROM_MAINBOARD_PUT": 7004,
+          "ROM_UART0_IRQ": 951,
+          "ROM_UART1_IRQ": 7172,
+          "ROM_UART0_RX": 5462,
+          "ROM_PROTOCOL": 5877,
+          "ROM_PROTOCOL_DATA": 770894,
+          "ROM_VECTOR0": 776869,
+          "ROM_VECTOR1": 776873
+        },
+        "original_uart0_envelope_verified": true,
+        "bytes": 15296,
+        "sha256": "a650d372bdf7fe6e0f55cd0e798f49b2fa68e58fe0f2931afa309f35ca907370",
+        "linked_observer_checks": true
+      },
+      "uart0_payloads": "not observed",
+      "irq_counts": "not observed"
+    },
+    "native-trigger4": {
+      "metrics": {
+        "load0-kind0-length4096": {
+          "n": 3,
+          "median_ms": 89.872,
+          "min_ms": 89.834,
+          "max_ms": 89.894
+        },
+        "load0-kind0-length65535": {
+          "n": 3,
+          "median_ms": 1409.931,
+          "min_ms": 1409.912,
+          "max_ms": 1409.948
+        },
+        "load0-kind1-length256": {
+          "n": 3,
+          "median_ms": 116.66666666666667,
+          "min_ms": 100.0,
+          "max_ms": 116.66666666666667
+        },
+        "load1-kind0-length4096": {
+          "n": 3,
+          "median_ms": 90.898,
+          "min_ms": 90.874,
+          "max_ms": 90.948
+        },
+        "load1-kind0-length65535": {
+          "n": 3,
+          "median_ms": 1424.036,
+          "min_ms": 1424.024,
+          "max_ms": 1424.042
+        },
+        "load1-kind1-length256": {
+          "n": 3,
+          "median_ms": 116.66666666666667,
+          "min_ms": 116.66666666666667,
+          "max_ms": 116.66666666666667
+        }
+      },
+      "artifact": {
+        "build": "integ014-dual-uart-r01-b2026-09-14-07-02-26Z",
+        "rom_sha256": "9f29541b65179d497141736470fe082b3e13768e007ae6711d33a82d48a1de20",
+        "rom_identity": "agon-emos-v0.1.17-b2026-09-14-07-00-36Z",
+        "rom_bytes": 130054,
+        "symbols": {
+          "ROM_MAINBOARD_PUT": 7004,
+          "ROM_UART0_IRQ": 951,
+          "ROM_UART1_IRQ": 7172,
+          "ROM_UART0_RX": 5462,
+          "ROM_PROTOCOL": 5877,
+          "ROM_PROTOCOL_DATA": 770894,
+          "ROM_VECTOR0": 776869,
+          "ROM_VECTOR1": 776873
+        },
+        "original_uart0_envelope_verified": true,
+        "bytes": 15296,
+        "sha256": "445bbf21b5b5b580bde13f723ab81ba0668b1880fcb7d21f0679a5909dc29eaf",
+        "linked_observer_checks": true
+      },
+      "uart0_payloads": "not observed",
+      "irq_counts": "not observed"
+    }
+  },
+  "firmware_inputs_unchanged": 88,
+  "firmware": {
+    "identity": "agon-emos-v0.1.17-b2026-09-14-07-00-36Z",
+    "composition": "bench",
+    "bytes": 130054,
+    "sha256": "9f29541b65179d497141736470fe082b3e13768e007ae6711d33a82d48a1de20"
+  }
+}
