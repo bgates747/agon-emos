@@ -10,14 +10,14 @@ impl Image { fn load(path:&str)->Self {
  let data=fs::read(p.join("MOS.bin")).unwrap();let clock_fn=addr("_emos_keyboard_clock") as usize;assert_eq!(data[clock_fn],0x3a);let clock=u32::from_le_bytes([data[clock_fn+1],data[clock_fn+2],data[clock_fn+3],0]);
  Self{data,send:addr("_emos_keyboard_send"),block:if nm.contains("_emos_keyboard_transmit_block"){addr("_emos_keyboard_transmit_block")}else{addr("_transmit_block")},clock,owned:addr("_uart1_keyboard_owned"),fault:addr("_emos_key_faulted"),request:addr("_fault_requested")}
 }}
-#[derive(Clone,Debug)] struct Case {len:usize,seed:u8,step:u8,blocked:usize,empty:usize,error:Option<usize>,inject:Option<(usize,bool)>,mutate:bool,iff:bool, initial:Option<(u16,u32)>}
+#[derive(Clone,Debug)] struct Case {len:usize,seed:u8,step:u8,blocked:usize,empty:usize,error:Option<usize>,inject:Option<(usize,bool)>,mutate:bool,iff:bool, initial:Option<(u16,u32)>,lsr:Option<u8>}
 struct Board {mem:Vec<u8>,clock:u32,reads:Cell<usize>,x:Case,io:Vec<Io>,out:Vec<u8>,polls:usize,pcdr:u8}
 impl Machine for Board {
  fn peek(&self,a:u32)->u8 {if a==self.clock{let n=self.reads.get();self.reads.set(n+1);self.x.seed.wrapping_add((n as u8).wrapping_mul(self.x.step))}else{self.mem[a as usize]}}
  fn poke(&mut self,a:u32,v:u8){self.mem[a as usize]=v;}
  fn use_cycles(&self,_:i32){}
  fn port_in(&mut self,a:u16)->u8 {let v=match a {
-  0xd5=>{self.polls+=1;if self.x.mutate&&self.polls==1{self.mem[DATA as usize]=0xee;}if self.x.error==Some(self.out.len()){0x22}else if self.polls<=self.x.empty{0}else{0x20}},
+  0xd5=>{self.polls+=1;if self.x.mutate&&self.polls==1{self.mem[DATA as usize]=0xee;}if let Some(v)=self.x.lsr{v}else if self.x.error==Some(self.out.len()){0x22}else if self.polls<=self.x.empty{0}else{0x20}},
   0x9e=>self.pcdr | if self.polls<=self.x.blocked{8}else{0},_=>panic!("IN {a:x}")};self.io.push(Io::R(a,v));v}
  fn port_out(&mut self,a:u16,v:u8){match a{0xd0=>self.out.push(v),0xd1=>assert_eq!(v,0),0x9e=>self.pcdr=v,_=>panic!("OUT {a:x}")};self.io.push(Io::W(a,v));}
 }
@@ -48,12 +48,13 @@ fn run(im:&Image,x:&Case)->(Result,usize){
  (Result{value,io:b.io,out:b.out,reads:b.reads.get(),deadline,request:b.mem[im.request as usize]},steps)
 }
 fn main(){let args:Vec<_>=env::args().collect();assert_eq!(args.len(),3);let a=Image::load(&args[1]);let b=Image::load(&args[2]);let mut count=0;
- let base=Case{len:8,seed:0,step:0,blocked:0,empty:0,error:None,inject:None,mutate:false,iff:true,initial:None};let mut cases=vec![];
+ let base=Case{len:8,seed:0,step:0,blocked:0,empty:0,error:None,inject:None,mutate:false,iff:true,initial:None,lsr:None};let mut cases=vec![];
  for len in [0,1,2,8,257,4097,65535]{for seed in [0,254]{for step in [0,2]{cases.push(Case{len,seed,step,..base.clone()});}}}
  for blocked in [1,16,80,usize::MAX]{for empty in [0,1,24]{for step in [0,2,127,255]{cases.push(Case{blocked,empty,step,mutate:true,..base.clone()});}}}
  for error in [0,1,3,7]{cases.push(Case{error:Some(error),..base.clone()});}
  for at in [1,2,3,9]{for fault in [false,true]{cases.push(Case{inject:Some((at,fault)),..base.clone()});}}
  for elapsed in [0,511,599]{for budget in [1,2,65536,65537,262144]{for step in [0,2]{cases.push(Case{initial:Some((elapsed,budget)),step,..base.clone()});}}}
+ for lsr in 0..=255{cases.push(Case{lsr:Some(lsr),step:2,..base.clone()});}
  cases.push(Case{iff:false,..base.clone()});
  for x in cases {let(ra,sa)=run(&a,&x);let(rb,sb)=run(&b,&x);assert!(ra==rb,"case {x:?}: values {}/{}, reads {}/{}, out lengths {}/{}, deadline {:?}/{:?}, request {}/{}, first I/O mismatch {:?}",ra.value,rb.value,ra.reads,rb.reads,ra.out.len(),rb.out.len(),ra.deadline,rb.deadline,ra.request,rb.request,ra.io.iter().zip(&rb.io).position(|(a,b)|a!=b));if x.len==65535&&x.step==0&&x.seed==0{println!("Ready 65535 instructions: C={sa}, candidate={sb}");}count+=1;}
  println!("PASS {count} full linked sender comparisons: port sequence, deadline, exact/partial payload, timeout, IRQ-off refusal, fault/owner loss, retention, IFF and ABI");

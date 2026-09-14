@@ -33,7 +33,7 @@ new error-stop label and one PC_DR write; it does not disable ownership checks.
 `cargo run --offline --release --manifest-path tests/uart_put_cpu/Cargo.toml
 --bin block -- BASELINE_DIR CANDIDATE_DIR` executes `emos_keyboard_send`, not
 just its byte leaf. It compares complete port histories, status/fault request,
-clock read count and final private deadline. Its 119 cases cover 0..65,535-byte
+clock read count and final private deadline. Its 375 cases cover 0..65,535-byte
 payloads, clock wrap/deltas, valid accumulated deadlines and 24-bit budget
 edges, CTS/THRE stalls, exact partial errors, source mutation during a stall,
 and fault/ownership changes between the clock check and port attempt.
@@ -58,3 +58,6 @@ tests. This does not model UART FIFO, ISR arrival or physical timing. The two
 CPU decoders are reused with fully reset execution/register state per invocation.
 The C parser is retained under `EMOS_RX_BYTE_C_REFERENCE`; its private six-byte
 state plus 240-byte payload layout is size-checked alongside the target bridge.
+
+The full sender also enumerates all 256 LSR values before TX status-path changes,
+using clock-progressing retries so clean-empty states reach the same timeout.
