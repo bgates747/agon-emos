@@ -145,15 +145,21 @@ static BYTE deadline_step(Deadline *d) {
     else if (!--d->budget) return 0;
     return d->elapsed < 600;
 }
-static BYTE transmit(BYTE value, Deadline *d) {
+/* One C frame per block, matching stock's counted-output shape. Keep the
+ * deadline and atomic UART ownership/error check on EVERY attempt. */
+static BYTE transmit_block(const BYTE *data, UINT16 length, Deadline *d) {
     BYTE result;
-    do {
+    while (length) {
         if (emos_key_faulted || !deadline_step(d)) return 0;
-        result = uart1_keyboard_put(value);
+        result = uart1_keyboard_put(*data);
         if (result == UART_POLL_ERROR) { fault_requested = 1; return 0; }
         if (result == UART_POLL_UNAVAILABLE) return 0;
-    } while (result != UART_POLL_READY);
+        if (result == UART_POLL_READY) { ++data; --length; }
+    }
     return 1;
+}
+static BYTE transmit(BYTE value, Deadline *d) {
+    return transmit_block(&value, 1, d);
 }
 static BYTE setting(BYTE value, Deadline *d) {
     return transmit(23, d) && transmit(0, d) && transmit(0x81, d) && transmit(value, d);
@@ -291,7 +297,6 @@ void emos_keyboard_transport_release(void) {
 }
 BYTE emos_keyboard_send(const BYTE *data, UINT16 length) {
     BYTE irq = emos_keyboard_lock(), ok = 1;
-    UINT16 i;
     Deadline d;
     if (!irq || transitioning || preparing || emos_key_faulted || !uart1_keyboard_owned) {
         emos_keyboard_unlock(irq); return EMOS_KEY_BUSY;
@@ -299,7 +304,7 @@ BYTE emos_keyboard_send(const BYTE *data, UINT16 length) {
     transitioning = 1;
     emos_keyboard_unlock(irq);
     deadline_start(&d);
-    for (i=0; i<length && ok; ++i) ok=transmit(data[i],&d);
+    ok = transmit_block(data, length, &d);
     if (!ok) fault_requested = 1; /* Partial packets cannot be safely replayed. */
     transitioning = 0;
     return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
