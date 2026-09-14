@@ -2,27 +2,36 @@
 
 ## Executive summary
 
-The latest forward candidate is faster than the mainboard in four paired
-observations: **589.036 versus 589.663 ms**. It passes all 376
-original exact controls. Final six-sample/three-capture qualification remains.
-The latest matched reverse measurement still shows a 5.49% gap; the next receive
-guard is being tested. The [frozen task contract](../E07-parity.md) owns execution.
+RX04 with the P4's extra owner-loop sleep removed is faster than mainboard for
+large forward transfers: **588.147 versus589.595ms** across four paired samples.
+All376 original exact/mixed/wire cases pass. The symmetric return benchmark
+still misses parity: **87.500 versus85.417ms** (+2.44%). The follow-up RX05
+receiver is prepared and instruction-tested; it has not been deployed. Final
+six-sample/three-capture qualification and original bench restoration remain.
+The [frozen task](../E07-parity.md) owns execution.
 
-Latest evidence by workload, ranked by percentage gap. These rows use the
-explicitly named intermediate images; they are not a joint final qualification.
-Negative means Extender takes less elapsed time.
+Current paired composition, worst percentage gap first. Negative means P4
+takes less time; these are transport measurements, not rendering/output.
 
-| Workload and candidate | Mainboard baseline (ms) | Extender (ms) | Difference |
+| Workload | Mainboard baseline (ms) | Extender (ms) | Difference |
 |---|---:|---:|---:|
-| Return, per 256-packet transfer in 16-transfer batch — RX02 | 85.417 | 90.104 | +5.49% |
-| Forward 65,535 pseudorandom bytes — TX04 | 589.663 | 589.036 | -0.11% |
+| Return, per256-packet transfer in16-transfer batch | 85.417 | 87.500 | +2.44% |
+| Forward65,535 pseudorandom bytes | 589.595 | 588.147 | -0.25% |
 
-Forward combines three full-matrix samples and one independent wire-run endpoint
-result. Return uses six paired intervals with identical request, arming and
-mailbox-copy work; each per-transfer bound is ±1.042 ms. That batch verifies
-393,216 useful bytes exactly. These are transport measurements, not graphics or
-output timings. [Smaller transfers](rx02-lengths.json) still expose setup latency;
-the separate P4 owner-scheduling comparison targets a stock-loop divergence.
+Forward combines three full-matrix samples and one wire-run endpoint result.
+Return uses six paired intervals with equal request/arming/mailbox-copy work,
+393,216 exact useful bytes and conservative ±1.042ms per-transfer bounds. It
+does not compare P4 enqueue time with mainboard blocking-handler time.
+[Batch evidence](epob1-analysis.json).
+
+Short-command latency also improved after removing the sleep, but is not equal
+yet. These full-matrix medians include the unchanged READY/query sequence.
+
+| Forward random payload | Mainboard (ms) | P4 (ms) | Difference |
+|---|---:|---:|---:|
+| 0 bytes | 0.439 | 0.693 | +57.86% |
+| 256 bytes | 2.803 | 3.131 | +11.70% |
+| 4,096 bytes | 37.329 | 37.553 | +0.60% |
 
 | Candidate | Physical disposition | Evidence |
 |---|---|---|
@@ -32,6 +41,9 @@ the separate P4 owner-scheduling comparison targets a stock-loop divergence.
 | RX02 FIFO drain | Retained: 95.530→87.718 ms return wire; 376 original cases pass | [RX02](rx02.json), [matched return](ep2rb1-analysis.json) |
 | TX03 status classification | Retained: 590.064 ms forward median; 376 cases pass | [TX03](tx03.json) |
 | TX04 original branches restored | Retained: 589.036 ms forward median; 376 cases pass; final qualification pending | [TX04](tx04.json) |
+| RX03 idle telemetry guard | Rejected: no demonstrated wire gain | [RX03](rx03.json) |
+| RX04 register argument | Retained receiver candidate: 85.960 ms return wire; 376 cases pass, combined parity still open | [RX04](rx04.json) |
+| P4 owner sleep removed | 588.147 ms forward; 376 cases and service/idle checks pass; retained | [Owner comparison](owner01.json) |
 
 Wire measurements in that table are UART1-only observations, not fabricated
 UART0 wire comparisons. The mainboard's individual blocking-handler timer and

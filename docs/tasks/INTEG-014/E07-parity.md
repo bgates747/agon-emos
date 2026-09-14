@@ -741,3 +741,14 @@ assumption. Instruction counts are a hypothesis, not a retention decision.
    even if interpreted counts fall. Recheck forward parity. If timing alone
    remains unresolved, use the separately frozen symmetric longer-interval
    measurement, preserving raw bytes outside the timed loop.
+
+
+## P4 owner disposition / RX05 physical gate
+
+P4 owner01 passes376 exact controls,12 matched batch rows, independent wire
+decoding and156 seconds of idle with SD online and neutral ready input. Retain
+this stock-loop alignment; paired forward588.147 versus589.595ms improves, but
+return87.500 versus85.417ms still misses parity. Details and small lengths are
+at [the results summary](E07P-results/README.md). RX05b is now released on this
+fixed P4 image and unchanged mainboard01. Clean RX05 identity15:43:02Z, SHA256
+`60729c6a7bd6d953e2311b933247b56b7e04bbf47c4e374058c8a82df22583ce`.
