@@ -1,0 +1,2 @@
+Private IRQ admission mode: false
+PASS 8683703 linked parser byte comparisons, all 256 header/length values, bounded stores, call arguments, callback mutation, owner/fault, stack/IX and masked IRQs; interpreted instructions C=346194452, candidate=250533817

@@ -1,0 +1,4 @@
+Full 16-byte IRQ pending=0 instructions: baseline=461, candidate=300
+Full 16-byte IRQ pending=1 instructions: baseline=445, candidate=284
+Full 16-byte IRQ pending=144 instructions: baseline=445, candidate=284
+PASS 3906 complete IRQ comparisons: ports, FIFO cap, callback faults/clobbers, all LSR values, all primary/shadow registers, stack and IFF

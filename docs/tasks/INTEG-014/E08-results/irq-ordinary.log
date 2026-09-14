@@ -1,0 +1,2 @@
+Full 16-byte IRQ pending=0 instructions: baseline=443, candidate=283
+PASS 1302 complete IRQ comparisons: ports, FIFO cap, callback faults/clobbers, all LSR values, all primary/shadow registers, stack and IFF

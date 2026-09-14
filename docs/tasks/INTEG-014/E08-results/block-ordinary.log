@@ -1,0 +1,2 @@
+Ready 65535 instructions: C=2359376, candidate=2162771
+PASS 375 full linked sender comparisons: port sequence, deadline, exact/partial payload, timeout, IRQ-off refusal, fault/owner loss, retention, IFF and ABI

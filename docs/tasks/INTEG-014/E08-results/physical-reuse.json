@@ -1,0 +1,14 @@
+{
+  "rx05": {
+    "cases": 384,
+    "firmware_sha256": "60729c6a7bd6d953e2311b933247b56b7e04bbf47c4e374058c8a82df22583ce",
+    "csv_hashes_verified": true,
+    "source": "rx05.json"
+  },
+  "rx05-ordinary": {
+    "cases": 384,
+    "firmware_sha256": "429f85ebb413bf3eed779307a71126b6cafb7bf884ad1824c6673e1814718b61",
+    "csv_hashes_verified": true,
+    "source": "rx05-ordinary.json"
+  }
+}
