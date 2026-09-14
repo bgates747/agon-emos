@@ -209,7 +209,7 @@ comparisons still require symmetric timing, as the contract specifies.
    faults, zero/oversize-body behavior, buffer bounds and whole-frame timestamp.
    Make its private C/assembly storage layout explicit and compile-checked;
    retain the original C parser for host and linked-reference comparisons.
-2. [ ] **RX01b — Instruction and physical disposition.** Compare actual linked
+2. [x] **RX01b — Instruction and physical disposition.** Compare actual linked
    byte parsing to TX01 across all header/length combinations, boundaries and
    mixed valid/malformed packets. Compare callback arguments, state, stored
    bytes, fault behavior and ABI. Build both compositions and measure only after
@@ -350,3 +350,15 @@ sender instruction cases match the original C boundary, including every LSR valu
 The instruction count is unchanged: this candidate reduces instruction fetches,
 so only the next physical comparison can establish its benefit. RX01 full336
 physical cases have passed; mixed controls finish before replacing that image.
+
+## RX01 disposition
+
+RX01 passes376 physical cases (full336/mixed36/wire4), exact data and clean
+recovery, with independently decoded wire evidence. Retain the13% receive
+improvement; both final parity targets remain open. Details and CSVs:
+[E07P-results/rx01.json](E07P-results/rx01.json). RX01b is complete as a candidate
+comparison, not a final goal qualification. TX02's immutable image is next,
+SHA256 `c56ef6c58dad00b4fd0e19bf83e524a2a9b444a53457607e141754d1b0ba6042`,
+identity `agon-emos-v0.1.17-b2026-09-14-13-31-44Z`, from clean commit b0c3e12.
+RX02 FIFO-loop source preparation is separate and will not be included in the
+TX02 physical image, preserving attribution for each change.
