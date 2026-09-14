@@ -334,8 +334,8 @@ procedure changes. Service journals retain every request/receipt.
 
 The receiver-only increment passes all four app05 wire cases, independent
 bitstream decoding and clean recovery. Reverse UART1 wire time falls from
-109.608 to **95.528 ms**; Agon-stopped idle falls from69.335 to55.256 ms.
-Forward remains591.078 ms versus paired mainboard589.803 ms. No snapshots ran.
+109.608 to **95.528 ms**; Agon-stopped idle falls from 69.335 to 55.256 ms.
+Forward remains591.078 ms versus paired mainboard 589.803 ms. No snapshots ran.
 The unchanged mainboard return handler reports85.017 ms (different scope from
 wire; not a final symmetric parity comparison). Both targets still need work.
 RX01 full/mixed controls are running against its immutable installed image.
@@ -345,15 +345,15 @@ This measured result activates the already-frozen TX02 and RX02 contingencies.
 
 Four in-range JP instructions now use JR, including the hot outer-fault branch;
 long branches back to the tick/attempt path remain where required. Both canonical
-compositions pass and save8ROM bytes (ordinary130950,122free). All375 complete
+compositions pass and save8 ROM bytes (ordinary 130950,122 free). All 375 complete
 sender instruction cases match the original C boundary, including every LSR value.
 The instruction count is unchanged: this candidate reduces instruction fetches,
-so only the next physical comparison can establish its benefit. RX01 full336
+so only the next physical comparison can establish its benefit. RX01 full 336
 physical cases have passed; mixed controls finish before replacing that image.
 
 ## RX01 disposition
 
-RX01 passes376 physical cases (full336/mixed36/wire4), exact data and clean
+RX01 passes 376 physical cases (full 336/mixed36/wire 4), exact data and clean
 recovery, with independently decoded wire evidence. Retain the13% receive
 improvement; both final parity targets remain open. Details and CSVs:
 [E07P-results/rx01.json](E07P-results/rx01.json). RX01b is complete as a candidate
@@ -381,7 +381,7 @@ checks pass. No physical RX02 conclusion yet: TX02 is installed separately first
 The previously recorded 90/91 host result is resolved by adding the existing
 telemetry source/object to the explicit ordinary-profile expected lists. The
 profile and firmware are unchanged by this correction; the test continues to
-require the exact complete source order and linked guards. All91 host tests now
+require the exact complete source order and linked guards. All 91 host tests now
 pass against the freshly prepared ordinary worktree. This is a test-maintenance
 commit, separate from TX03's firmware experiment.
 
@@ -390,17 +390,17 @@ commit, separate from TX03's firmware experiment.
 
 The clean-ready LSR path now classifies the single acknowledging sample directly,
 avoiding its temporary stack save. Clean-empty still samples CTS; errors stop
-the peer and disable IER in the same order. All375 linked public sender cases,
+the peer and disable IER in the same order. All 375 linked public sender cases,
 including every possible LSR byte, pass against the original C implementation.
-Ready65535 instructions fall from2359376 to2162771; both canonical compositions
-pass with no ROM growth (ordinary130920,152free). Physical deployment follows
+Ready65535 instructions fall from 2359376 to 2162771; both canonical compositions
+pass with no ROM growth (ordinary 130920,152 free). Physical deployment follows
 TX02 and RX02 separately; no hardware performance claim yet.
 
 
 ## TX02 initial result and isolation rule
 
 The first exact four-case wire capture gives592.060 ms forward versus the paired
-mainboard589.769 ms; UART1 wire589.612 ms, permitted idle4.735 ms. This fails to
+mainboard 589.769 ms; UART1 wire 589.612 ms, permitted idle 4.735 ms. This fails to
 improve TX01/RX01 and is being repeated before disposition. The already-frozen
 RX02 and TX03 images include TX02 solely to preserve one-change physical
 comparisons. If the regression repeats, TX02 is rejected as a performance change;
@@ -412,8 +412,8 @@ ROM savings alone. No target or correctness boundary changes.
 
 ## TX02 disposition — rejected performance hypothesis
 
-Two independent exact captures repeat the regression: P4592.060/592.063 ms,
-paired mainboard589.769/589.728 ms. UART1 forward wire589.612/589.581 ms;
+Two independent exact captures repeat the regression: P4 592.060/592.063 ms,
+paired mainboard 589.769/589.728 ms. UART1 forward wire 589.612/589.581 ms;
 RX01 control589.248 ms. Reverse is unchanged95.530 ms. All eight data cases,
 independent decodes and recovery pass. Shorter code is not automatically faster
 on this physical eZ80/link. Reject this as a speed improvement. The frozen RX02
@@ -432,7 +432,7 @@ remove it before final selection. [Evidence](E07P-results/tx02.json).
 
 The four original JP branches are restored in the maintained candidate. Both
 canonical profiles and375 complete sender instruction cases pass; ordinary
-130928 bytes (144 free), bench130083. This adds back the eight bytes TX02 saved.
+130928 bytes (144 free), bench 130083. This adds back the eight bytes TX02 saved.
 The frozen RX02/TX03 images remain immutable for their separate observations.
 TX04 physical disposition and all final parity requirements remain pending.
 
@@ -440,7 +440,7 @@ TX04 physical disposition and all final parity requirements remain pending.
 ## P04 accounting checkpoint
 
 The stock/current receive comparison is complete and RX01 has demonstrated a
-13% wire-time improvement with376 exact physical cases. P04 is complete for
+13% wire-time improvement with 376 exact physical cases. P04 is complete for
 accounting and the first proven reduction. P05 still owns reverse parity and
 further RX02 measurements; its checkbox remains open. Full register protection,
 independent parser storage and existing stock effect adapters are retained.
@@ -449,8 +449,8 @@ independent parser storage and existing stock effect adapters are retained.
 ## RX02 first physical result and conditional RX03
 
 RX02 passes the four original wire cases with independent exact decoding and
-clean recovery. Return wire87.718 ms versus RX01's95.530 ms; Agon-stopped idle
-falls55.257 to47.445 ms. Forward remains592.092 ms versus mainboard589.623 ms.
+clean recovery. Return wire 87.718 ms versus RX01's95.530 ms; Agon-stopped idle
+falls 55.257 to 47.445 ms. Forward remains592.092 ms versus mainboard 589.623 ms.
 The symmetric batch fixture is now measuring the residual reverse gap; the
 mainboard's85.052 ms handler measurement alone is not a scope-matched verdict.
 
@@ -475,9 +475,9 @@ mainboard's85.052 ms handler measurement alone is not a scope-matched verdict.
 
 ## RX02 symmetric reverse result
 
-Six paired batch intervals verify393216 useful bytes exactly. Mainboard median
-85.417 ms per transfer (85.417–86.458); P490.104 ms (89.583–90.625), **5.49% more
-elapsed time**. Conservative +/-1.042ms per-transfer bounds do not overlap in
+Six paired batch intervals verify 393216 useful bytes exactly. Mainboard median
+85.417 ms per transfer (85.417–86.458); P4 90.104 ms (89.583–90.625), **5.49% more
+elapsed time**. Conservative +/-1.042 ms per-transfer bounds do not overlap in
 P4's favor. Reverse parity is unmet, activating the frozen RX03 guard candidate.
 The repeated workload includes identical request/arming/copy work on both routes;
 it is not the mainboard blocking-handler versus P4 enqueue comparison.
@@ -489,11 +489,11 @@ it is not the mainboard blocking-handler versus P4 enqueue comparison.
 The existing pending length is now a private shared symbol and the C RX
 completion tail calls the optional transmitter only when that length is nonzero.
 No additional state or public API was introduced. Complete IRQ comparisons pass
-3810 bench cases, including real idle execution and pending lengths1/144, plus
-1270 ordinary cases. Idle16-byte IRQ overhead falls300→286 modeled instructions;
+3810 bench cases, including real idle execution and pending lengths 1/144, plus
+1270 ordinary cases. Idle 16-byte IRQ overhead falls 300→286 modeled instructions;
 pending cases add three guard instructions. Both canonical profiles pass:
-bench130089 bytes; ordinary130928 (144 free), unchanged from TX04 ordinary.
-All91 host tests and375 linked sender cases pass. RX03b physical selection
+bench 130089 bytes; ordinary 130928 (144 free), unchanged from TX04 ordinary.
+All 91 host tests and375 linked sender cases pass. RX03b physical selection
 remains after the frozen TX03/TX04 comparisons; no timing claim from instruction
 counts alone. Source and build checkpoints remain separate from deployment.
 
@@ -520,8 +520,8 @@ HL,SP / LD C,(HL). That work is redundant for this assembly-only caller.
 
 ## RX02 disposition
 
-Retain the FIFO-loop improvement after376 original exact cases (full336,
-mixed36, wire4) plus the separately scoped12 paired batch rows. Every payload,
+Retain the FIFO-loop improvement after 376 original exact cases (full 336,
+mixed36, wire 4) plus the separately scoped12 paired batch rows. Every payload,
 status and recovery check passes, with no snapshots during capture. P05 remains
 open because the symmetric return comparison is still5.49% slower. RX02b is
 complete as a candidate disposition. [Original controls](E07P-results/rx02.json)
@@ -535,7 +535,7 @@ it changes only TX relative to the measured RX02 image.
 ## Existing capture cadence account
 
 Re-reading the same return windows, RX01 has2307 RTS stop intervals and RX02
-2308 for4626 wire bytes: about2.00 bytes per interval. Median asserted time falls
+2308 for 4626 wire bytes: about2.00 bytes per interval. Median asserted time falls
 16.917→15.417 microseconds. This is observed RTS cadence, not a separately
 instrumented IRQ count. [Counts](E07P-results/return-stop-pulses.json); the local
 analysis script and original captures remain in Extender's ignored E07P evidence.
@@ -547,8 +547,8 @@ from its instruction saving or silently change FIFO policy at the same time.
 ## Smaller forward transfers remain a separate limitation
 
 RX02's full matrix exposes a fixed-cost component as well as bulk throughput:
-zero-payload control elapsed0.460 ms mainboard versus1.886 ms P4;256 bytes
-2.805 versus4.999 ms;4096 bytes37.317 versus39.038 ms. These destination elapsed
+zero-payload control elapsed0.460 ms mainboard versus 1.886 ms P4;256 bytes
+2.805 versus 4.999 ms;4096 bytes 37.317 versus 39.038 ms. These destination elapsed
 timers include the established READY/query sequence. The asymmetry in blocking
 versus queued READY replies is a known scope component, but these observations
 do not identify every cause of the additional latency. [All random lengths and
