@@ -16,7 +16,7 @@ hardware voice is the attention cue, spoken emulator fallback only if needed.
 
 ## Frozen scope and gates
 
-1. [ ] Preserve current source/index/generated-output state and E05 binary
+1. [x] Preserve current source/index/generated-output state and E05 binary
    baseline. Freeze this contract before firmware changes.
 2. [ ] Implement the one-operation assembly alternative, leaving the original
    C routine as a host reference. Validate return codes and register/port effects
