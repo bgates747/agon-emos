@@ -29,7 +29,7 @@ hardware voice is the attention cue, spoken emulator fallback only if needed.
    guards. Record complete-image and primitive sizes and linked calls. Reject
    unexplained ABI changes or image overflow. Retain C if there is no plausible
    material improvement; no wider assembly rewrite.
-4. [ ] On hardware, establish current foreground/neutral input, end any running
+4. [x] On hardware, establish current foreground/neutral input, end any running
    game cleanly, preserve current firmware/startup and reuse existing controlled
    UART endpoints and frozen pure-data fixture. Compare six large forward
    observations and three independent wire captures against E05. Repeat the

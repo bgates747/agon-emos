@@ -1,0 +1,111 @@
+{
+  "cases": 384,
+  "selected_cases": 384,
+  "csv_hashes": {
+    "e07full": {
+      "raw_sha256": "5ab486de3c2d7ce96ae85516ac81a2ca91498fc15e24653bd7b3bdde9d68a818",
+      "published_sha256": "78e5453654b41cb639ed929f11f71a0f4a6026d5069f518490ead443e944807b"
+    },
+    "e07mixed": {
+      "raw_sha256": "d08a60c9b54dfc1da53f276931b0f52a64debdbb53cfdce5f92a58016a7a152a",
+      "published_sha256": "1388820a37e6778f5821bcf3b57ae3fd44b27df7fddc225305df56c4111b4088"
+    },
+    "e07w1": {
+      "raw_sha256": "f9c62efd037dc58dc8afad560ccc6c446a306e3a5496228060c5ce18e6da7a75",
+      "published_sha256": "0ef0218a0a946846f8dd75871ced34b547910f3a0d4c14f8079b7e6584cd550f"
+    },
+    "e07w2": {
+      "raw_sha256": "0b8b579dbc7f7c8ac8145e249654b17a28de37ea94755b62634d269c70b1fa08",
+      "published_sha256": "206f85a999a1ceaa91c9cb2da85f9b7c38eeb7653f08c5146b26891504841731"
+    },
+    "e07w3": {
+      "raw_sha256": "bac2d86530255e8d7fd2855f8d40a2dbb1587bad1bc958f8757438b0c9d49088",
+      "published_sha256": "5ea1c0397bdc8b33db1c29d410054abfde162255f2a3858c9d913ec2b74fc446"
+    }
+  },
+  "forward_route0": {
+    "n": 6,
+    "median_ms": 589.715,
+    "min_ms": 589.586,
+    "max_ms": 589.885
+  },
+  "mixed_route0": {
+    "n": 3,
+    "median_ms": 673.091,
+    "min_ms": 672.559,
+    "max_ms": 673.34
+  },
+  "forward_route1": {
+    "n": 6,
+    "median_ms": 1070.062,
+    "min_ms": 1069.982,
+    "max_ms": 1070.103
+  },
+  "mixed_route1": {
+    "n": 3,
+    "median_ms": 1174.06,
+    "min_ms": 1174.053,
+    "max_ms": 1174.083
+  },
+  "wire_hashes": [
+    "18ed398826f8823aa1241beea717d342759f3e8ecc0f96ec4bff4a26096875bd",
+    "fcbbfd9865213d3c6512d0409f49f45ab7bb3d8e6e097ace37f55e609154339d",
+    "594c2e818e58b7de35854fbb5738b587c0158da042299727509a19d26d102887"
+  ],
+  "wire_forward": {
+    "wire_span_seconds": {
+      "n": 3,
+      "median_ms": 1068.3144722222214,
+      "min_ms": 1068.3010972222214,
+      "max_ms": 1068.3316805555546
+    },
+    "estimated_byte_time_seconds": {
+      "n": 3,
+      "median_ms": 568.8802082790806,
+      "min_ms": 568.8802082790806,
+      "max_ms": 568.8802082790806
+    },
+    "idle_cts_low_seconds": {
+      "n": 3,
+      "median_ms": 483.8028611645674,
+      "min_ms": 483.761277831234,
+      "max_ms": 483.82552783123407
+    },
+    "idle_cts_high_seconds": {
+      "n": 3,
+      "median_ms": 15.631402778573333,
+      "min_ms": 15.62594444524,
+      "max_ms": 15.659611111906669
+    }
+  },
+  "wire_reverse": {
+    "wire_span_seconds": {
+      "n": 3,
+      "median_ms": 109.60813888888805,
+      "min_ms": 109.60630555555473,
+      "max_ms": 109.6124722222214
+    },
+    "estimated_byte_time_seconds": {
+      "n": 3,
+      "median_ms": 40.132319442041215,
+      "min_ms": 40.132249997600915,
+      "max_ms": 40.132319442041215
+    },
+    "idle_cts_low_seconds": {
+      "n": 3,
+      "median_ms": 0.14000000049422184,
+      "min_ms": 0.1399027782678604,
+      "max_ms": 0.1405138893822829
+    },
+    "idle_cts_high_seconds": {
+      "n": 3,
+      "median_ms": 69.33581944635262,
+      "min_ms": 69.33415277968595,
+      "max_ms": 69.33963889079789
+    }
+  },
+  "forward_reduction_percent": 23.517586898106668,
+  "wire_forward_reduction_percent": 23.506709650051604,
+  "source_unchanged_during_measurements": true,
+  "matched_firmware_inputs": 88
+}
