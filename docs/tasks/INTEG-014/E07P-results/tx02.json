@@ -1,0 +1,334 @@
+{
+  "cases": 8,
+  "rows": {
+    "ep2tw1": {
+      "count": 4,
+      "sha256": "acdcee26ebe8f35c74409ac22d1bea2f3544ab1dddd58f1c18bb06ba0cc1fd4b"
+    },
+    "ep2tw2": {
+      "count": 4,
+      "sha256": "2b7f8f1a0ac3f13efdac342b48eb4c97c4d4004d04a8ee04f1a4d4c089978ee1"
+    }
+  },
+  "firmware_sha256": "c56ef6c58dad00b4fd0e19bf83e524a2a9b444a53457607e141754d1b0ba6042",
+  "wire_captures": 2,
+  "verdict": "rejected speed hypothesis: repeatable regression; retained temporarily only for separately frozen RX02/TX03 comparisons",
+  "forward": {
+    "0": {
+      "median_ms": 589.7484999999999,
+      "min_ms": 589.728,
+      "max_ms": 589.769,
+      "n": 2
+    },
+    "1": {
+      "median_ms": 592.0615,
+      "min_ms": 592.06,
+      "max_ms": 592.063,
+      "n": 2
+    }
+  },
+  "wire": [
+    {
+      "acquisition_pass": true,
+      "coverage_pass": true,
+      "independent_decode_matches": true,
+      "trace_sha256": "777a4362986dbe823ea215e34e432b8f6db4239f3343677979c514f0dcc77c5f",
+      "analysis_sha256": "1c63829e3d87b48e338809e647a264828ecd6281ca5d50594f88fa0d13f72bd1",
+      "samples": 720000000,
+      "sample_rate_hz": 24000000,
+      "forward_bytes": 65535,
+      "return_wire_bytes": 4626,
+      "return_payload_bytes": 2048,
+      "forward": {
+        "wire_span_seconds": 0.5896119722222214,
+        "estimated_byte_time_seconds": 0.5683320972006396,
+        "idle_seconds": 0.021279875021581848,
+        "idle_cts_high_seconds": 0.01654495833449314,
+        "idle_cts_low_seconds": 0.0047349166870887084,
+        "cts_high_seconds": 0.025638916666666667,
+        "idle_cts_high_fraction": 0.7774932097915707,
+        "longest_gaps": [
+          {
+            "start_seconds": 15.071841347222222,
+            "duration_seconds": 3.9236111111938953e-05,
+            "cts_high_seconds": 0.0
+          },
+          {
+            "start_seconds": 14.782301180555555,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 14.784056805555554,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 14.78697397222222,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 14.79223322222222,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 14.792819680555555,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 14.794575305555554,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 14.796909805555554,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 14.797496263888888,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 14.798669222222221,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          }
+        ]
+      },
+      "reverse": {
+        "wire_span_seconds": 0.09553026388888806,
+        "estimated_byte_time_seconds": 0.040132416664257646,
+        "idle_seconds": 0.05539784722463042,
+        "idle_cts_high_seconds": 0.05525638889079789,
+        "idle_cts_low_seconds": 0.00014145833383252224,
+        "cts_high_seconds": 0.058358472222221396,
+        "idle_cts_high_fraction": 0.9974465012465389,
+        "longest_gaps": [
+          {
+            "start_seconds": 15.941155263888888,
+            "duration_seconds": 0.00010181944444527229,
+            "cts_high_seconds": 0.00010177777777860562
+          },
+          {
+            "start_seconds": 15.857811513888889,
+            "duration_seconds": 0.00010177777777860562,
+            "cts_high_seconds": 0.00010169444444527228
+          },
+          {
+            "start_seconds": 15.848861763888888,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          },
+          {
+            "start_seconds": 15.849234055555554,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.077777777860561e-05
+          },
+          {
+            "start_seconds": 15.851839222222221,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          },
+          {
+            "start_seconds": 15.852211513888887,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.077777777860561e-05
+          },
+          {
+            "start_seconds": 15.854816680555555,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          },
+          {
+            "start_seconds": 15.855188972222221,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.077777777860561e-05
+          },
+          {
+            "start_seconds": 15.858906138888887,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          },
+          {
+            "start_seconds": 15.861511305555554,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          }
+        ]
+      },
+      "forward_local_elapsed_us": 592060,
+      "return_enqueue_us": 606,
+      "return_request_to_completion_ms": 96.99747222222139,
+      "return_request_to_first_byte_ms": 1.3890694444452723,
+      "forward_starts_with_cts_high": 1008,
+      "reverse_starts_with_cts_high": 0,
+      "window_samples": [
+        [
+          354591575,
+          368973062.3333333
+        ],
+        [
+          380286057,
+          382613996.3333333
+        ]
+      ],
+      "limits": "Frame-end estimate has approximately one-sample uncertainty. CTS-low idle does not identify its software cause. No analogue-integrity claim."
+    },
+    {
+      "acquisition_pass": true,
+      "coverage_pass": true,
+      "independent_decode_matches": true,
+      "trace_sha256": "22e49b434b91f903a4da9d22e071f142eba374c16efbd95fad43c3a532c0b270",
+      "analysis_sha256": "1c63829e3d87b48e338809e647a264828ecd6281ca5d50594f88fa0d13f72bd1",
+      "samples": 720000000,
+      "sample_rate_hz": 24000000,
+      "forward_bytes": 65535,
+      "return_wire_bytes": 4626,
+      "return_payload_bytes": 2048,
+      "forward": {
+        "wire_span_seconds": 0.589580888888888,
+        "estimated_byte_time_seconds": 0.5683321249784157,
+        "idle_seconds": 0.021248763910472392,
+        "idle_cts_high_seconds": 0.016538041667833923,
+        "idle_cts_low_seconds": 0.004710722242638469,
+        "cts_high_seconds": 0.025632208333333333,
+        "idle_cts_high_fraction": 0.7783060575906346,
+        "longest_gaps": [
+          {
+            "start_seconds": 15.600545055555555,
+            "duration_seconds": 3.9236111111938953e-05,
+            "cts_high_seconds": 0.0
+          },
+          {
+            "start_seconds": 15.402229055555555,
+            "duration_seconds": 3.794444444527229e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 15.802315138888888,
+            "duration_seconds": 3.0319444445272288e-05,
+            "cts_high_seconds": 1.7194444445272287e-05
+          },
+          {
+            "start_seconds": 15.311023472222221,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 15.316865388888887,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 15.320959305555554,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 15.323301388888888,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7194444445272287e-05
+          },
+          {
+            "start_seconds": 15.325635888888888,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7194444445272287e-05
+          },
+          {
+            "start_seconds": 15.326222347222222,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          },
+          {
+            "start_seconds": 15.327395305555555,
+            "duration_seconds": 2.2111111111938954e-05,
+            "cts_high_seconds": 1.7236111111938954e-05
+          }
+        ]
+      },
+      "reverse": {
+        "wire_span_seconds": 0.09553009722222139,
+        "estimated_byte_time_seconds": 0.04013223610871285,
+        "idle_seconds": 0.05539786111350854,
+        "idle_cts_high_seconds": 0.05525688889079789,
+        "idle_cts_low_seconds": 0.00014097222271064916,
+        "cts_high_seconds": 0.058358472222221396,
+        "idle_cts_high_fraction": 0.9974552767944993,
+        "longest_gaps": [
+          {
+            "start_seconds": 16.419155097222223,
+            "duration_seconds": 0.00010177777777860562,
+            "cts_high_seconds": 0.00010173611111193895
+          },
+          {
+            "start_seconds": 16.378208597222223,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          },
+          {
+            "start_seconds": 16.378580888888887,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.077777777860561e-05
+          },
+          {
+            "start_seconds": 16.381186055555556,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          },
+          {
+            "start_seconds": 16.38155834722222,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.077777777860561e-05
+          },
+          {
+            "start_seconds": 16.38416351388889,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          },
+          {
+            "start_seconds": 16.387880680555554,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          },
+          {
+            "start_seconds": 16.388252972222222,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          },
+          {
+            "start_seconds": 16.390858138888888,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          },
+          {
+            "start_seconds": 16.391230430555556,
+            "duration_seconds": 9.086111111193895e-05,
+            "cts_high_seconds": 9.081944444527229e-05
+          }
+        ]
+      },
+      "forward_local_elapsed_us": 592063,
+      "return_enqueue_us": 657,
+      "return_request_to_completion_ms": 96.9863472222214,
+      "return_request_to_first_byte_ms": 1.3781111111119388,
+      "forward_starts_with_cts_high": 1008,
+      "reverse_starts_with_cts_high": 0,
+      "window_samples": [
+        [
+          367280910,
+          381662204.3333333
+        ],
+        [
+          392999580,
+          395327252.3333333
+        ]
+      ],
+      "limits": "Frame-end estimate has approximately one-sample uncertainty. CTS-low idle does not identify its software cause. No analogue-integrity claim."
+    }
+  ]
+}

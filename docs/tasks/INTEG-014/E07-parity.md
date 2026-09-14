@@ -264,7 +264,7 @@ This is 44.76% less forward elapsed time than E07, but not a parity claim.
 Raw evidence: Extender ignored `agents/integ-014/E07P/eptw1*`.
 The full exact/mixed control follows before changing the installed receiver.
 
-1. [ ] **TX02 — Remaining instruction-fetch cost.** After the separate RX01
+1. [x] **TX02 — Remaining instruction-fetch cost.** After the separate RX01
    observation, if TX parity remains unmet, shorten in-range long conditional
    jumps in the fused TX loop. In particular the per-attempt outer fault branch
    currently uses a 24-bit JP although its destination is nearby. Keep condition,
@@ -408,3 +408,21 @@ restore its original long branches in a separately measured TX04 after those
 isolated comparisons, before selecting any final candidate. Do not silently
 attribute its reversal to a receive improvement or ship it on the strength of
 ROM savings alone. No target or correctness boundary changes.
+
+
+## TX02 disposition — rejected performance hypothesis
+
+Two independent exact captures repeat the regression: P4592.060/592.063 ms,
+paired mainboard589.769/589.728 ms. UART1 forward wire589.612/589.581 ms;
+RX01 control589.248 ms. Reverse is unchanged95.530 ms. All eight data cases,
+independent decodes and recovery pass. Shorter code is not automatically faster
+on this physical eZ80/link. Reject this as a speed improvement. The frozen RX02
+and TX03 images retain it only for their already-defined isolated comparisons;
+remove it before final selection. [Evidence](E07P-results/tx02.json).
+
+1. [ ] **TX04 — Restore the four original long branches.** After the already
+   frozen RX02 and TX03 comparisons, reverse exactly TX02's four JP-to-JR edits.
+   Keep the measured FIFO/parser/status changes unchanged. Recheck canonical
+   profiles and the375 complete sender boundaries; compare physical timing and
+   exact recovery. This is reversal of a rejected candidate, not a new deadline
+   or routing policy. Final selection must include this disposition explicitly.
