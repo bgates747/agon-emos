@@ -1,0 +1,11 @@
+{
+  "sd_roundtrip": true,
+  "bytes": 4097,
+  "cli_copy": true,
+  "startup_unchanged": true,
+  "backup_unchanged": true,
+  "voice_assets_verified": true,
+  "state": "Legacy MOS prompt",
+  "scope": "Live service check on restored original firmware, not new candidate stress",
+  "keyboard_ready_neutral": true
+}

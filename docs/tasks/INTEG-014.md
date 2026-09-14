@@ -13,8 +13,9 @@ Exact original EMOS/ESP/startup is restored and verified, with actual CLI/SD
 proof and neutral input. The hardware voice command has a fresh completion
 receipt; human hearing/review remains open. No experimental push.
 
-Status: E01–E07 and [E07P](INTEG-014/E07-parity.md) complete. Stop for Author
-review before E08 correctness stress and E09 rendering; transport parity does
+Status: E01–E08, including [E07P](INTEG-014/E07-parity.md), complete.
+[E08](INTEG-014/E08.md) correctness checks pass; stop for Author review before
+E09 rendering. Transport parity does
 not qualify graphics or all-size latency.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
@@ -229,7 +230,7 @@ of emulator-coupled changes; do not push experimental code without review.
    TX, RX and space changes in separate commits. If a broader rewrite appears
    necessary, present the measured size ledger and bounded proposal first.
 7P. [x] **E07P — Unattended mainboard parity.** Follow [the frozen authorization and granular continuation](INTEG-014/E07-parity.md). Both directions must meet measured mainboard performance; an improvement alone is insufficient.
-8. [ ] **E08 — Preserve correctness under stress.** Test simultaneous packet
+8. [x] **E08 — Preserve correctness under stress.** See [E08 coverage and results](INTEG-014/E08.md). Test simultaneous packet
    streams with independent parser state, required callback/register/sysvar
    behavior, routing/leases, source switching, interrupted and partial packets,
    stale RX/errors, CTS stalls, stopped-clock bounded waits and IRQ-off callers.
