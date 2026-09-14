@@ -203,7 +203,7 @@ state machine. E07 return control is approximately 85 ms at the mainboard's
 blocking handler versus 109.608 ms measured on the UART1 wire; final close
 comparisons still require symmetric timing, as the contract specifies.
 
-1. [ ] **RX01a — Parser candidate.** Preserve current byte framing exactly in a
+1. [x] **RX01a — Parser candidate.** Preserve current byte framing exactly in a
    small assembly state machine, with C called only on complete packets. Keep
    separate UART1 storage (never alias UART0 parser state), exact bad-key-length
    faults, zero/oversize-body behavior, buffer bounds and whole-frame timestamp.
@@ -233,3 +233,21 @@ repeat the test; do not manufacture a parity claim from coarse single samples.
 
 The original app05 exact/mixed/wire cases remain unchanged controls. The timing
 extension gets its own immutable fixture build/source and results alongside them.
+
+## RX01a instruction checkpoint
+
+The exhaustive linked parser comparison passes 8,683,703 byte steps across all
+256 header values and 256 following length values, concatenated frames,
+zero/oversize bodies, fault/ownership guards and key callback mutation. It compares
+all private framing fields, all 240 stored bytes and arguments at existing
+C effect/service boundaries. Those boundaries are recorded stubs; this does not
+replace the host tests of the real cleanup/source behavior or hardware validation.
+Interpreted instructions drop from 346,194,452 to 241,951,479 (30.11%).
+
+Both canonical compositions pass; bench is 130,114 bytes and ordinary 130,958
+(114 free). Compared with TX01, RX01 saves 48 ROM bytes and uses the same RAM
+capacity. All 119 TX instruction comparisons remain identical, including exact
+port sequence and deadlines. The C host keyboard/sender suites pass both
+compositions. The first harness attempt rebuilt the CPU decoder per byte and
+was stopped; reusing each immutable decoder while resetting CPU state runs the
+same exhaustive input set efficiently. RX01b physical disposition remains open.

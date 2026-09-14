@@ -44,3 +44,17 @@ caller-clobbered by the existing C implementation. TX01's private assembly
 additionally saves IY. Public IRQ-disabled refusal and enabled restoration are
 checked. The source data region is disjoint from the stack even at maximum
 length. No new graphical emulator or runtime profile is involved.
+
+## E07P receive byte comparison
+
+`cargo run --offline --release --manifest-path tests/uart_put_cpu/Cargo.toml
+--bin receive -- BASELINE_DIR CANDIDATE_DIR` compares the actual linked
+`emos_keyboard_byte` implementations over all header/length combinations and
+concatenated packets: 8,683,703 byte steps. Private state/payload stores, clock
+reads, owner/fault guards, masked IRQs and IX/SP are compared after every byte.
+Existing C effect/service call boundaries are recorded, with a deliberate key
+callback edit; their real implementations remain covered by host and physical
+tests. This does not model UART FIFO, ISR arrival or physical timing. The two
+CPU decoders are reused with fully reset execution/register state per invocation.
+The C parser is retained under `EMOS_RX_BYTE_C_REFERENCE`; its private six-byte
+state plus 240-byte payload layout is size-checked alongside the target bridge.

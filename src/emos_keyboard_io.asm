@@ -191,6 +191,86 @@ keyboard_block_tick:
             JP C, keyboard_block_attempt
             JP keyboard_block_fail
 
+            XDEF _emos_keyboard_byte
+            XREF _emos_key_rx
+            XREF _emos_keyboard_dispatch
+            XREF _emos_keyboard_fault
+; RX01: private layout checked in C: state/cmd/len/remaining/used/age/payload.
+; IRQ entry already protects interrupted primary and alternate registers.
+; Existing C dispatch and stock effect bridges still own complete packets.
+_emos_keyboard_byte:
+            LD A, (_emos_key_faulted)
+            OR A
+            RET NZ
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            RET Z
+            LD HL, 3
+            ADD HL, SP
+            LD C, (HL)
+            LD A, (_emos_key_rx)
+            OR A
+            JR Z, keyboard_rx_header
+            DEC A
+            JR Z, keyboard_rx_length
+            LD A, (_emos_key_rx+4)
+            CP 240
+            JR NC, keyboard_rx_discard
+            LD DE, 0
+            LD E, A
+            LD HL, _emos_key_rx+6
+            ADD HL, DE
+            LD (HL), C
+            INC A
+            LD (_emos_key_rx+4), A
+keyboard_rx_discard:
+            LD A, (_emos_key_rx+3)
+            DEC A
+            LD (_emos_key_rx+3), A
+            RET NZ
+            LD (_emos_key_rx), A
+            LD A, (_emos_key_rx+2)
+            CP 241
+            RET NC
+            JP _emos_keyboard_dispatch
+keyboard_rx_header:
+            BIT 7, C
+            RET Z
+            LD A, C
+            LD (_emos_key_rx+1), A
+            LD A, 1
+            LD (_emos_key_rx), A
+            LD A, (_clock)
+            LD (_emos_key_rx+5), A
+            RET
+keyboard_rx_length:
+            LD A, C
+            LD (_emos_key_rx+2), A
+            LD (_emos_key_rx+3), A
+            XOR A
+            LD (_emos_key_rx+4), A
+            LD A, (_emos_key_rx+1)
+            CP 081h
+            JR NZ, keyboard_rx_settings_length
+            LD A, C
+            CP 4
+            JP NZ, _emos_keyboard_fault
+keyboard_rx_settings_length:
+            LD A, (_emos_key_rx+1)
+            CP 088h
+            JR NZ, keyboard_rx_body_start
+            LD A, C
+            CP 5
+            JP NZ, _emos_keyboard_fault
+keyboard_rx_body_start:
+            LD A, C
+            OR A
+            JR Z, keyboard_rx_empty
+            LD A, 2
+keyboard_rx_empty:
+            LD (_emos_key_rx), A
+            RET
+
 _emos_keyboard_lock:
             LD A, I
             DI

@@ -26,10 +26,18 @@ static void async_abort(void) {
 #endif
 static BYTE layout, token;
 static volatile BYTE text_pending;
-static BYTE state, command, length, remaining, used, payload[EMOS_SDLINK_LIMIT], partial_at;
+/* RX01 private C/assembly layout: six bytes then 240 payload bytes.
+ * Exported only for the local assembly parser; never a public MOS sysvar. */
+typedef struct {
+    BYTE state, command, length, remaining, used, partial_at;
+    BYTE payload[EMOS_SDLINK_LIMIT];
+} KeyboardRx;
+KeyboardRx emos_key_rx;
+typedef char keyboard_rx_layout_must_match[(sizeof(KeyboardRx)==246 &&
+                                           EMOS_SDLINK_LIMIT==240) ? 1 : -1];
 static BYTE held[32], modifiers, zero_down;
 
-static void parser_reset(void) { state = remaining = used = 0; }
+static void parser_reset(void) { emos_key_rx.state = emos_key_rx.remaining = emos_key_rx.used = 0; }
 static BYTE valid_key(const BYTE *p) {
     return p[2] <= EMOS_KEY_MAX && p[3] <= 1;
 }
@@ -103,8 +111,8 @@ void emos_keyboard_tick(void) {
         emos_key_source = EMOS_KEY_MAINBOARD;
         emos_key_faulted = fault_requested = stop_requested = 0;
     } else if (uart1_keyboard_owned && !emos_key_faulted &&
-               (fault_requested || (state &&
-                 (BYTE)(emos_keyboard_clock() - partial_at) >= 30))) {
+               (fault_requested || (emos_key_rx.state &&
+                 (BYTE)(emos_keyboard_clock() - emos_key_rx.partial_at) >= 30))) {
         /* Mainboard VBlank adds two clock units per 60 Hz tick: 30 = 250ms.
          * Whole-frame age, not interbyte progress; a dribble cannot extend it. */
         fault_requested = 0;
@@ -124,44 +132,46 @@ void emos_keyboard_tick(void) {
     }
 #endif
 }
-static void dispatch(void) {
-    if (command == 0x8D) { emos_sdlink_packet(payload,length); return; }
-    emos_console_packet(command, payload, length);
-    if (command == 0x80 && length == 1 && preparing && payload[0] == token) {
+void emos_keyboard_dispatch(void) {
+    if (emos_key_rx.command == 0x8D) { emos_sdlink_packet(emos_key_rx.payload,emos_key_rx.length); return; }
+    emos_console_packet(emos_key_rx.command, emos_key_rx.payload, emos_key_rx.length);
+    if (emos_key_rx.command == 0x80 && emos_key_rx.length == 1 && preparing && emos_key_rx.payload[0] == token) {
         cleanup();
         emos_key_source = prepared_source;
         preparing = 0;
     } else if (!preparing && emos_key_source != EMOS_KEY_MAINBOARD) {
-        if (command == 0x81) {
-            if (!valid_key(payload)) emos_keyboard_fault();
-            else publish(payload);
-        } else if (command == 0x88) emos_keyboard_settings(payload);
-        else if (command == 0x80 && length == 1 && text_pending && payload[0] == token)
+        if (emos_key_rx.command == 0x81) {
+            if (!valid_key(emos_key_rx.payload)) emos_keyboard_fault();
+            else publish(emos_key_rx.payload);
+        } else if (emos_key_rx.command == 0x88) emos_keyboard_settings(emos_key_rx.payload);
+        else if (emos_key_rx.command == 0x80 && emos_key_rx.length == 1 && text_pending && emos_key_rx.payload[0] == token)
             text_pending = 0;
     }
 }
+#ifdef EMOS_RX_BYTE_C_REFERENCE
 void emos_keyboard_byte(BYTE value) {
     if (emos_key_faulted || !uart1_keyboard_owned) return;
-    if (!state) {
+    if (!emos_key_rx.state) {
         if (!(value & 0x80)) return;
-        command = value; state = 1; partial_at = emos_keyboard_clock();
-    } else if (state == 1) {
-        length = remaining = value; used = 0;
-        if ((command == 0x81 && value != 4) || (command == 0x88 && value != 5)) {
+        emos_key_rx.command = value; emos_key_rx.state = 1; emos_key_rx.partial_at = emos_keyboard_clock();
+    } else if (emos_key_rx.state == 1) {
+        emos_key_rx.length = emos_key_rx.remaining = value; emos_key_rx.used = 0;
+        if ((emos_key_rx.command == 0x81 && value != 4) || (emos_key_rx.command == 0x88 && value != 5)) {
             emos_keyboard_fault(); return;
         }
         /* Consume unowned/oversize bodies by length. Never rescan payload
          * bytes as headers, including when their high bit is set. */
-        state = 2;
-        if (!remaining) parser_reset();
+        emos_key_rx.state = 2;
+        if (!emos_key_rx.remaining) parser_reset();
     } else {
-        if (used < sizeof(payload)) payload[used++] = value;
-        if (!--remaining) {
-            state = 0;
-            if (length <= sizeof(payload)) dispatch();
+        if (emos_key_rx.used < sizeof(emos_key_rx.payload)) emos_key_rx.payload[emos_key_rx.used++] = value;
+        if (!--emos_key_rx.remaining) {
+            emos_key_rx.state = 0;
+            if (emos_key_rx.length <= sizeof(emos_key_rx.payload)) emos_keyboard_dispatch();
         }
     }
 }
+#endif
 
 /* INTEG-014 E05: 262144 fits native 24 bits. Preserve the exact poll
  * limit without pulling 32-bit arithmetic helpers into every byte attempt. */

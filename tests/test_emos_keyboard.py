@@ -11,7 +11,7 @@ class KeyboardTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             exe = Path(temp) / 'keyboard'
             for flags in ([],['-DEMOS_BENCH_TELEMETRY=1']):
-                subprocess.run(['cc',*flags, '-DEMOS_TX_BLOCK_C_REFERENCE=1', '-std=c17', '-Wall', '-Wextra', '-Werror',
+                subprocess.run(['cc',*flags, '-DEMOS_TX_BLOCK_C_REFERENCE=1', '-DEMOS_RX_BYTE_C_REFERENCE=1', '-std=c17', '-Wall', '-Wextra', '-Werror',
                             '-Wno-endif-labels', '-fsanitize=address,undefined',
                             '-DMOS_DEFINES_H', '-include',str(ROOT/'tests/host/defines.h'),
                             '-I'+str(ROOT/'tests/host'), '-I'+str(ROOT/'src'),
