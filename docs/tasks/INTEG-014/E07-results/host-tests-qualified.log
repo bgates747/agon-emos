@@ -1,0 +1,49 @@
+Console control, staging, private scratch, stale replies and bounded recovery passed
+resident keyboard parser, admission, ownership and IRQ cleanup scenarios passed
+resident keyboard parser, admission, ownership and IRQ cleanup scenarios passed
+sdlink gateway bounds, mailbox, ownership and lifecycle passed
+telemetry gateway bounds, ownership, busy and lifecycle passed
+TX partial/error/ownership/IRQ/clock-wrap/stall boundaries passed
+TX partial/error/ownership/IRQ/clock-wrap/stall boundaries passed
+======================================================================
+FAIL: test_product_profile_declares_emos_source_and_object_once (test_emos_port.EmosPortTests.test_product_profile_declares_emos_source_and_object_once)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "${EMOS}/tests/test_emos_port.py", line 118, in test_product_profile_declares_emos_source_and_object_once
+    self.assertEqual(
+    ~~~~~~~~~~~~~~~~^
+        sources,
+        ^^^^^^^^
+        ["src/emos_sdlink.c", "src/emos_console.c", "src/emos_keyboard.c", "src/emos_uart_flow.c", "src/emos_uart_probe.c", "src/emos.c", "src/emos_parallel.c", "src/emos_parallel_engine.c"],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+AssertionError: Lists differ: ['src/emos_telemetry.c', 'src/emos_sdlink.c', 'src/e[149 chars]e.c'] != ['src/emos_sdlink.c', 'src/emos_console.c', 'src/emo[125 chars]e.c']
+
+First differing element 0:
+'src/emos_telemetry.c'
+'src/emos_sdlink.c'
+
+First list contains 1 additional elements.
+First extra element 8:
+'src/emos_parallel_engine.c'
+
+- ['src/emos_telemetry.c',
+-  'src/emos_sdlink.c',
+? ^
+
++ ['src/emos_sdlink.c',
+? ^
+
+   'src/emos_console.c',
+   'src/emos_keyboard.c',
+   'src/emos_uart_flow.c',
+   'src/emos_uart_probe.c',
+   'src/emos.c',
+   'src/emos_parallel.c',
+   'src/emos_parallel_engine.c']
+
+----------------------------------------------------------------------
+Ran 91 tests in 2.578s
+
+FAILED (failures=1)

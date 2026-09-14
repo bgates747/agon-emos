@@ -18,7 +18,7 @@ hardware voice is the attention cue, spoken emulator fallback only if needed.
 
 1. [x] Preserve current source/index/generated-output state and E05 binary
    baseline. Freeze this contract before firmware changes.
-2. [ ] Implement the one-operation assembly alternative, leaving the original
+2. [x] Implement the one-operation assembly alternative, leaving the original
    C routine as a host reference. Validate return codes and register/port effects
    against the actual linked E05 C implementation using the pinned eZ80 CPU
    interpreter; include every LSR byte, CTS/THRE combinations, ownership/fault,

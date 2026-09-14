@@ -109,6 +109,7 @@ class EmosParallelTests(unittest.TestCase):
                     # Inherited ZDS headers use ``#endif NAME`` labels.  Keep
                     # every other host warning fatal while compiling them.
                     "-Wno-endif-labels",
+                    "-DEMOS_UART_PUT_C_REFERENCE",
                     f"-I{HOST_INCLUDE}",
                     f"-I{ROOT / 'src'}",
                     str(UART),

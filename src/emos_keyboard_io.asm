@@ -23,6 +23,63 @@
             XREF emos_keyboard_payload
             XREF _keydelay
             XREF UART0_serial_PUTCH
+            XDEF _uart1_keyboard_put
+            XREF _uart1_keyboard_owned
+            XREF _emos_key_faulted
+
+; One atomic UART1 transmit attempt, preserving the C driver's error/CTS order.
+; The original C implementation remains available to host reference tests.
+; Save IFF2 in AF's parity flag; restore only the caller's interrupt state.
+; No frame, wait loop or timeout here. E05's C sender owns the deadline.
+_uart1_keyboard_put:
+            LD A, I
+            DI
+            PUSH AF
+            LD HL, 6
+            ADD HL, SP
+            LD C, (HL)
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            JR Z, keyboard_put_unavailable
+            LD A, (_emos_key_faulted)
+            OR A
+            JR NZ, keyboard_put_unavailable
+            IN0 A, (0D5h)       ; UART1_LSR, read once (acknowledges errors)
+            LD B, A
+            AND 09Eh           ; OE | PE | FE | BI | ERR
+            JR NZ, keyboard_put_error
+            IN0 A, (PC_DR)
+            AND 08h            ; PC3 active-low peer CTS
+            JR NZ, keyboard_put_blocked
+            BIT 5, B           ; UART_LSR_THRE
+            JR Z, keyboard_put_empty
+            LD A, C
+            OUT0 (0D0h), A      ; UART1_THR
+            LD A, 1            ; UART_POLL_READY
+            JR keyboard_put_done
+keyboard_put_error:
+            IN0 A, (PC_DR)
+            OR 04h             ; PC2 stop peer; preserve other lanes
+            OUT0 (PC_DR), A
+            XOR A
+            OUT0 (0D1h), A      ; UART1_IER = 0
+            LD A, 2            ; UART_POLL_ERROR
+            JR keyboard_put_done
+keyboard_put_unavailable:
+            LD A, 3
+            JR keyboard_put_done
+keyboard_put_blocked:
+            LD A, 4
+            JR keyboard_put_done
+keyboard_put_empty:
+            XOR A
+keyboard_put_done:
+            LD C, A
+            POP AF
+            LD A, C            ; does not change restored parity flag
+            RET PO
+            EI
+            RET
 
 _emos_keyboard_lock:
             LD A, I

@@ -273,6 +273,8 @@ void uart1_keyboard_close(void) {
     RESETREG(PC_ALT2, 0x0F);
     emos_keyboard_vector(0);
 }
+/* Target leaf is in emos_keyboard_io.asm; retain the original C oracle. */
+#ifdef EMOS_UART_PUT_C_REFERENCE
 BYTE uart1_keyboard_put(BYTE value) {
     BYTE irq = emos_keyboard_lock(), status, result;
     if (!uart1_keyboard_owned || emos_key_faulted) result = UART_POLL_UNAVAILABLE;
@@ -288,6 +290,7 @@ BYTE uart1_keyboard_put(BYTE value) {
     emos_keyboard_unlock(irq);
     return result;
 }
+#endif
 void uart1_keyboard_irq(void) {
     BYTE count, status;
     if (!uart1_keyboard_owned || emos_key_faulted) return;
