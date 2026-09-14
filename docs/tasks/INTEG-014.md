@@ -1,7 +1,7 @@
 # INTEG-014 — Diagnose and reduce EMOS UART execution cost
 
-Status: Author authorised supervised execution; E01 in progress, no firmware
-implementation started. Hardware notification and a review pause after each step.
+Status: E01 complete; supervised pause before E02. No firmware implementation
+started. Hardware notification and a review pause after each step.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
 
@@ -161,7 +161,7 @@ This replaces the unattended cadence; it does not expand scope. Human
 validation gates still apply to commits
 of emulator-coupled changes; do not push experimental code without review.
 
-1. [ ] **E01 — Freeze inputs and recovery.** Preserve existing dirty EMOS source,
+1. [x] **E01 — Freeze inputs and recovery.** Preserve existing dirty EMOS source,
    tests, telemetry profile and TODO changes without mixing or discarding them.
    Record source hashes, toolchain/profile, stock tags and all deployed images.
    Read Extender's local hardware record and bench constraints. Verify rollback,
@@ -247,6 +247,7 @@ of emulator-coupled changes; do not push experimental code without review.
 
 ## Planning checkpoint
 
-The initial planning turn changed only this task and queue links. The Author
-has now authorised E01 under the supervised cadence above. Existing dirty EMOS
-work is preserved; source optimisation starts only at its later planned step.
+The initial planning turn changed only this task and queue links. E01 is now
+complete; [its checkpoint record](INTEG-014/E01.md) identifies preservation,
+recovery checks and limits. Wait for the Author before E02. Existing dirty
+EMOS work is preserved; source optimisation starts only at its later step.
