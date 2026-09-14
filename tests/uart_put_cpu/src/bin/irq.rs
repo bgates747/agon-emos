@@ -29,6 +29,7 @@ struct Image {
     owned: u32,
     fault: u32,
     byte: u32,
+    byte_in_register: bool,
     fail: u32,
     async_fn: Option<u32>,
     async_length: Option<u32>,
@@ -47,7 +48,10 @@ impl Image {
             entry: address("_emos_keyboard_irq_entry").unwrap(),
             owned: address("_uart1_keyboard_owned").unwrap(),
             fault: address("_emos_key_faulted").unwrap(),
-            byte: address("_emos_keyboard_byte").unwrap(),
+            byte: address("keyboard_rx_register")
+                .or_else(|| address("_emos_keyboard_byte"))
+                .unwrap(),
+            byte_in_register: address("keyboard_rx_register").is_some(),
             fail: address("_emos_keyboard_fault").unwrap(),
             async_fn: address("_emos_keyboard_async_irq"),
             async_length: address("_emos_keyboard_async_length")
@@ -163,7 +167,11 @@ fn run(im: &Image, x: &Case) -> (Vec<Event>, u8, usize) {
             assert!(!c.state.reg.iff1);
             let sp = c.state.reg.get24(Reg16::SP);
             if pc == im.byte {
-                b.events.push(Event::Byte(b.mem[(sp + 3) as usize]));
+                b.events.push(Event::Byte(if im.byte_in_register {
+                    c.state.reg.get24(Reg16::BC) as u8
+                } else {
+                    b.mem[(sp + 3) as usize]
+                }));
                 delivered += 1;
                 if x.fault_after == Some(delivered) {
                     b.mem[im.fault as usize] = 1;

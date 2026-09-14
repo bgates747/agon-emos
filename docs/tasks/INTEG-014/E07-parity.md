@@ -504,7 +504,7 @@ The new FIFO loop already holds each received byte in C, but invokes the public
 C-ABI parser entry, which reconstructs its stack argument using LD HL,3 / ADD
 HL,SP / LD C,(HL). That work is redundant for this assembly-only caller.
 
-1. [ ] **RX04a — If RX03 still misses the reverse target, add a private
+1. [x] **RX04a — If RX03 still misses the reverse target, add a private
    register-argument parser entry.** Keep the public C entry and its exact
    fault/owner-before-argument-load order. Add a private entry accepting C with
    the same fault/owner guards, then share the unchanged parser body. The FIFO
@@ -629,3 +629,17 @@ argument path relative to TX04. It will not carry the rejected idle guard.
 P4 source preparation may now proceed under O02, but its physical O03 deployment
 waits for the new RX04 disposition so the installed firmware factors remain
 separate. No reflash of a known rejected receiver merely to repeat its result.
+
+
+## RX04a instruction checkpoint
+
+Both public and register-argument entries pass8,683,703 linked byte comparisons
+against the original C parser, including all state/payload/callback/guard checks.
+The private entry avoids three argument-loading instructions for admitted bytes;
+its modeled total is216,204,465 versus RX01's241,951,479. The public entry retains
+its original fault/owner-before-stack-load order. Complete IRQ comparisons pass
+3810 bench and1270 ordinary cases, observing the actual register byte; all375
+sender cases and91 host tests pass. Both canonical profiles pass: bench130097
+bytes, ordinary130942 (130 free). IRQ counts excluding the stubbed parser are
+unchanged, as expected; no physical throughput claim yet. The rejected RX03
+idle guard is absent. RX04b measures against the retained TX04 composition.

@@ -7,6 +7,7 @@ const EXIT: u32 = 0xa0000;
 struct Image {
     data: Vec<u8>,
     entry: u32,
+    register_argument: bool,
     clock: u32,
     fields: Vec<u32>,
     owned: u32,
@@ -15,7 +16,7 @@ struct Image {
     hooks: Vec<(u32, &'static str)>,
 }
 impl Image {
-    fn load(path: &str) -> Self {
+    fn load(path: &str, register_argument: bool) -> Self {
         let p = Path::new(path);
         let nm = fs::read_to_string(p.join("nm.txt")).unwrap();
         let addr = |n: &str| {
@@ -48,7 +49,12 @@ impl Image {
         };
         Self {
             data,
-            entry: addr("_emos_keyboard_byte"),
+            entry: addr(if register_argument {
+                "keyboard_rx_register"
+            } else {
+                "_emos_keyboard_byte"
+            }),
+            register_argument,
             clock,
             fields,
             owned: addr("_uart1_keyboard_owned"),
@@ -139,6 +145,9 @@ fn byte(
     c.state.reg.set24(Reg16::SP, SP);
     c.state.reg.set24(Reg16::IX, 0xabc123);
     c.state.reg.set24(Reg16::IY, 0xbcd234);
+    if im.register_argument {
+        c.state.reg.set24(Reg16::BC, 0x123400 | value as u32);
+    }
     b._poke24(SP, EXIT);
     b._poke24(SP + 3, 0xaabb00 | value as u32);
     b.reads.set(0);
@@ -205,9 +214,9 @@ fn byte(
 }
 fn main() {
     let args: Vec<_> = env::args().collect();
-    assert_eq!(args.len(), 3);
-    let a = Image::load(&args[1]);
-    let b = Image::load(&args[2]);
+    assert!(args.len() == 3 || (args.len() == 4 && args[3] == "--register"));
+    let a = Image::load(&args[1], false);
+    let b = Image::load(&args[2], args.len() == 4);
     let mut ba = board(&a);
     let mut bb = board(&b);
     let mut ca = Cpu::new_ez80();

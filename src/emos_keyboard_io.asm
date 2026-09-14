@@ -207,6 +207,17 @@ _emos_keyboard_byte:
             LD HL, 3
             ADD HL, SP
             LD C, (HL)
+            JR keyboard_rx_state
+; RX04: private same-file entry. The FIFO caller already holds its byte in C.
+; Keep the same guards; the public C entry above still checks before stack load.
+keyboard_rx_register:
+            LD A, (_emos_key_faulted)
+            OR A
+            RET NZ
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            RET Z
+keyboard_rx_state:
             LD A, (_emos_key_rx)
             OR A
             JR Z, keyboard_rx_header
@@ -271,7 +282,7 @@ keyboard_rx_empty:
             RET
 
 ; RX02: same bounded FIFO drain under the unchanged full IRQ register save.
-; BC on the stack is both saved count and the C byte argument (C is low byte).
+; RX04 keeps BC saved across callbacks and passes its existing C byte directly.
 _uart1_keyboard_irq:
             LD A, (_uart1_keyboard_owned)
             OR A
@@ -292,7 +303,7 @@ keyboard_irq_drain:
             JR Z, keyboard_irq_complete
             IN0 C, (0D0h)
             PUSH BC
-            CALL _emos_keyboard_byte
+            CALL keyboard_rx_register
             POP BC
             LD A, (_emos_key_faulted)
             OR A
