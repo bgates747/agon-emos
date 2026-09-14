@@ -61,7 +61,7 @@ milestone wakeups during this unattended run. No subagents are authorized.
 
 ## Ordered execution contract
 
-1. [ ] **P01 — Freeze and preserve.** Snapshot all three involved worktrees and
+1. [x] **P01 — Freeze and preserve.** Snapshot all three involved worktrees and
    generic generated outputs. Freeze existing BENCH integration and accepted
    recovery work separately. Commit this authorization and promote E07P in the
    authoritative INTEG-014 queue before firmware edits. Recheck current hardware
@@ -135,3 +135,13 @@ journals under ignored E07P evidence directories.
 4. Existing dirty BENCH files and maintained recovery are frozen as separate
    progress commits. This does not make their full host suite green: the known
    source-profile expectation is still a pre-existing mismatch, recorded in E07.
+
+## P01 preservation receipt
+
+Completed before firmware changes: EMOS BENCH integration `7317dca`, Extender
+maintained recovery `5a4fd61`, authorization `c72a8b0` / `8afd6ac`.
+Ignored `build/integ-014/E07P` preserves patches, selected input archives and
+all previous generic generated outputs. Fresh P4 status and keyboard snapshot
+in Extender `agents/integ-014/E07P/initial-*` show ready, physically neutral,
+no held or pending keys. E07 restoration hashes and the maintained recovery
+protocol remain the rollback authority; no bench mutation in this step.
