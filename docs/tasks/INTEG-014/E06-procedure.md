@@ -75,3 +75,19 @@ Official MOS3.0.2 `docs/mos/API.md`, `0x14 mos_setintvector`, and tagged
 EMOS IRQ envelope and ownership checks; E03 linked audit and E04/E05 exact
 wire oracles. Official references remain read-only. Local build/evidence paths
 and exact physical identities remain in ignored records.
+
+## Failure isolation amendment — observer overhead
+
+The corrected observer fails the first concurrent service/return case. It
+records valid mainboard mode replies but incomplete P4 reception, then terminal
+status15 and recovery35. Original vectors were restored; one explicit reset
+recovered keyboard and SD access. Preserve this failure and its closed CSV.
+
+Before testing a receiver alternative, run the same quiet and ordinary-service
+cases with **both original IRQ owners left installed**. This `native` diagnostic
+variant supplies18cases if all pass: three repeats of two loads and three
+transfer sizes. It changes neither receiver nor timeout, and does not produce
+an IRQ count or validate suppressed mainboard reply payloads. Label those
+measurements unavailable, never zero-cost or error-free. P4 exact-data checking
+and terminal recovery remain mandatory. A failed native run stops the matrix
+for inspection; do not infer that the observer alone caused the first failure.

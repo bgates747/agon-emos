@@ -21,7 +21,7 @@ static volatile uint8_t armed,bad,seen[4];
 static volatile uint16_t owner,packets;
 static volatile uint32_t value[4],count[4];
 static volatile uint24_t last_rx;
-static unsigned repeat,load,kind,length,saved,failures;
+static unsigned repeat,load,kind,length,saved,failures,native;
 static uint16_t token;
 static FIL file;
 static char filename[32],line[512],command[64];
@@ -45,13 +45,13 @@ static unsigned install(void){
     uint8_t irq=diag_lock();
     if(!irq || *(volatile uint24_t*)ROM_VECTOR0!=ROM_UART0_IRQ || *(volatile uint24_t*)ROM_VECTOR1!=ROM_UART1_IRQ){diag_unlock(irq);return FR_INT_ERR;}
     diag0_count=diag1_count=0;diag0_overflow=0;diag0_cursor=raw0;diag0_left=sizeof raw0;
-    mos_setintvector(0x18,diag0_irq);mos_setintvector(0x1A,diag1_irq);
+    if(!native){mos_setintvector(0x18,diag0_irq);mos_setintvector(0x1A,diag1_irq);}
     diag_unlock(irq);return 0;
 }
 static unsigned restore(void){
     uint8_t irq=diag_lock();
-    if(*(volatile uint24_t*)ROM_VECTOR0!=(uint24_t)diag0_irq || *(volatile uint24_t*)ROM_VECTOR1!=(uint24_t)diag1_irq){diag_unlock(irq);return FR_INT_ERR;}
-    mos_setintvector(0x18,(void(*)(void))ROM_UART0_IRQ);mos_setintvector(0x1A,(void(*)(void))ROM_UART1_IRQ);
+    if(*(volatile uint24_t*)ROM_VECTOR0!=(native?ROM_UART0_IRQ:(uint24_t)diag0_irq) || *(volatile uint24_t*)ROM_VECTOR1!=(native?ROM_UART1_IRQ:(uint24_t)diag1_irq)){diag_unlock(irq);return FR_INT_ERR;}
+    if(!native){mos_setintvector(0x18,(void(*)(void))ROM_UART0_IRQ);mos_setintvector(0x1A,(void(*)(void))ROM_UART1_IRQ);}
     diag_unlock(irq);return 0;
 }
 /* Indexed loads avoid the observed AgonDev -Oz postincrement-argument
@@ -124,7 +124,7 @@ static unsigned trial(void){
         if(!status)status=request(3);if(!status)status=wait_for(2);
         reply=last_rx-start;
     }
-    unsigned expected0=load==2?4626:queries*10;
+    unsigned expected0=native?0:load==2?4626:queries*10;
     uint32_t budget=16000000UL;
     while(raw_size()<expected0 && ticks()-start<1800 && --budget){}
     whole=ticks()-start;
@@ -132,7 +132,7 @@ static unsigned trial(void){
     /* Never touch a foreign vector on failure or invoke an EMOS transition
      * while our own UART1 wrapper remains installed. */
     if(restored){for(;;){} /* Foreign owner: no transition, overwrite or batch resume. */}
-    e0=validate0(queries,background);
+    e0=native?0:validate0(queries,background);
     if(kind){rng=0x12345678UL;for(unsigned i=0;i<packets*8;++i)if(returned[i]!=next_byte())++e1;if(packets!=256 || count[3]!=256)++e1;}
     else {e1=(unsigned)value[2];if(count[1]!=length)++e1;}
     if(bad)++e1;
@@ -143,11 +143,14 @@ int main(int argc,char **argv){
     sv=(volatile uint8_t*)mos_sysvars();
     /* Read address zero in assembly: a C null dereference is not a ROM API. */
     if(diag_rom_first()!=ROM_FIRST || crc32((const uint8_t*)1,ROM_BYTES-1)!=ROM_CRC32_FROM1){printf("Wrong ROM for UART observer. No vectors changed.\r\n");return 0;}
-    unsigned smoke=argc>1 && !strcmp(argv[1],"smoke"),status=create();if(status)return status;
+    unsigned smoke=argc>1 && !strcmp(argv[1],"smoke");
+    native=argc>1 && !strcmp(argv[1],"native");
+    unsigned status=create();if(status)return status;
+    if(native){status=append("# native IRQ owners; no IRQ counts or UART0 payload validation\r\n");if(status)return status;}
     strcpy(command,"emos excom --keep-display");status=mos_oscli(command,NULL,0);
     mos_setkbvector(graphics_callback,0);
     for(repeat=0;repeat<(smoke?1:3) && !status;++repeat){
-        for(load=0;load<(smoke?1:3) && !status;++load){
+        for(load=0;load<(smoke?1:native?2:3) && !status;++load){
             for(unsigned k=0;k<(smoke?2:3) && !status;++k){
                 kind=k==0;length=kind?256:k==1?4096:65535;
                 status=trial();
