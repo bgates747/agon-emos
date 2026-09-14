@@ -69,3 +69,15 @@ receipts or overwrite their output. No source change means no new build ID;
 new executions receive fresh run directories and timestamps. Any new failure
 or discrepancy is preserved and investigated before advancing. If a fixed
 input assumption fails, record the deviation before further physical work.
+
+## Preflight observation
+
+Fresh independently verified mainboard flash differs from the previous UART
+pass's pre-test backup only in five sectors beginning at `0x3f0000`. The actual
+partition table identifies these as **coredump**, not application settings.
+Boot, partition, application and all bytes below `0x3f0000` match the previous
+stock-restored image. The dump's originating incident is not identified by this
+comparison; do not attribute it to E04, whose probe has not been deployed yet.
+Preserve the new full backup and the sector-difference record. Deployment touches
+only the application region; restoration uses today's preserved bytes and does
+not erase this diagnostic evidence. No firmware baseline assumption changes.
