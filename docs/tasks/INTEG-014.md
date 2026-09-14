@@ -1,7 +1,21 @@
 # INTEG-014 — Diagnose and reduce EMOS UART execution cost
 
-Status: E05 complete; E06 authorised and now proceeding.
-Hardware spoken notification and review pause after this bounded pair.
+## Executive summary
+
+E05's small C changes reduce large Extender upload time33.41%. E06's native
+service checks pass; its four-byte RX trigger saves only0.70% and is reverted.
+The heavy IRQ observer has a retained timing-induced failure and is not a
+native performance oracle. Detailed evidence is in [E05](INTEG-014/E05.md) and
+[E06](INTEG-014/E06.md).
+
+**The recovery checkpoint is incomplete.** Both original ESP images are
+restored/verified, but fresh EMOS keyboard/SD admission has not returned after
+the original-ROM flash command and reset checks. Actual EMOS ROM readback and
+the hardware spoken cue remain pending. Stop further bench mutations and ask
+the Author for one physical Agon reset and the resulting screen state. E07 has
+not started. E06 remains unchecked until that recovery/notification gate closes.
+
+Status: E05 complete; E06 measurements complete, physical recovery blocked.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
 
@@ -205,6 +219,8 @@ of emulator-coupled changes; do not push experimental code without review.
    output and a minimal alternative only where evidence justifies it. Obtain
    additional UART0 capture channels only if needed; never infer unobserved
    signals or change wiring from legacy assumptions.
+   Measurements and rejected alternative are recorded in E06.md; final physical
+   recovery and notification remain outstanding as described above.
 7. [ ] **E07 — Select and implement minimal fixes.** Choose C/C++ when timing is
    within the frozen negligible-difference threshold. Select assembly only for
    demonstrated throughput or meaningful linked flash savings, documenting
