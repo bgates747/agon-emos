@@ -92,7 +92,7 @@ milestone wakeups during this unattended run. No subagents are authorized.
    streams, callback/register/sysvar behavior, partial/oversize packets, stale
    data, source switching, bounded stalls and ordinary recovery. Remeasure TX
    after RX changes; no one-direction win bought by loss in the other.
-6. [ ] **P06 — Resolve residual gaps.** If either target remains unmet, use the
+6. [x] **P06 — Resolve residual gaps.** If either target remains unmet, use the
    new instruction/wire evidence to choose the next narrowly scoped candidate.
    Investigate stock-equivalent P4 transport costs only where its backpressure
    is material; wiring only where captures provide reason. Record additional
@@ -804,3 +804,13 @@ forward medians: P4 588.154ms (588.112–588.205), mainboard589.656ms
 (589.554–589.766), a0.255% elapsed advantage. The matched long return target
 also remains passed. [Final bench composition](E07P-results/rx05.json).
 P07's ordinary profile and P08's original restoration are still pending.
+
+
+## P06 completion
+
+The identified P4 stock-loop divergence and measured RX05 private admission
+cost are resolved. Both defined bulk transfer targets pass on the retained
+bench composition; no wiring change or unsupported baud increase was needed.
+Short-command fixed setup latency remains explicitly reported, and graphics
+throughput is outside these pure-data findings. RX06 was not activated. No
+further optimization candidate will be started unless P07 changes the result.
