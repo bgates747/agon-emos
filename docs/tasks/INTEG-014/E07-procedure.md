@@ -25,7 +25,7 @@ hardware voice is the attention cue, spoken emulator fallback only if needed.
    both IFF states, representative byte values, stack and IX/IY preservation.
    This tests instructions, not physical UART timing. Keep the driver reference
    tests and sender timeout/partial/IRQ-off tests passing.
-3. [ ] Build ordinary and bench compositions through canonical wrappers/link
+3. [x] Build ordinary and bench compositions through canonical wrappers/link
    guards. Record complete-image and primitive sizes and linked calls. Reject
    unexplained ABI changes or image overflow. Retain C if there is no plausible
    material improvement; no wider assembly rewrite.
