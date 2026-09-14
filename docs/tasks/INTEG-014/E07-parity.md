@@ -187,3 +187,31 @@ the new private assembly preserves it in addition to the required public ABI.
 Host sender and keyboard suites pass both ordinary and telemetry compositions.
 TX01 remains experimental pending physical timing and exact/mixed controls;
 P03 is still open. No transport or receive code changed in this candidate.
+
+## Receive accounting and next bounded candidate
+
+TX01 hardware preparation uses its immutable clean-commit image `49d31e1`,
+identity `agon-emos-v0.1.17-b2026-09-14-12-41-13Z`, SHA256
+`ab82bfe7398ea0f616ce66156f5035204bbd206a922e7352d0b4a848ffc0f092`.
+The full host suite remains 90/91: the previously recorded profile expectation
+omits the already-integrated telemetry unit. This is not a new TX failure.
+
+RX01 will target the private byte parser first, leaving FIFO policy, IRQ register
+saves and reply effects unchanged. TX01 links 412 bytes for the C parser with
+inlined dispatch and 100 for the UART IRQ drain. Stock uses a short assembly
+state machine. E07 return control is approximately 85 ms at the mainboard's
+blocking handler versus 109.608 ms measured on the UART1 wire; final close
+comparisons still require symmetric timing, as the contract specifies.
+
+1. [ ] **RX01a — Parser candidate.** Preserve current byte framing exactly in a
+   small assembly state machine, with C called only on complete packets. Keep
+   separate UART1 storage (never alias UART0 parser state), exact bad-key-length
+   faults, zero/oversize-body behavior, buffer bounds and whole-frame timestamp.
+   Make its private C/assembly storage layout explicit and compile-checked;
+   retain the original C parser for host and linked-reference comparisons.
+2. [ ] **RX01b — Instruction and physical disposition.** Compare actual linked
+   byte parsing to TX01 across all header/length combinations, boundaries and
+   mixed valid/malformed packets. Compare callback arguments, state, stored
+   bytes, fault behavior and ABI. Build both compositions and measure only after
+   TX01's separate physical result. No reduction in register saves and no peer
+   release before parsing are included in RX01.
