@@ -530,3 +530,15 @@ The next installed image is the frozen TX03 status-classification candidate,
 identity13:49:22Z, SHA256
 `ee66855246b140c96a432cf26c8d85aa11549541579335cc048694769ec5169f`;
 it changes only TX relative to the measured RX02 image.
+
+
+## Existing capture cadence account
+
+Re-reading the same return windows, RX01 has2307 RTS stop intervals and RX02
+2308 for4626 wire bytes: about2.00 bytes per interval. Median asserted time falls
+16.917→15.417 microseconds. This is observed RTS cadence, not a separately
+instrumented IRQ count. [Counts](E07P-results/return-stop-pulses.json); the local
+analysis script and original captures remain in Extender's ignored E07P evidence.
+RX03's guard executes after RTS reopening, so faster return may alter batching;
+physical measurement must decide its value. Do not infer throughput directly
+from its instruction saving or silently change FIFO policy at the same time.

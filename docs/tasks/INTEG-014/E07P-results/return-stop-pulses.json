@@ -1,0 +1,16 @@
+{
+  "eprw1": {
+    "rts_stop_intervals": 2307,
+    "wire_bytes_per_stop": 2.0052015604681404,
+    "median_stop_us": 16.916666666666668,
+    "max_stop_us": 107.125,
+    "scope": "same decoded return request-to-completion window; RTS pulses, not an independent IRQ counter"
+  },
+  "ep2rw1": {
+    "rts_stop_intervals": 2308,
+    "wire_bytes_per_stop": 2.0043327556325825,
+    "median_stop_us": 15.416666666666666,
+    "max_stop_us": 103.375,
+    "scope": "same decoded return request-to-completion window; RTS pulses, not an independent IRQ counter"
+  }
+}
