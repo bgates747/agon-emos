@@ -1,0 +1,15 @@
+# uart-data-probe-r01-b2026-09-14-16-06-09Z (experimental)
+repeat,route,direction,pattern,length,send_ticks,reply_ticks,elapsed_us,expected_bytes,actual_bytes,errors,status
+0,0,reverse-batch,3,256,0,1322,0,262144,262144,0,0
+0,1,reverse-batch,3,256,0,1310,0,262144,262144,0,0
+1,1,reverse-batch,3,256,0,1308,0,262144,262144,0,0
+1,0,reverse-batch,3,256,0,1322,0,262144,262144,0,0
+2,0,reverse-batch,3,256,0,1322,0,262144,262144,0,0
+2,1,reverse-batch,3,256,0,1308,0,262144,262144,0,0
+3,1,reverse-batch,3,256,0,1310,0,262144,262144,0,0
+3,0,reverse-batch,3,256,0,1322,0,262144,262144,0,0
+4,0,reverse-batch,3,256,0,1322,0,262144,262144,0,0
+4,1,reverse-batch,3,256,0,1308,0,262144,262144,0,0
+5,1,reverse-batch,3,256,0,1308,0,262144,262144,0,0
+5,0,reverse-batch,3,256,0,1322,0,262144,262144,0,0
+# terminal,status=0,saved=12,recovery=0

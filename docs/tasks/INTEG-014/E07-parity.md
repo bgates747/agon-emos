@@ -814,3 +814,17 @@ bench composition; no wiring change or unsupported baud increase was needed.
 Short-command fixed setup latency remains explicitly reported, and graphics
 throughput is outside these pure-data findings. RX06 was not activated. No
 further optimization candidate will be started unless P07 changes the result.
+
+
+## P07 ordinary reverse checkpoint
+
+The ordinary RX05 ROM (identity16:10:16Z) is physically read back byte-exact.
+The preserved short interval passes exact bytes but retains overlapping bounds.
+Its128-transfer follow-up passes3,145,728 exact useful bytes and recovery:
+P4 85.156ms (85.156–85.286), mainboard86.068ms, −1.06%. Conservative P4 upper
+85.286ms is below mainboard lower85.938ms. [Evidence](E07P-results/ep5olong-analysis.json).
+The bench profile's observed per-return excess is0.130ms; that profile also
+substitutes telemetry for UARTFLOW, so this is a profile comparison, not a
+single isolated instrumentation-cost attribution. Both frozen profiles'
+maintained firmware inputs still match current source. Full/mixed controls
+and the remaining ordinary captures are running; P07 remains open.
