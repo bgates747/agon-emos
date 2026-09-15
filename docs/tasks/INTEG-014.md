@@ -13,12 +13,11 @@ Exact original EMOS/ESP/startup is restored and verified, with actual CLI/SD
 proof and neutral input. The hardware voice command has a fresh completion
 receipt; human hearing/review remains open. No experimental push.
 
-Status: E01–E08, including [E07P](INTEG-014/E07-parity.md), complete.
-[E08](INTEG-014/E08.md) correctness checks pass. E09 was attempted after
-Author authorization: mainboard timeout followed by
-an incomplete 550/624-interval retry; see [E09](INTEG-014/E09.md).
-Await Author disposition; no full rendering pass. Transport parity does
-not qualify graphics or all-size latency.
+Status: E01–E09 complete within their declared scopes. The later unattended
+[E09](INTEG-014/E09.md) run validates624intervals, eight unchanged probe
+mismatches and zeroP4snapshots. The earlier timeout and incomplete retry remain
+preserved. Original firmware/CLI/SD are restored and verified. Await Author
+review; E10 production remeasurement is not started.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
 
@@ -240,7 +239,7 @@ of emulator-coupled changes; do not push experimental code without review.
    Preserve bounded receive work, timeout and recovery contracts; copying a
    stock unbounded wait is not automatically compatible. Run meaningful host
    and linked checks, then physical exact-byte/mixed-load regression tests.
-9. [ ] **E09 — Add rendering load.** Repeat the frozen paired graphics suite
+9. [x] **E09 — Add rendering load.** Repeat the frozen paired graphics suite
    after pure transport passes. Keep initial P4 output off; separate upload,
    resident bitmap/sprite draw and output timing. Preserve known probe differences
    and the earlier mainboard timeout as unresolved evidence; do not hide them by
@@ -253,6 +252,9 @@ of emulator-coupled changes; do not push experimental code without review.
     production candidate and remeasure. Restore agreed firmware/startup state,
     neutral keys and working CLI/SD. Obtain human visual/interactive acceptance;
     historical or emulator success does not validate a new hardware build.
+    Before using MOS-clock durations for precise suite completion forecasts,
+    resolve the E09 nominal-clock versus human wall-time discrepancy with an
+    independent clock; retain empirical planning estimates separately.
     Close only with performance/correctness evidence and Author disposition of
     residual gaps. Publication remains a separate reviewed action.
 
