@@ -12,6 +12,8 @@ Current interfaces and operating rules:
    AgonDev tooling, official references and the working MOS fork.
 5. [Extender handbook](https://github.com/bgates747/agon-extender/blob/main/docs/README.md):
    companion P4 firmware, bench operation, builds, SD layout and recovery.
+6. [Tool index](../scripts/README.md): build preparation versus retained emulator
+   helpers; historical provider-media tools are not EMOSlet installers.
 
 [TODO](../TODO.md) owns unfinished EMOS work. Task/qualification records and
 `research/` preserve evidence for their recorded revisions, not alternative

@@ -19,8 +19,10 @@ only the payload bytes and ordinary entry wrapper. It makes no claim about the
 removed sender, EMOS mode transition, P4 readiness, General Poll response,
 hardware, or any past physical run.
 
-Current forward-data-plane development uses
-port/parallel-fixed-qualification.mk, the common production route and epoch
-objects, and the gates recorded in docs/tasks/INTEG-002.md. The old
+The subsequent parallel forward-data-plane work used
+port/parallel-fixed-qualification.mk, the common route and epoch objects,
+and the gates recorded in docs/tasks/INTEG-002.md. That is retained lineage,
+not the current UART console build selection; use the
+[current contracts](../../docs/README.md) and repository build profile. The old
 port/port008-forward.mk filename remains only as a fail-fast tombstone so a
 historical command cannot silently create an obsolete firmware image.

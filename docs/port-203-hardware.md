@@ -1,5 +1,14 @@
 # PORT-203 physical qualification procedure
 
+This is the **historical provider-era procedure**, not a current deployment
+recipe. Its fake modes, provider discovery and corrupt-module stages concern
+the cancelled external `.emo` loader. Keep it with the original
+[PORT-200 evidence](port-200-qualification.md); do not use those stages to
+qualify today's resident services or foreground utilities. Current contracts
+start at the [documentation index](README.md). A new physical qualification
+requires an owner-reviewed procedure for its exact candidate and current
+Extender recovery, SD placement and bench constraints.
+
 This is an author-operated gate. Emulator success does not complete it.
 
 ## Preparation and rollback
