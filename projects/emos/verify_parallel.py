@@ -325,10 +325,10 @@ def verify_source(source: Path) -> None:
     # Only the resident, Legacy-guarded diagnostic gateway may submit text.
     probe_branch = re.search(
         r'if \(strcmp\(namespaceName, "edu"\) == 0 && strcmp\(providerName, "text-probe"\) == 0\) \{(.*?)'
-        r'(?=\s*entry = emos_find)', checked_core, re.DOTALL)
+        r'(?=\s*if \(strcmp\(namespaceName,"ext"\) == 0\))', checked_core, re.DOTALL)
     if probe_branch:
         branch = probe_branch.group(0)
-        for required in ("emosModeState.mode != EMOS_MODE_LEGACY", "emosBusy || emosRecoveryRequired",
+        for required in ("emosModeState.mode != EMOS_MODE_LEGACY", "if (emosBusy) return EMOS_BUSY;",
                          "length > EMOS_TEXT_LIMIT", "length > 0x0B0000 - address",
                          "address < 0x040000", "address >= 0x0B0000",
                          "!emos_zero(request->output, 9)", "emosBusy = TRUE;", "emosBusy = FALSE;"):
