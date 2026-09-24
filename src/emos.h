@@ -1,3 +1,6 @@
+/* AUDIT-008: external .emo definitions below are retained for historical
+ * tooling/ABI evidence only; firmware provides resident gateway services.
+ * EMOS_MODULE_BASE/SIZE also name the stock MOSlet address range. */
 /*
  * EMOS v1 Core module and service contract.
  *
@@ -84,9 +87,6 @@ typedef char t_emosGatewayRequestSizeCheck[
 	sizeof(t_emosGatewayRequest) == EMOS_GATEWAY_REQUEST_SIZE ? 1 : -1];
 
 void emos_init(void);
-int emos_discover(void);
-int emos_clear(void);
-int emos_dispatch_command(char *command, char *args, BOOL *matched);
 UINT24 emos_gateway(t_emosGatewayRequest *request);
 int emos_cmd(char *args);
 BYTE emos_application_enter(UINT8 *image, UINT24 address);

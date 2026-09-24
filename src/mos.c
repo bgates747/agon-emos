@@ -541,10 +541,7 @@ int mos_exec(char * buffer, BOOL in_mos) {
 			umm_free(command);
 			return result;
 		} else {
-			BOOL moduleMatched = FALSE;
-			result = emos_dispatch_command(command, ptr, &moduleMatched);
 			umm_free(command);
-			if (moduleMatched) return result;
 			// Command not built-in, so see if it's a file
 			char * path;
 			bool useWildcard = false;
@@ -3464,7 +3461,6 @@ void mos_setupSystemVariables() {
 	// Default paths
 	createOrUpdateSystemVariable("Moslet$Path", MOS_VAR_STRING, "/mos/");
 	createOrUpdateSystemVariable("Run$Path", MOS_VAR_MACRO, "<Moslet$Path>, ./, /bin/");
-	createOrUpdateSystemVariable("EMOS$Path", MOS_VAR_STRING, "/emos/modules");
 
 	// Keyboard and console settings
 	createOrUpdateSystemVariable("Keyboard", MOS_VAR_CODE, &keyboardVar);

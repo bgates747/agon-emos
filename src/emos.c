@@ -1,9 +1,7 @@
 /*
- * EMOS v1 Core module registry and transient dispatcher.
- *
- * The local ABI is replaceable and must not be described as accepted upstream
- * MOS policy. Discovery is explicit and transactional. External code is never
- * resident, reentrant, interrupt-owned, or exposed as a public pointer.
+ * Resident EMOS services, mode ownership and foreground MOSlet dispatch.
+ * AUDIT-008 retires the cancelled external .emo registry/loader. The public
+ * gateway remains resident; disk utilities use the ordinary stock MOSlet ABI.
  */
 
 #include <stdio.h>
@@ -45,41 +43,8 @@
 #include "ff.h"
 #include "mos.h"
 #include "mos_sysvars.h"
-#include "umm_malloc.h"
 
-#define EMOS_HEADER_CRC_OFFSET 0x4C
-#define EMOS_SWAP_PATH "/.emos-swap.bin"
-
-typedef struct {
-	BYTE providerClass;
-	BYTE namespaceLength;
-	BYTE nameLength;
-	BYTE version[3];
-	BYTE coreMin;
-	BYTE coreMax;
-	BYTE flags;
-	UINT24 imageSize;
-	UINT24 entryOffset;
-	UINT16 requestMin;
-	UINT16 requestMax;
-	UINT32 payloadCrc;
-	UINT32 headerCrc;
-	char namespaceName[EMOS_NAMESPACE_SIZE + 1];
-	char providerName[EMOS_NAME_SIZE + 1];
-	char path[EMOS_PATH_SIZE];
-} t_emosRegistryEntry;
-
-typedef struct {
-	BYTE count;
-	BYTE generation;
-	t_emosRegistryEntry entries[EMOS_MAX_PROVIDERS];
-} t_emosRegistry;
-
-typedef UINT24 (*t_emosProviderEntry)(t_emosProviderRequest *request);
-
-static t_emosRegistry emosRegistry;
 static BOOL emosBusy = FALSE;
-static BOOL emosRecoveryRequired = FALSE;
 static BYTE emosPolicy = EMOS_POLICY_CORE;
 volatile BYTE emosVduBackend = 0;
 
@@ -138,11 +103,6 @@ UINT24 emos_read24(const BYTE *ptr) {
 #endif
 }
 
-static UINT32 emos_read32(const BYTE *ptr) {
-	return (UINT32)ptr[0] | ((UINT32)ptr[1] << 8) |
-		((UINT32)ptr[2] << 16) | ((UINT32)ptr[3] << 24);
-}
-
 static void emos_write16(BYTE *ptr, UINT16 value) {
 	ptr[0] = value & 0xFF;
 	ptr[1] = value >> 8;
@@ -152,18 +112,6 @@ static void emos_write24(BYTE *ptr, UINT24 value) {
 	ptr[0] = value & 0xFF;
 	ptr[1] = (value >> 8) & 0xFF;
 	ptr[2] = (value >> 16) & 0xFF;
-}
-
-static UINT32 emos_crc32_update(UINT32 crc, const BYTE *data, UINT24 length) {
-	UINT24 i;
-	BYTE bit;
-	for (i = 0; i < length; i++) {
-		crc ^= data[i];
-		for (bit = 0; bit < 8; bit++) {
-			crc = (crc >> 1) ^ (0xEDB88320UL & (0UL - (crc & 1)));
-		}
-	}
-	return crc;
 }
 
 static BOOL emos_zero(const BYTE *data, UINT24 length) {
@@ -185,134 +133,6 @@ static BOOL emos_identity_valid(const BYTE *value, BYTE length, BYTE maximum, BO
 	return TRUE;
 }
 
-static int emos_entry_compare(const t_emosRegistryEntry *left, const t_emosRegistryEntry *right) {
-	int result = left->providerClass - right->providerClass;
-	if (result == 0) result = strcmp(left->namespaceName, right->namespaceName);
-	if (result == 0) result = strcmp(left->providerName, right->providerName);
-	return result;
-}
-
-static BOOL emos_entry_same_image(const t_emosRegistryEntry *left, const t_emosRegistryEntry *right) {
-	return emos_entry_compare(left, right) == 0 &&
-		left->imageSize == right->imageSize &&
-		left->entryOffset == right->entryOffset &&
-		left->coreMin == right->coreMin && left->coreMax == right->coreMax &&
-		left->flags == right->flags &&
-		left->requestMin == right->requestMin && left->requestMax == right->requestMax &&
-		left->payloadCrc == right->payloadCrc && left->headerCrc == right->headerCrc &&
-		memcmp(left->version, right->version, sizeof(left->version)) == 0;
-}
-
-static BOOL emos_has_extension(const char *name) {
-	UINT24 length = strlen(name);
-	return length > 4 && name[length - 4] == '.' &&
-		tolower(name[length - 3]) == 'e' &&
-		tolower(name[length - 2]) == 'm' &&
-		tolower(name[length - 1]) == 'o';
-}
-
-static int emos_validate_header(BYTE *header, UINT24 fileSize, t_emosRegistryEntry *entry) {
-	UINT32 expectedHeaderCrc;
-	UINT32 actualHeaderCrc;
-	BYTE namespaceLength;
-	BYTE nameLength;
-	BYTE savedCrc[4];
-
-	if (memcmp(header, "EMOD", 4) != 0) return EMOS_INVALID_MODULE;
-	if (header[4] != EMOS_FORMAT_MAJOR || header[5] > EMOS_FORMAT_MINOR)
-		return EMOS_INCOMPATIBLE;
-	if (emos_read16(header + 6) != EMOS_HEADER_SIZE ||
-		emos_read24(header + 8) != fileSize || fileSize > EMOS_MODULE_SIZE)
-		return EMOS_INVALID_MODULE;
-	entry->imageSize = fileSize;
-	entry->entryOffset = emos_read24(header + 11);
-	if (entry->entryOffset < EMOS_HEADER_SIZE || entry->entryOffset >= fileSize)
-		return EMOS_INVALID_MODULE;
-	entry->coreMin = header[14];
-	entry->coreMax = header[15];
-	if (entry->coreMin > EMOS_CORE_ABI || entry->coreMax < EMOS_CORE_ABI)
-		return EMOS_INCOMPATIBLE;
-	entry->providerClass = header[16];
-	if (entry->providerClass != EMOS_PROVIDER_STAR &&
-		entry->providerClass != EMOS_PROVIDER_SERVICE) return EMOS_INVALID_MODULE;
-	entry->flags = header[17];
-	if (entry->flags != 0 || emos_read32(header + 64) != 0)
-		return EMOS_INCOMPATIBLE;
-	namespaceLength = header[18];
-	nameLength = header[19];
-	if (!emos_identity_valid(header + 20, namespaceLength, EMOS_NAMESPACE_SIZE, TRUE) ||
-		!emos_identity_valid(header + 36, nameLength, EMOS_NAME_SIZE, FALSE) ||
-		!emos_zero(header + 20 + namespaceLength, EMOS_NAMESPACE_SIZE - namespaceLength) ||
-		!emos_zero(header + 36 + nameLength, EMOS_NAME_SIZE - nameLength))
-		return EMOS_INVALID_MODULE;
-	if ((entry->providerClass == EMOS_PROVIDER_STAR && namespaceLength != 0) ||
-		(entry->providerClass == EMOS_PROVIDER_SERVICE && namespaceLength == 0))
-		return EMOS_INVALID_MODULE;
-	entry->requestMin = emos_read16(header + 68);
-	entry->requestMax = emos_read16(header + 70);
-	if (entry->requestMin > EMOS_PROVIDER_REQUEST_SIZE ||
-		entry->requestMax < EMOS_PROVIDER_REQUEST_SIZE ||
-		!emos_zero(header + 63, 1) || !emos_zero(header + 80, 48))
-		return EMOS_INVALID_MODULE;
-	entry->payloadCrc = emos_read32(header + 72);
-	entry->namespaceLength = namespaceLength;
-	entry->nameLength = nameLength;
-	memcpy(entry->namespaceName, header + 20, namespaceLength);
-	entry->namespaceName[namespaceLength] = 0;
-	memcpy(entry->providerName, header + 36, nameLength);
-	entry->providerName[nameLength] = 0;
-	memcpy(entry->version, header + 60, 3);
-	expectedHeaderCrc = emos_read32(header + EMOS_HEADER_CRC_OFFSET);
-	entry->headerCrc = expectedHeaderCrc;
-	memcpy(savedCrc, header + EMOS_HEADER_CRC_OFFSET, 4);
-	memset(header + EMOS_HEADER_CRC_OFFSET, 0, 4);
-	actualHeaderCrc = emos_crc32_update(0xFFFFFFFFUL, header, EMOS_HEADER_SIZE) ^ 0xFFFFFFFFUL;
-	memcpy(header + EMOS_HEADER_CRC_OFFSET, savedCrc, 4);
-	if (actualHeaderCrc != expectedHeaderCrc) return EMOS_INVALID_MODULE;
-	return FR_OK;
-}
-
-static int emos_validate_file(const char *path, t_emosRegistryEntry *entry) {
-	FIL file;
-	int result;
-	BYTE header[EMOS_HEADER_SIZE];
-	BYTE buffer[128];
-	UINT bytesRead;
-	UINT32 crc = 0xFFFFFFFFUL;
-	UINT32 expectedPayloadCrc;
-	UINT24 remaining;
-
-	result = f_open(&file, path, FA_READ);
-	if (result != FR_OK) return result;
-	if (f_size(&file) < EMOS_HEADER_SIZE || f_size(&file) > EMOS_MODULE_SIZE) {
-		f_close(&file);
-		return EMOS_INVALID_MODULE;
-	}
-	result = f_read(&file, header, EMOS_HEADER_SIZE, &bytesRead);
-	if (result != FR_OK || bytesRead != EMOS_HEADER_SIZE) {
-		f_close(&file);
-		return result == FR_OK ? EMOS_INVALID_MODULE : result;
-	}
-	expectedPayloadCrc = emos_read32(header + 72);
-	result = emos_validate_header(header, f_size(&file), entry);
-	if (result != FR_OK) {
-		f_close(&file);
-		return result;
-	}
-	remaining = entry->imageSize - EMOS_HEADER_SIZE;
-	while (remaining && result == FR_OK) {
-		UINT amount = remaining > sizeof(buffer) ? sizeof(buffer) : remaining;
-		result = f_read(&file, buffer, amount, &bytesRead);
-		if (result == FR_OK && bytesRead != amount) result = FR_INT_ERR;
-		if (result == FR_OK) crc = emos_crc32_update(crc, buffer, amount);
-		remaining -= amount;
-	}
-	f_close(&file);
-	if (result != FR_OK) return result;
-	if ((crc ^ 0xFFFFFFFFUL) != expectedPayloadCrc) return EMOS_INVALID_MODULE;
-	return FR_OK;
-}
-
 static void emos_print_identity(void) {
 	printf("EMOS identity: %s, build %s, status %s\r\n",
 		EMOS_SOURCE_IDENTITY, EMOS_BUILD_ID, EMOS_ARTIFACT_STATUS);
@@ -323,9 +143,7 @@ static void emos_print_identity(void) {
 }
 
 void emos_init(void) {
-	memset(&emosRegistry, 0, sizeof(emosRegistry));
 	emosBusy = FALSE;
-	emosRecoveryRequired = FALSE;
 	emosPolicy = EMOS_POLICY_CORE;
 	emosModeState.mode = EMOS_MODE_LEGACY;
 	emosModeState.vduRoute = EMOS_VDU_ONBOARD;
@@ -334,102 +152,9 @@ void emos_init(void) {
 	memset(&emosEduState, 0, sizeof(emosEduState));
 	emosEduState.selectedAdapter = emos_default_adapter();
 	emosVduBackend = EMOS_VDU_ONBOARD;
-	/* No application survives a cold boot, so an interrupted prior session's
-	 * private preservation file cannot describe live module-area ownership. */
-	f_unlink(EMOS_SWAP_PATH);
 	/* main calls this after onboard VDP startup and SD mount. Expose the same
 	 * product/build identity as EMOS STATUS without requiring a boot script. */
 	emos_print_identity();
-}
-
-int emos_discover(void) {
-	t_emosRegistry *staging;
-	DIR directory;
-	FILINFO fileInfo;
-	int result;
-	char *configuredPath;
-	const char *directoryPath;
-	BOOL directoryOpened = FALSE;
-
-	if (emosBusy) return EMOS_BUSY;
-	configuredPath = expandVariableToken("EMOS$Path");
-	directoryPath = configuredPath ? configuredPath : "/emos/modules";
-	if (!directoryPath[0]) {
-		umm_free(configuredPath);
-		return FR_INVALID_PARAMETER;
-	}
-	staging = umm_malloc(sizeof(t_emosRegistry));
-	if (!staging) {
-		umm_free(configuredPath);
-		return MOS_OUT_OF_MEMORY;
-	}
-	memset(staging, 0, sizeof(t_emosRegistry));
-	staging->generation = emosRegistry.generation + 1;
-	result = f_opendir(&directory, directoryPath);
-	if (result == FR_OK) directoryOpened = TRUE;
-	while (result == FR_OK) {
-		UINT24 pathLength;
-		BYTE insertAt;
-		t_emosRegistryEntry candidate;
-		result = f_readdir(&directory, &fileInfo);
-		if (result != FR_OK || fileInfo.fname[0] == 0) break;
-		if ((fileInfo.fattrib & AM_DIR) || !emos_has_extension(fileInfo.fname)) continue;
-		if (staging->count >= EMOS_MAX_PROVIDERS) {
-			result = EMOS_REGISTRY_FULL;
-			break;
-		}
-		memset(&candidate, 0, sizeof(candidate));
-		pathLength = strlen(directoryPath) + strlen(fileInfo.fname) + 2;
-		if (pathLength > EMOS_PATH_SIZE) {
-			result = EMOS_INVALID_MODULE;
-			break;
-		}
-		sprintf(candidate.path, "%s%s%s", directoryPath,
-			directoryPath[strlen(directoryPath) - 1] == '/' ? "" : "/", fileInfo.fname);
-		result = emos_validate_file(candidate.path, &candidate);
-		if (result != FR_OK) break;
-		insertAt = staging->count;
-		while (insertAt > 0 && emos_entry_compare(&candidate, &staging->entries[insertAt - 1]) < 0) {
-			staging->entries[insertAt] = staging->entries[insertAt - 1];
-			insertAt--;
-		}
-		staging->entries[insertAt] = candidate;
-		staging->count++;
-	}
-	if (directoryOpened) f_closedir(&directory);
-	if (result == FR_OK) {
-		BYTE index;
-		for (index = 1; index < staging->count; index++) {
-			if (emos_entry_compare(&staging->entries[index - 1], &staging->entries[index]) == 0) {
-				result = EMOS_CONFLICT;
-				break;
-			}
-		}
-	}
-	if (result == FR_OK) emosRegistry = *staging;
-	umm_free(staging);
-	umm_free(configuredPath);
-	return result;
-}
-
-int emos_clear(void) {
-	BYTE generation;
-	if (emosBusy) return EMOS_BUSY;
-	generation = emosRegistry.generation + 1;
-	memset(&emosRegistry, 0, sizeof(emosRegistry));
-	emosRegistry.generation = generation;
-	return FR_OK;
-}
-
-static t_emosRegistryEntry *emos_find(BYTE providerClass, const char *namespaceName, const char *name) {
-	BYTE index;
-	for (index = 0; index < emosRegistry.count; index++) {
-		t_emosRegistryEntry *entry = &emosRegistry.entries[index];
-		if (entry->providerClass == providerClass &&
-			strcmp(entry->namespaceName, namespaceName) == 0 &&
-			strcmp(entry->providerName, name) == 0) return entry;
-	}
-	return NULL;
 }
 
 static BOOL emos_range_overlaps_module(UINT24 address, UINT24 length) {
@@ -440,118 +165,13 @@ static BOOL emos_range_overlaps_module(UINT24 address, UINT24 length) {
 	return address < EMOS_MODULE_BASE + EMOS_MODULE_SIZE && end > EMOS_MODULE_BASE;
 }
 
-static void emos_scrub_module_area(void) {
-	memset((void *)EMOS_MODULE_BASE, 0, EMOS_MODULE_SIZE);
-}
-
-static int emos_preserve_module_area(BOOL restore) {
-	FIL file;
-	int result;
-	int closeResult;
-	UINT bytes;
-	UINT24 offset = 0;
-	BYTE mode = restore ? FA_READ : (FA_WRITE | FA_CREATE_ALWAYS);
-	result = f_open(&file, EMOS_SWAP_PATH, mode);
-	if (result != FR_OK) return result;
-	if (restore && f_size(&file) != EMOS_MODULE_SIZE) result = FR_INT_ERR;
-	while (offset < EMOS_MODULE_SIZE && result == FR_OK) {
-		UINT amount = EMOS_MODULE_SIZE - offset > 256 ? 256 : EMOS_MODULE_SIZE - offset;
-		if (restore) result = f_read(&file, (void *)(EMOS_MODULE_BASE + offset), amount, &bytes);
-		else result = f_write(&file, (void *)(EMOS_MODULE_BASE + offset), amount, &bytes);
-		if (result == FR_OK && bytes != amount) result = FR_INT_ERR;
-		offset += amount;
-	}
-	if (!restore && result == FR_OK) result = f_sync(&file);
-	closeResult = f_close(&file);
-	if (result == FR_OK) result = closeResult;
-	if (!restore && result != FR_OK) f_unlink(EMOS_SWAP_PATH);
-	return result;
-}
-
-static int emos_invoke(t_emosRegistryEntry *entry, t_emosProviderRequest *request) {
-	FIL file;
-	int result;
-	UINT bytesRead;
-	BOOL preserved = FALSE;
-	BOOL fileOpened = FALSE;
-	t_emosProviderEntry provider;
-	t_emosProviderRequest requestSnapshot;
-
-	if (!entry) return EMOS_NOT_FOUND;
-	if (emosBusy) return EMOS_BUSY;
-	if (emos_range_overlaps_module(emos_read24(request->input), emos_read24(request->inputLength)) ||
-		emos_range_overlaps_module(emos_read24(request->output), emos_read24(request->outputCapacity)))
-		return EMOS_UNSAFE_CALLER;
-	if (emosPolicy == EMOS_POLICY_UNSAFE || emosPolicy == EMOS_POLICY_MOSLET)
-		return EMOS_UNSAFE_CALLER;
-	if (emosRecoveryRequired) {
-		result = emos_preserve_module_area(TRUE);
-		if (result == FR_OK) {
-			f_unlink(EMOS_SWAP_PATH);
-			emosRecoveryRequired = FALSE;
-		}
-		/* The interrupted request is never replayed implicitly. */
-		return EMOS_RECOVERY_FAILED;
-	}
-	memcpy(&requestSnapshot, request, sizeof(requestSnapshot));
-	emosBusy = TRUE;
-	if (emosPolicy == EMOS_POLICY_COMPATIBLE) {
-		result = emos_preserve_module_area(FALSE);
-		if (result != FR_OK) {
-			emosBusy = FALSE;
-			return result;
-		}
-		preserved = TRUE;
-	}
-	result = f_open(&file, entry->path, FA_READ);
-	if (result == FR_OK) fileOpened = TRUE;
-	if (result == FR_OK) result = f_read(&file, (void *)EMOS_MODULE_BASE, entry->imageSize, &bytesRead);
-	if (result == FR_OK && bytesRead != entry->imageSize) result = EMOS_INVALID_MODULE;
-	if (fileOpened) f_close(&file);
-	if (result == FR_OK) {
-		t_emosRegistryEntry loaded;
-		BYTE *header = (BYTE *)EMOS_MODULE_BASE;
-		UINT32 expectedPayloadCrc = emos_read32(header + 72);
-		UINT32 actualPayloadCrc;
-		result = emos_validate_header(header, entry->imageSize, &loaded);
-		actualPayloadCrc = emos_crc32_update(0xFFFFFFFFUL,
-			header + EMOS_HEADER_SIZE, entry->imageSize - EMOS_HEADER_SIZE) ^ 0xFFFFFFFFUL;
-		if (result == FR_OK && actualPayloadCrc != expectedPayloadCrc) result = EMOS_INVALID_MODULE;
-		if (result == FR_OK && !emos_entry_same_image(entry, &loaded)) result = EMOS_INVALID_MODULE;
-		if (result == FR_OK) {
-			provider = (t_emosProviderEntry)(EMOS_MODULE_BASE + entry->entryOffset);
-			result = provider(request);
-			if (memcmp(request, &requestSnapshot, 20) != 0 ||
-				request->reserved != requestSnapshot.reserved ||
-				emos_read24(request->outputLength) > emos_read24(request->outputCapacity)) {
-				emos_write24(request->outputLength, 0);
-				result = EMOS_PROVIDER_FAILED;
-			} else if (result > EMOS_REGISTRY_FULL) {
-				result = EMOS_PROVIDER_FAILED;
-			}
-		}
-	}
-	if (preserved) {
-		int restoreResult = emos_preserve_module_area(TRUE);
-		if (restoreResult == FR_OK) f_unlink(EMOS_SWAP_PATH);
-		else {
-			emosRecoveryRequired = TRUE;
-			result = EMOS_RECOVERY_FAILED;
-		}
-	} else emos_scrub_module_area();
-	emosBusy = FALSE;
-	return result;
-}
-
 UINT24 emos_gateway(t_emosGatewayRequest *request) {
-	t_emosProviderRequest providerRequest;
-	t_emosRegistryEntry *entry;
 	char namespaceName[EMOS_NAMESPACE_SIZE + 1];
 	char providerName[EMOS_NAME_SIZE + 1];
 	UINT24 result;
 
     /* REMOTE-005: resident sdlink never loads/scrubs MOSlet memory. Other
-     * providers retain their module-space exclusion after identity validation. */
+     * resident services retain their MOSlet-space exclusion after validation. */
     BYTE mosletRequest = emos_range_overlaps_module((UINT24)request, sizeof(*request));
     if (!request || (mosletRequest && ((UINT24)request < EMOS_MODULE_BASE ||
         (UINT24)request > EMOS_MODULE_BASE + EMOS_MODULE_SIZE - sizeof(*request))))
@@ -573,7 +193,7 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
 		!emos_zero(request->providerName + request->nameLength, EMOS_NAME_SIZE - request->nameLength))
 		return FR_INVALID_PARAMETER;
     /* Qualification-only resident service: no module load, public VDU route
-     * change or application-owned transport. Reserved ahead of discovery.
+     * change or application-owned transport. Reserved resident identity.
      * The request and input must be wholly in ordinary application RAM;
      * static application buffers meet this even when MOS owns the stack. */
     if (mosletRequest && (strcmp(namespaceName,"ext") || strcmp(providerName,"sdlink")))
@@ -585,7 +205,7 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
             !length || length > EMOS_TEXT_LIMIT || address < 0x040000 ||
             address >= 0x0B0000 || length > 0x0B0000 - address ||
             !emos_zero(request->output, 9)) return FR_INVALID_PARAMETER;
-        if (emosBusy || emosRecoveryRequired) return EMOS_BUSY;
+        if (emosBusy) return EMOS_BUSY;
         if (emosModeState.mode != EMOS_MODE_LEGACY) return EMOS_UNAVAILABLE;
         if (!emos_text_valid((const BYTE *)address, (UINT16)length)) return FR_INVALID_PARAMETER;
         emosBusy = TRUE;
@@ -600,7 +220,7 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
         BYTE telemetry = 0;
 #endif
         if (telemetry || strcmp(providerName,"sdlink") == 0) {
-            if (emosBusy || emosRecoveryRequired) return EMOS_BUSY;
+            if (emosBusy) return EMOS_BUSY;
             emosBusy = TRUE;
 #ifdef EMOS_BENCH_TELEMETRY
             result = telemetry ? emos_telemetry_gateway(request) : emos_sdlink_gateway(request);
@@ -611,40 +231,8 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
             return result;
         }
     }
-	entry = emos_find(EMOS_PROVIDER_SERVICE, namespaceName, providerName);
-	memset(&providerRequest, 0, sizeof(providerRequest));
-	emos_write16(providerRequest.size, EMOS_PROVIDER_REQUEST_SIZE);
-	providerRequest.abiMajor = EMOS_CORE_ABI;
-	emos_write16(providerRequest.operation, emos_read16(request->operation));
-	memcpy(providerRequest.input, request->input, 12);
-	result = emos_invoke(entry, &providerRequest);
-	memcpy(request->outputLength, providerRequest.outputLength, 3);
-	return result;
-}
-
-int emos_dispatch_command(char *command, char *args, BOOL *matched) {
-	t_emosProviderRequest request;
-	char canonical[EMOS_NAME_SIZE + 1];
-	UINT24 commandLength = strlen(command);
-	UINT24 index;
-	t_emosRegistryEntry *entry;
-	if (commandLength > EMOS_NAME_SIZE) {
-		if (matched) *matched = FALSE;
-		return EMOS_NOT_FOUND;
-	}
-	for (index = 0; index < commandLength; index++)
-		canonical[index] = tolower((unsigned char)command[index]);
-	canonical[commandLength] = 0;
-	entry = emos_find(EMOS_PROVIDER_STAR, "", canonical);
-	if (matched) *matched = entry != NULL;
-	if (!entry) return EMOS_NOT_FOUND;
-	memset(&request, 0, sizeof(request));
-	emos_write16(request.size, EMOS_PROVIDER_REQUEST_SIZE);
-	request.abiMajor = EMOS_CORE_ABI;
-	emos_write16(request.operation, EMOS_OPERATION_STAR);
-	emos_write24(request.input, (UINT24)args);
-	emos_write24(request.inputLength, args ? strlen(args) + 1 : 0);
-	return emos_invoke(entry, &request);
+	/* No external providers: preserve the gateway error domain. */
+	return EMOS_NOT_FOUND;
 }
 
 BYTE emos_application_enter(UINT8 *image, UINT24 address) {
@@ -676,14 +264,6 @@ void emos_application_leave(BYTE previousPolicy) {
 #ifdef EMOS_BENCH_TELEMETRY
     emos_telemetry_reset();
 #endif
-	/* Once the application exits there is no live owner to recover. Retain a
-	 * failed-restore image while a nested caller returns to an outer live
-	 * application; only leaving the top-level application discards it. */
-	if (emosRecoveryRequired && previousPolicy == EMOS_POLICY_CORE) {
-		f_unlink(EMOS_SWAP_PATH);
-		emosRecoveryRequired = FALSE;
-		emos_scrub_module_area();
-	}
 	emosPolicy = previousPolicy;
 }
 
@@ -950,13 +530,50 @@ usage:
     return FR_INVALID_PARAMETER;
 }
 
+/* AUDIT-008: stock mos_runBinFile chooses the load region using Moslet$Path.
+ * /emos must not change that global policy or load at the application address.
+ * Reuse stock loading/execution with an explicit MOSlet address instead.
+ * These are trusted executable files, not a sandbox. An ordinary MOS header
+ * cannot prove where a program was linked; install only MOSlets built for B0000.
+ */
+static int emos_run_utility(const char *name, char *args) {
+    char path[6 + EMOS_NAME_SIZE + 4 + 1];
+    UINT24 length = strlen(name);
+    UINT24 index;
+    FILINFO info;
+    int result;
+    if (emosBusy || emosPolicy != EMOS_POLICY_CORE) return EMOS_BUSY;
+    if (!length || length > EMOS_NAME_SIZE) return FR_INVALID_PARAMETER;
+    memcpy(path, "/emos/", 6);
+    for (index = 0; index < length; ++index) {
+        unsigned char ch = name[index];
+        if (ch >= 'A' && ch <= 'Z') ch += 'a' - 'A';
+        if (!((ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') ||
+            ch == '_' || ch == '-')) return FR_INVALID_PARAMETER;
+        path[6 + index] = ch;
+    }
+    memcpy(path + 6 + length, ".bin", 5);
+    result = f_stat(path, &info);
+    if (result != FR_OK) return result;
+    if ((info.fattrib & AM_DIR) || info.fsize < 0x45)
+        return MOS_INVALID_EXECUTABLE;
+    if (info.fsize > EMOS_MODULE_SIZE) return MOS_OVERLAPPING_SYSTEM;
+    /* Never run an old header after a failed or empty load. No live MOSlet
+     * exists at this idle/Core boundary; application memory is left alone.
+     * Size preflight prevents stock mos_LOAD's bounded-read truncation from
+     * accepting an oversized image. Reuse stock file-I/O error semantics. */
+    memset((void *)(EMOS_MODULE_BASE + 0x40), 0, 5);
+    result = mos_LOAD(path, EMOS_MODULE_BASE, EMOS_MODULE_SIZE);
+    if (result != FR_OK) return result;
+    return mos_runBin(EMOS_MODULE_BASE, args);
+}
+
 int emos_cmd(char *args) {
 	char *operation;
 	int result = extractString(args, &args, NULL, &operation, EXTRACT_FLAG_AUTO_TERMINATE);
 	if (result == FR_INVALID_PARAMETER) {
 		emos_print_identity();
-		printf("EMOS v1: %s, registry %d, generation %d\r\n",
-			emos_mode_name(emosModeState.mode), emosRegistry.count, emosRegistry.generation);
+		printf("EMOS: %s\r\n", emos_mode_name(emosModeState.mode));
 		return FR_OK;
 	}
 	if (result != FR_OK) return result;
@@ -1010,28 +627,17 @@ int emos_cmd(char *args) {
         emos_print_identity();
         return emos_uart_probe() ? FR_OK : FR_TIMEOUT;
     }
-	if (strcasecmp(operation, "discover") == 0) {
-		result = emos_discover();
-		if (result == FR_OK) printf("EMOS: discovered %d provider(s)\r\n", emosRegistry.count);
-		return result;
-	}
-	if (strcasecmp(operation, "clear") == 0) return emos_clear();
+	/* Retired names stay reserved: never reinterpret an old provider command
+     * as an on-disk utility. Historical .emo fixtures are not current gates. */
+	if (!strcasecmp(operation, "discover") || !strcasecmp(operation, "clear"))
+		return EMOS_UNAVAILABLE;
 	if (strcasecmp(operation, "status") == 0) {
-		BYTE index;
 		emos_print_identity();
-		printf("EMOS v1: %s, registry %d, generation %d\r\n",
-			emos_mode_name(emosModeState.mode), emosRegistry.count, emosRegistry.generation);
+		printf("EMOS: %s\r\n", emos_mode_name(emosModeState.mode));
 		printf("  VDU route %d, EDU %s, adapter %s, mode generation %d\r\n",
 			emosModeState.vduRoute, emosModeState.eduState ? "active" : "inactive",
 			emos_adapter_name(emosEduState.selectedAdapter),
 			emosModeState.generation);
-		for (index = 0; index < emosRegistry.count; index++) {
-			t_emosRegistryEntry *entry = &emosRegistry.entries[index];
-			printf("  %s%s%s %d.%d.%d %s\r\n",
-				entry->namespaceName, entry->namespaceLength ? "." : "",
-				entry->providerName, entry->version[0], entry->version[1],
-				entry->version[2], entry->path);
-		}
 		return FR_OK;
 	}
     if (strcasecmp(operation, "excom") == 0 || strcasecmp(operation, "legacy") == 0) {
@@ -1064,5 +670,5 @@ int emos_cmd(char *args) {
 		return FR_INVALID_PARAMETER;
 	}
 	if (strcasecmp(operation, "call") == 0) return emos_call_service(args);
-	return FR_INVALID_PARAMETER;
+	return emos_run_utility(operation, args);
 }

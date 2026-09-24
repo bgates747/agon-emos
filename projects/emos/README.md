@@ -1,4 +1,10 @@
-# EMOS module tooling
+# Historical EMOS module tooling
+
+External `.emo` loading was cancelled and is removed in v0.1.19 (AUDIT-008).
+The container/media/runtime tools below preserve earlier evidence only; do not
+use their provider transcript as a current firmware acceptance gate. Resident
+gateway ABI checks remain current. Foreground `/emos` utilities use ordinary
+MOSlet `.bin` files; see [the launcher contract](../../docs/tasks/AUDIT-008.md).
 
 `emos_module.py` is the canonical EMOS v1 container generator and validator.
 It consumes a JSON manifest plus a raw provider payload linked for `0x0B0080`,

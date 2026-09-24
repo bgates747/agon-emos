@@ -1,7 +1,7 @@
-# BENCH-001 resident telemetry under Author execution and standing identity authority.
+# AUDIT-008 simplification under Author execution and standing identity authority.
 # Existing candidate/rollback images retain their original identities.
 EMOS_PROFILE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)
-EMOS_SOURCE_IDENTITY := agon-emos-v0.1.18
+EMOS_SOURCE_IDENTITY := agon-emos-v0.1.19
 EMOS_ARTIFACT_STATUS := draft
 # Expand once and export so nested Make invocations retain the same build ID.
 # A reviewed build wrapper may supply an already recorded UTC identity.
