@@ -2,7 +2,7 @@
 
 ## State
 
-- Status: Work 1–3 and bounded Work 4 emulator recovery accepted and frozen; controlled P4 sender/public-API hardware proof passes. Native USB source admission is drafted under PORT-015 W3; headless CLI checks pass, Author review/hardware pending. Broader physical/session cases remain open.
+- Status: Resident reception and bounded emulator recovery accepted; controlled P4 sender/public-API hardware proof passes. Later native USB CLI, gameplay and bounded reconnect/source-return checks passed under Extender [PORT-015](https://github.com/bgates747/agon-extender/blob/main/docs/tasks/PORT-015.md). Current browser arbitration is recorded under [REMOTE-001](https://github.com/bgates747/agon-extender/blob/main/docs/tasks/REMOTE-001.md), not the earlier deferred browser path. Wider parity/platform/fault cases remain open; old checkpoint text below is dated evidence.
 - Started: 2026-09-08 19:18 EDT (Work 1 contract; no implementation).
 - Finished: --
 - Coordinator: [PORT-008](../../../agon-extender/docs/tasks/PORT-008.md), with

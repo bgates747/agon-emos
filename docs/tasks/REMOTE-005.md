@@ -1,5 +1,12 @@
 # REMOTE-005 — Provisional MOSlet SD listener admission
 
+**Bounded M01–M03 scope complete.** The September 21 provisional result below
+was superseded as the current installed combination by v0.1.19 and `/emos`
+dispatch; see [AUDIT-008](AUDIT-008.md) and [EMOS utilities](../emos-utilities.md).
+The historical 16-byte ROM margin is not the current budget. Wider user-facing
+SD work remains in Extender REMOTE-005; broader EMOS acceptance stays with
+AUDIT-008. This closure does not waive those remaining gates.
+
 Author authorizes provisional firmware correction and bounded physical MOSlet
 transfer checks. Existing listener fits32KiB; current gateway excludes its RAM.
 Cross-component task: agon-extender docs/tasks/REMOTE-005.md.

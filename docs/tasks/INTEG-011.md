@@ -1,6 +1,6 @@
 # INTEG-011 — Preserve displays during application-requested route switches
 
-Status: Implementation and visual review accepted; candidate hardware testing through Extender QUAL-003 is authorized.
+Status: Implementation, visual review and the paired EDP graphics hardware review are accepted within their recorded scope in Extender [QUAL-003](https://github.com/bgates747/agon-extender/blob/main/docs/tasks/QUAL-003.md). Mainboard artifacts and wider coverage remain separately recorded; this is not universal compatibility. The original preparation contract below is evidence, not a new deployment instruction.
 The Author requested application switching and authorized implementing an
 interface where needed. Existing mos_oscli already executes EMOS commands.
 The Author accepted keeping both images visible with this explicit option.

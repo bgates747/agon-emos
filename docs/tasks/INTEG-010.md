@@ -2,7 +2,7 @@
 
 ## State
 
-- Status: Candidate preparation from reviewed checkpoint 8e63cc4; automated and Author mainboard visual checks pass, paired hardware proof pending. PORT-008-D005 authorized, 2026-09-09.
+- Status: Ordinary ExCom console and native USB input achieved the accepted physical milestone in Extender [PORT-008](https://github.com/bgates747/agon-extender/blob/main/docs/tasks/PORT-008.md#first-ordinary-excom-console-accepted--2026-09-09), including the retained Nurples observation. Wider lifecycle and VDU parity remain open. The preparation notes below describe the original checkpoint; they are not current bench instructions.
 - Owner: EMOS resident mode coordinator, UART dispatch and stock reply effects.
 
 ## Scope and contracts

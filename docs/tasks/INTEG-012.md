@@ -1,7 +1,11 @@
 # INTEG-012 — Private graphics benchmark completion reception
 
-Status: emulator reviewed; hardware candidate preparation. Author approved QUAL-003 execution and standing
-versioning authority. EMOS v0.1.13 is a diagnostic development increment.
+Status: Private callback reception is implemented and used by the later paired
+[game timing package](https://github.com/bgates747/agon-extender/blob/main/docs/testing/game-timing.md)
+and retained QUAL-003 captures. Those bounded physical results supersede the
+original hardware-pending checkpoint below. Diagnostic instrumentation and known
+mainboard failures remain distinct from a production generalized-callback ABI;
+no such API is qualified by these results.
 
 1. Preserve ordinary VDU routing and keyboard handling. UART0 diagnostic effects
    are accepted only in Legacy; UART1 only with a committed ExCom lease.
