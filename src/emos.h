@@ -2,11 +2,11 @@
  * tooling/ABI evidence only; firmware provides resident gateway services.
  * EMOS_MODULE_BASE/SIZE also name the stock MOSlet address range. */
 /*
- * EMOS v1 Core module and service contract.
+ * EMOS resident gateway and historical external-provider ABI declarations.
  *
  * This is a provisional, versioned EMOS ABI. It is deliberately isolated from
- * the still-unimplemented upstream MOS Modules proposal. External providers
- * are synchronous transient images; Core MOS never exposes their pointers.
+ * the upstream MOS Modules proposal. External provider execution is retired;
+ * its format declarations remain only for historical tools and evidence.
  */
 
 #ifndef EMOS_H

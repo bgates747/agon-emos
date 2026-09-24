@@ -231,7 +231,9 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
             return result;
         }
     }
-	/* No external providers: preserve the gateway error domain. */
+	/* No external providers: preserve the gateway error domain and the
+     * old zero-length result for an absent provider. */
+	emos_write24(request->outputLength, 0);
 	return EMOS_NOT_FOUND;
 }
 

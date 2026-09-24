@@ -134,31 +134,6 @@ class EmosModuleTests(unittest.TestCase):
             with self.subTest(address=address, expected=expected):
                 self.assertEqual(emos.application_policy(image, address), expected)
 
-    def test_target_preservation_is_bounded_and_recoverable(self) -> None:
-        source = (MOS_SOURCE / "src" / "emos.c").read_text(
-            encoding="utf-8"
-        )
-        required = [
-            "if (restore && f_size(&file) != EMOS_MODULE_SIZE)",
-            "if (!restore && result == FR_OK) result = f_sync(&file);",
-            "if (!restore && result != FR_OK) f_unlink(EMOS_SWAP_PATH);",
-            "emosRecoveryRequired = TRUE;",
-            "The interrupted request is never replayed implicitly.",
-            "if (emosRecoveryRequired) {",
-            "emosRecoveryRequired && previousPolicy == EMOS_POLICY_CORE",
-            "emos_read24(image + 0x47) != address",
-        ]
-        for expression in required:
-            with self.subTest(expression=expression):
-                self.assertIn(expression, source)
-
-        mos_source = (MOS_SOURCE / "src" / "mos.c").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("BYTE previousPolicy = emos_application_enter", mos_source)
-        self.assertIn("result = exec16(addr, args);", mos_source)
-        self.assertIn("result = exec24(addr, args);", mos_source)
-        self.assertIn("emos_application_leave(previousPolicy);", mos_source)
 
     def test_compatible_preservation_failure_order(self) -> None:
         save_failure = emos.preservation_transaction(save_status=1)
@@ -245,19 +220,11 @@ class EmosModuleTests(unittest.TestCase):
                 {"generation": 11, "entries": [{"name": "retained"}]},
             )
 
-    def test_target_discovery_publishes_only_after_complete_validation(self) -> None:
-        source = (MOS_SOURCE / "src" / "emos.c").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("staging = umm_malloc(sizeof(t_emosRegistry));", source)
-        self.assertIn("result = emos_validate_file(candidate.path, &candidate);", source)
-        self.assertIn("if (result == FR_OK) emosRegistry = *staging;", source)
-        self.assertIn("generation = emosRegistry.generation + 1;", source)
-        self.assertIn("emosRegistry.generation = generation;", source)
-        self.assertLess(
-            source.index("if (result == FR_OK) emosRegistry = *staging;"),
-            source.index("umm_free(staging);"),
-        )
+    def test_target_retires_external_registry_and_swap_loading(self) -> None:
+        source = (MOS_SOURCE / "src" / "emos.c").read_text()
+        for retired in ("emosRegistry", "emos_discover", "emos_invoke",
+                        "emos_preserve_module_area", "/.emos-swap.bin"):
+            self.assertNotIn(retired, source)
 
     def test_target_gateway_rejects_non_service_requests(self) -> None:
         source = (MOS_SOURCE / "src" / "emos.c").read_text(
@@ -398,22 +365,6 @@ class EmosModuleTests(unittest.TestCase):
             [24, 30],
         )
 
-    def test_target_dispatch_revalidates_snapshot_and_scrubs(self) -> None:
-        source = (MOS_SOURCE / "src" / "emos.c").read_text(
-            encoding="utf-8"
-        )
-        required = [
-            "!emos_entry_same_image(entry, &loaded)",
-            "if (emosBusy) return EMOS_BUSY;",
-            "emos_range_overlaps_module(emos_read24(request->input)",
-            "emos_range_overlaps_module(emos_read24(request->output)",
-            "memcmp(request, &requestSnapshot, 20)",
-            "emos_read24(request->outputLength) > emos_read24(request->outputCapacity)",
-            "else emos_scrub_module_area();",
-        ]
-        for expression in required:
-            with self.subTest(expression=expression):
-                self.assertIn(expression, source)
 
     def test_module_area_overlap_boundaries_and_wrap_fail_closed(self) -> None:
         base = emos.MODULE_BASE

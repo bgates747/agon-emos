@@ -24,8 +24,8 @@ typedef struct { unsigned fattrib; unsigned long fsize; } FILINFO;
 #define EMOS_BUSY 31
 #define FR_OK 0
 #define FR_INVALID_PARAMETER 19
-#define MOS_INVALID_EXECUTABLE 20
-#define MOS_OVERLAPPING_SYSTEM 21
+#define MOS_INVALID_EXECUTABLE 21
+#define MOS_OVERLAPPING_SYSTEM 24
 #define AM_DIR 16
 static unsigned emosBusy, emosPolicy, statCalls, loadCalls, runCalls;
 static int statResult, loadResult, runResult;

@@ -15,21 +15,22 @@ SPEC.loader.exec_module(abi)
 
 
 class EmosAbiTests(unittest.TestCase):
-    def test_source_keeps_alias_builtin_module_file_precedence(self) -> None:
+    def test_source_keeps_stock_alias_builtin_file_precedence(self) -> None:
         mos = (MOS_SOURCE / "src" / "mos.c").read_text(
             encoding="utf-8"
         )
         positions = [
             mos.index("result = mos_execAlias"),
             mos.index("cmd = mos_getCommand(command, MATCH_COMMANDS);"),
-            mos.index("result = emos_dispatch_command(command, ptr, &moduleMatched);"),
             mos.index("// Command not built-in, so see if it's a file"),
         ]
         self.assertEqual(positions, sorted(positions))
         core = (MOS_SOURCE / "src" / "emos.c").read_text(
             encoding="utf-8"
         )
-        self.assertIn("canonical[index] = tolower", core)
+        self.assertNotIn("emos_dispatch_command", mos)
+        self.assertLess(core.index('!strcasecmp(operation, "keyinput")'),
+                        core.index("return emos_run_utility(operation, args);"))
 
     def test_source_freezes_noncolliding_gateway_numbers(self) -> None:
         api = (MOS_SOURCE / "src" / "mos_api.inc").read_text(
