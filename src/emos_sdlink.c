@@ -12,7 +12,9 @@ static volatile BYTE active, ready;
 static BYTE mailbox[EMOS_SDLINK_LIMIT], transmit[EMOS_SDLINK_LIMIT + 4];
 
 static BYTE range(UINT24 address, UINT24 length) {
-    return address >= 0x040000 && address < 0x0B0000 && length <= 0x0B0000-address;
+    /* REMOTE-005: foreground MOSlets own B0000..B7FFF too. Keep MOS RAM
+     * above B8000 excluded; subtract before comparison to avoid wrapping. */
+    return address >= 0x040000 && address < 0x0B8000 && length <= 0x0B8000-address;
 }
 void emos_sdlink_reset(void) {
     BYTE irq = emos_keyboard_lock();

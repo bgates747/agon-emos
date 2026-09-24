@@ -20,7 +20,7 @@ BYTE emos_keyboard_send(const BYTE *data,UINT16 n) {
 UINT24 emos_read24(const BYTE *p) { return p[0]|((UINT24)p[1]<<8)|((UINT24)p[2]<<16); }
 static void put24(BYTE *p,UINT24 n) {p[0]=n;p[1]=n>>8;p[2]=n>>16;}
 int main(void) {
-    void *ram=mmap((void *)0x40000,0x70000,PROT_READ|PROT_WRITE,
+    void *ram=mmap((void *)0x40000,0x78000,PROT_READ|PROT_WRITE,
                   MAP_PRIVATE|MAP_ANONYMOUS|MAP_FIXED_NOREPLACE,-1,0);
     t_emosGatewayRequest *r=(void *)0x40000;
     BYTE *input=(void *)0x41000,*output=(void *)0x42000,data[240];
@@ -28,7 +28,7 @@ int main(void) {
     memset(data,0x8D,sizeof(data));
     put24(r->input,0x41000);put24(r->inputLength,1);
     assert(emos_sdlink_gateway((void *)0x3ffff)==19);
-    assert(emos_sdlink_gateway((void *)0xaffff)==19);
+    assert(emos_sdlink_gateway((void *)0xb7fff)==19);
     mode=1;assert(emos_sdlink_gateway(r)==35);mode=0;
     emos_key_source=1;assert(emos_sdlink_gateway(r)==35);emos_key_source=2;
     irq=0;assert(emos_sdlink_gateway(r)==31);irq=1;
@@ -41,7 +41,7 @@ int main(void) {
     assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==0);
     emos_sdlink_packet(data,19);
     assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==0);
-    put24(r->output,0xafff0);
+    put24(r->output,0xb7ff0);
     assert(emos_sdlink_gateway(r)==19);put24(r->output,0x42000);
     put24(r->outputCapacity,239);assert(emos_sdlink_gateway(r)==19);
     put24(r->outputCapacity,0);put24(r->output,0);
@@ -58,6 +58,22 @@ int main(void) {
     input[0]=1;put24(r->output,0x42000);put24(r->outputCapacity,240);
     assert(emos_sdlink_gateway(r)==35);
     assert(irq);
-    assert(munmap(ram,0x70000)==0);
+    /* MOSlet buffers, including exact high edge, are accepted. */
+    r=(void *)0xb0000;input=(void *)0xb1000;output=(void *)0xb7f10;
+    memset(r,0,sizeof(*r));input[0]=0;
+    put24(r->input,0xb1000);put24(r->inputLength,1);
+    assert(emos_sdlink_gateway(r)==0);
+    emos_sdlink_packet(data,240);input[0]=1;
+    put24(r->output,0xb7f10);put24(r->outputCapacity,240);
+    assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==240);
+    assert(!memcmp(output,data,240));
+    put24(r->output,0xb7f11);assert(emos_sdlink_gateway(r)==19);
+    put24(r->output,0xb8000);assert(emos_sdlink_gateway(r)==19);
+    put24(r->output,0xfffff0);assert(emos_sdlink_gateway(r)==19);
+    put24(r->output,0);put24(r->outputCapacity,0);
+    put24(r->input,0xb8000);assert(emos_sdlink_gateway(r)==19);
+    put24(r->input,0xb1000);put24(r->inputLength,0xffffff);
+    assert(emos_sdlink_gateway(r)==19);
+    assert(munmap(ram,0x78000)==0);
     puts("sdlink gateway bounds, mailbox, ownership and lifecycle passed");
 }

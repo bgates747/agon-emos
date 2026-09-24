@@ -1,5 +1,7 @@
 # EMOS TODO
 
+- [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — Provisional MOSlet SD gateway admission and bounded validation.
+
 ## First priority — UART execution cost
 
 - [ ] **INTEG-014 — Diagnose and reduce EMOS UART execution cost**

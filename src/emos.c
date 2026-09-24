@@ -550,8 +550,12 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
 	char providerName[EMOS_NAME_SIZE + 1];
 	UINT24 result;
 
-	if (!request || emos_range_overlaps_module((UINT24)request, sizeof(*request)))
-		return EMOS_UNSAFE_CALLER;
+    /* REMOTE-005: resident sdlink never loads/scrubs MOSlet memory. Other
+     * providers retain their module-space exclusion after identity validation. */
+    BYTE mosletRequest = emos_range_overlaps_module((UINT24)request, sizeof(*request));
+    if (!request || (mosletRequest && ((UINT24)request < EMOS_MODULE_BASE ||
+        (UINT24)request > EMOS_MODULE_BASE + EMOS_MODULE_SIZE - sizeof(*request))))
+        return EMOS_UNSAFE_CALLER;
 	if (emos_read16(request->size) != EMOS_GATEWAY_REQUEST_SIZE ||
 		request->abiMajor != EMOS_CORE_ABI || request->abiMinor != 0 ||
 		emos_read16(request->operation) != EMOS_OPERATION_SERVICE ||
@@ -572,6 +576,8 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
      * change or application-owned transport. Reserved ahead of discovery.
      * The request and input must be wholly in ordinary application RAM;
      * static application buffers meet this even when MOS owns the stack. */
+    if (mosletRequest && (strcmp(namespaceName,"ext") || strcmp(providerName,"sdlink")))
+        return EMOS_UNSAFE_CALLER;
     if (strcmp(namespaceName, "edu") == 0 && strcmp(providerName, "text-probe") == 0) {
         UINT24 address = emos_read24(request->input);
         UINT24 length = emos_read24(request->inputLength);
