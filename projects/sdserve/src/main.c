@@ -36,11 +36,17 @@ void service_progress(void) {
     }
 }
 int main(int argc,char **argv) {
-    const char *scope=argc>1?argv[1]:"/extender/sdtest";
+    const char *scope="/extender/sdtest";
+    int i,fast=0,have_scope=0;
     const volatile uint8_t *sv=mos_sysvars();
-    if(argc>2) { puts("Usage: sdserve.bin [absolute-root]");return 1; }
+    for(i=1;i<argc;++i) {
+        if(!strcmp(argv[i],"--fast") && !fast) fast=1;
+        else if(argv[i][0]=='/' && !have_scope) { scope=argv[i];have_scope=1; }
+        else { puts("Usage: sdserve.bin [--fast] [absolute-root]");return 1; }
+    }
     boot=getsysvar_time()^UINT32_C(0x173d5a91);if(!boot) boot=1;
-    if(!service_init(scope,boot)) { puts("Invalid SD service root");return 1; }
+    if(!service_init_mode(scope,boot,fast)) { puts("Invalid SD service root");return 1; }
+    if(fast) puts("Fast transfer: whole-file readback verification disabled.");
     unsigned error=link_call(0,NULL,0);
     if(error) {
         printf("SD service unavailable (EMOS %u). Requires ext.sdlink and Extender keyboard.\n",error);

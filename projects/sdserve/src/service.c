@@ -1,6 +1,8 @@
 /* PORT-017 foreground file engine. Uses public MOS/FatFS calls, never UART.
  * WRITE acknowledges the checked open-file write; FINISH syncs/closes and
- * independently reads the stage. FAT rename is recoverable, NOT power-atomic.
+ * independently reads the stage by default. Explicit fast mode omits stage
+ * and activated-target digest passes; framing and filesystem errors stay checked.
+ * FAT rename is recoverable, NOT power-atomic.
  * Wire contract: agon-extender/docs/tasks/PORT-017/PROTOCOL.md.
  */
 #include <agon/mos.h>
@@ -9,7 +11,7 @@
 
 static char root[121],target[121],part[130],meta[130],backup[130];
 static uint32_t boot_id,session,sequence,transfer,expected_size,expected_crc,offset;
-static uint8_t active,verified,exiting;
+static uint8_t active,finished,exiting,fast_mode;
 static FIL stage;
 static uint8_t previous[SD_MAX_RECORD],cached[SD_MAX_RECORD];
 static unsigned previous_size,cached_size;
@@ -114,7 +116,7 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
     switch(op) {
     case SD_HELLO:
         if(n) return SD_BAD_REQUEST;
-        sd_put32(out,boot_id);sd_put16(out+4,212);sd_put16(out+6,15);*out_n=8;return SD_OK;
+        sd_put32(out,boot_id);sd_put16(out+4,212);sd_put16(out+6,15 | (fast_mode?16:0));*out_n=8;return SD_OK;
     case SD_STAT:
         if(!path_read(p,n,path)) return SD_BAD_REQUEST;
         r=ffs_stat(&info,path);if(r) return fail(r);
@@ -163,12 +165,12 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
         result=close_file(&journal,result);if(result) return result;
         r=ffs_fopen(&stage,part,FA_WRITE|FA_CREATE_NEW);if(r) return fail(r);
         transfer=tid;expected_size=sd_u32(p+4);expected_crc=sd_u32(p+8);
-        offset=0;active=1;verified=0;
+        offset=0;active=1;finished=0;
         sd_put32(out,transfer);sd_put32(out+4,offset);*out_n=8;return SD_OK;
     }
     case SD_WRITE:
         if(n<9 || n>220) return SD_BAD_REQUEST;
-        if(!active || verified || sd_u32(p)!=transfer) return SD_BAD_REQUEST;
+        if(!active || finished || sd_u32(p)!=transfer) return SD_BAD_REQUEST;
         if(sd_u32(p+4)!=offset || n-8>expected_size-offset) return SD_BAD_REQUEST;
         result=write_exact(&stage,p+8,n-8);
         if(result) { (void)close_file(&stage,result);active=0;return result; }
@@ -177,27 +179,29 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
         if(n!=4) return SD_BAD_REQUEST;
         if(!active || sd_u32(p)!=transfer) return SD_BAD_REQUEST;
         if(offset!=expected_size) return SD_INTEGRITY;
-        if(!verified) {
+        if(!finished) {
             r=ffs_fsync(&stage);result=close_file(&stage,r?fail(r):SD_OK);
             active=0;if(result) return result;
-            result=checked_digest(part,expected_size,expected_crc);if(result) return result;
-            active=1;verified=1;
+            if(!fast_mode) { result=checked_digest(part,expected_size,expected_crc);if(result) return result; }
+            active=1;finished=1;
         }
+        /* In fast mode this echoes the declared transfer identity, not a
+         * measured digest. HELLO bit 0x10 tells the host which mode is active. */
         sd_put32(out,expected_size);sd_put32(out+4,expected_crc);*out_n=8;return SD_OK;
     case SD_ACTIVATE:
         if(n!=4) return SD_BAD_REQUEST;
-        if(!active || !verified || sd_u32(p)!=transfer) return SD_BAD_REQUEST;
-        active=0;verified=0;
+        if(!active || !finished || sd_u32(p)!=transfer) return SD_BAD_REQUEST;
+        active=0;finished=0;
         result=state(&bits,metadata);if(result) return result;
         if((bits&30)!=6) return SD_RECOVERY_REQUIRED;
         if(bits&1) { r=ffs_rename(target,backup);if(r) return fail(r); }
         r=ffs_rename(part,target);if(r) return fail(r);
-        result=checked_digest(target,expected_size,expected_crc);if(result) return result;
+        if(!fast_mode) { result=checked_digest(target,expected_size,expected_crc);if(result) return result; }
         r=ffs_unlink(meta);return r?fail(r):SD_OK;
     case SD_CANCEL:
         if(n!=4) return SD_BAD_REQUEST;
         if(!active || sd_u32(p)!=transfer) return SD_BAD_REQUEST;
-        result=verified?SD_OK:close_file(&stage,SD_OK);active=verified=0;
+        result=finished?SD_OK:close_file(&stage,SD_OK);active=finished=0;
         if(result) return result;
         result=remove_if_present(part);return result?result:remove_if_present(meta);
     case SD_RECOVER:
@@ -232,12 +236,13 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
     }
 }
 
-int service_init(const char *scope,uint32_t boot) {
+int service_init_mode(const char *scope,uint32_t boot,int fast) {
     if(strlen(scope)>120) return 0;
     strcpy(root,"/");if(!path_ok(scope)) return 0;
     strcpy(root,scope);boot_id=boot?boot:1;session=sequence=0;
-    active=verified=exiting=0;previous_size=cached_size=0;return 1;
+    active=finished=exiting=0;fast_mode=fast!=0;previous_size=cached_size=0;return 1;
 }
+int service_init(const char *scope,uint32_t boot) { return service_init_mode(scope,boot,0); }
 unsigned service_request(const uint8_t *in,unsigned n,uint8_t *out) {
     uint32_t sid,seq;unsigned payload=0;int status;
     if(!sd_valid(in,n) || in[3]!=SD_REQUEST || in[13] || !(seq=sd_u32(in+8))) return 0;
@@ -259,7 +264,7 @@ unsigned service_request(const uint8_t *in,unsigned n,uint8_t *out) {
 }
 int service_exiting(void) { return exiting; }
 void service_stop(void) {
-    if(active && !verified) (void)ffs_fclose(&stage);
+    if(active && !finished) (void)ffs_fclose(&stage);
     // Preserve an interrupted transfer and journal for explicit recovery.
-    active=verified=0;
+    active=finished=0;
 }

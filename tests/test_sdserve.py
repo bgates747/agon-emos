@@ -16,6 +16,7 @@ def path(p):
     p=p.encode('ascii');return bytes([len(p)])+p
 
 class SdserveTests(unittest.TestCase):
+    FAST=0
     def test_reviewed_codec_matches_owner_when_available(self):
         owner=ROOT.parent/'agon-extender/vdp/video/extender/storage/sd_wire.h'
         if not owner.exists():self.skipTest('Independent checkout; owner codec unavailable')
@@ -34,7 +35,7 @@ class SdserveTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.disk=Path(self.temp.name)
         (self.disk/'test').mkdir();self.lib.fs_root(str(self.disk).encode())
-        self.assertEqual(self.lib.service_init(b'/test',101),1)
+        self.assertEqual(self.lib.service_init_mode(b'/test',101,self.FAST),1)
         self.seq=0;self.sid=19;self.rpc(1)
     def tearDown(self): self.lib.service_stop();self.temp.cleanup()
     def send(self,request):
@@ -96,11 +97,12 @@ class SdserveTests(unittest.TestCase):
         self.rpc(9,S.pack('<I',73))
     def test_disk_full_sync_and_close_failure_preserve_target(self):
         old=self.disk/'test/game.bin';old.write_bytes(b'old')
-        self.begin(b'data');self.lib.fs_fault(3,1)
-        self.rpc(6,S.pack('<II',73,0)+b'data',6)
-        self.assertEqual(old.read_bytes(),b'old')
-        self.assertEqual(self.rpc(10,b'\0'+path('/test/game.bin')),b'\x07')
-        self.rpc(10,b'\x02'+path('/test/game.bin'))
+        for op in (3,8):  # short write and hard device error
+            self.begin(b'data');self.lib.fs_fault(op,1)
+            self.rpc(6,S.pack('<II',73,0)+b'data',6)
+            self.assertEqual(old.read_bytes(),b'old')
+            self.assertEqual(self.rpc(10,b'\0'+path('/test/game.bin')),b'\x07')
+            self.rpc(10,b'\x02'+path('/test/game.bin'))
         for op in (4,5):
             self.begin(b'data');self.rpc(6,S.pack('<II',73,0)+b'data')
             self.lib.fs_fault(op,1);self.rpc(7,S.pack('<I',73),6)
@@ -140,5 +142,35 @@ class SdserveTests(unittest.TestCase):
         self.assertEqual(self.rpc(10,b'\0'+path('/test/game.bin')),b'\x06')
         self.rpc(10,b'\x02'+path('/test/game.bin'))
         self.assertEqual(list((self.disk/'test').iterdir()),[])
+
+    def test_mode_and_verification_read_cost(self):
+        self.assertEqual(S.unpack('<IHH',self.rpc(1)),(101,212,15|(16 if self.FAST else 0)))
+        data=bytes(range(256))*16
+        before=self.lib.fs_read_bytes()
+        self.stage(data);self.rpc(8,S.pack('<I',73))
+        self.assertEqual(self.lib.fs_read_bytes()-before,20+(0 if self.FAST else 2*len(data)))
+        self.assertEqual((self.disk/'test/game.bin').read_bytes(),data)
+
+    def test_declared_crc_is_not_verified_in_fast_mode(self):
+        self.rpc(5,S.pack('<III',73,4,123)+path('/test/game.bin'))
+        self.rpc(6,S.pack('<II',73,0)+b'data')
+        self.rpc(7,S.pack('<I',73),0 if self.FAST else 7)
+        if self.FAST:
+            self.rpc(8,S.pack('<I',73))
+            self.assertEqual((self.disk/'test/game.bin').read_bytes(),b'data')
+
+    def test_post_finish_corruption_demonstrates_mode_tradeoff(self):
+        self.stage(b'good')
+        (self.disk/'test/game.bin.p17part').write_bytes(b'evil')
+        self.rpc(8,S.pack('<I',73),0 if self.FAST else 7)
+        self.assertEqual((self.disk/'test/game.bin').read_bytes(),b'evil')
+
+    def test_self_overwrite_and_early_finish_still_rejected(self):
+        self.rpc(5,S.pack('<III',73,0,0)+path('/test/SdSeRvE.BiN'),1)
+        self.begin(b'abcd');self.rpc(6,S.pack('<II',73,0)+b'ab')
+        self.rpc(7,S.pack('<I',73),7);self.rpc(9,S.pack('<I',73))
+
+class FastSdserveTests(SdserveTests):
+    FAST=1
 
 if __name__=='__main__':unittest.main()

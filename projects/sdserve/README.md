@@ -17,7 +17,7 @@ make -C projects/sdserve
 Or supply `AGONDEV_TOOLCHAIN=/absolute/path/to/agondev`. Output is
 `projects/sdserve/bin/sdserve.bin`. Keep that filename on the card: it is a
 reserved write target so this service cannot replace its own executing file.
-The only application argument is its absolute allowed filesystem root; default
+The application accepts an absolute allowed filesystem root; default
 `/extender/sdtest`. Provision that directory first. Typical MOS startup:
 
 ```text
@@ -81,3 +81,28 @@ For an identified candidate from clean committed source:
 The wrapper stamps the banner and preserves a YAML manifest with source commit,
 source/compiler hashes and executable digest. Ordinary make keeps an explicit
 unversioned development identity and is not a commissioning payload.
+
+## Draft v0.2.0 fast mode
+
+Add `--fast` before or after the absolute root to omit the listener's full stage
+and target digest rereads. Pair this with the Extender client's `put --fast`,
+which omits its two full readback downloads. Normal mode remains the default.
+HELLO bit 0x10 advertises fast mode; updated clients refuse upload mode mismatch
+before BEGIN. FINISH in fast mode echoes the declared CRC, not a measured one.
+Packet checks, exact byte counts, sync/close errors, staging/backup, admission,
+replay and recovery checks remain. Stored-content verification is deliberately
+omitted; this may accept corruption that normal mode detects.
+
+Build as a MOSlet with `make RAM_START=0xB0000 RAM_SIZE=0x8000`. With the draft
+EMOS utility dispatcher, install at `/emos/sdserve.bin` and use
+`EMOS sdserve --fast /`; the traditional `/mos` MOSlet invocation also works.
+The binary name remains reserved. Local host and raw-FAT emulator tests passed;
+no new physical qualification or deployment is claimed. See Extender's
+`docs/tasks/REMOTE-005/FAST-TRANSFER.md` for the frozen contract and evidence.
+
+Physical follow-through on 2026-09-24 also passed: normal/fast transfers, backup
+verification, mode mismatch, self-write refusal and return/reentry. The installed
+MOSlet at `/mos/sdserve.bin` averaged 5.00× throughput on two matched 8192-byte
+activated uploads per mode. Firmware/startup unchanged. This is bounded draft
+evidence, not general qualification; see Extender
+`docs/tasks/REMOTE-005/fast-transfer-hardware-results.json`.

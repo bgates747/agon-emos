@@ -6,9 +6,10 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <fcntl.h>
-static char disk[400];static unsigned fault,remaining,progress;
-void fs_root(const char *path) { strcpy(disk,path);fault=remaining=progress=0; }
+static char disk[400];static unsigned fault,remaining,progress,read_bytes;
+void fs_root(const char *path) { strcpy(disk,path);fault=remaining=progress=read_bytes=0; }
 void fs_fault(unsigned operation,unsigned occurrence) { fault=operation;remaining=occurrence; }
+unsigned fs_read_bytes(void) { return read_bytes; }
 unsigned fs_progress(void) { return progress; }
 void service_progress(void) { ++progress; }
 static int bad(unsigned op) { if(op!=fault || !remaining) return 0;return !--remaining; }
@@ -26,9 +27,10 @@ uint8_t ffs_fopen(FIL *f,const char *name,uint8_t mode) {
 uint8_t ffs_fclose(FIL *f) { int failed=bad(4),r=fclose(f->file);f->file=NULL;return failed||r?FR_DISK_ERR:0; }
 unsigned ffs_fread(FIL *f,char *p,unsigned n) {
     if(bad(2)) { f->error=FR_DISK_ERR;return 0; }
-    unsigned got=fread(p,1,n,f->file);if(ferror(f->file))f->error=FR_DISK_ERR;return got;
+    unsigned got=fread(p,1,n,f->file);read_bytes+=got;if(ferror(f->file))f->error=FR_DISK_ERR;return got;
 }
 unsigned ffs_fwrite(FIL *f,const char *p,unsigned n) {
+    if(bad(8)) { f->error=FR_DISK_ERR;return 0; } // explicit device write error
     if(bad(3)) { return n?fwrite(p,1,n-1,f->file):0; } // disk-full short write, no hard error
     unsigned got=fwrite(p,1,n,f->file);if(ferror(f->file))f->error=FR_DISK_ERR;return got;
 }
