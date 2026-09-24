@@ -43,6 +43,8 @@ longer loaded; unknown service identities return `EMOS_NOT_FOUND` (27), while
 API `0x51`, C function slot `0x20` and resident services remain in firmware.
 
 Validation and deployment status are tracked in [AUDIT-008](tasks/AUDIT-008.md).
-This increment has no physical acceptance or SD migration claim. The existing
-sdserve MOSlet may be used as a launcher check, but moving an already disk-based
-program does not recover ROM. Existing installed listener paths remain intact.
+On 2026-09-24 the Author authorized physical deployment: complete ROM readback,
+ExCom/Legacy, mixed-case utility dispatch, listener transfers/reentry and a 4096-byte
+application sentinel passed. The maintained listener is now `/emos/sdserve.bin`,
+invoked with `EMOS sdserve [--fast] /`. Moving it itself saves no ROM. Broader
+human/native-keyboard acceptance remains distinct from these bounded checks.

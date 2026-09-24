@@ -1,6 +1,6 @@
 # EMOS TODO
 
-- [ ] **[AUDIT-008](docs/tasks/AUDIT-008.md)** — Retire cancelled provider machinery and validate minimal foreground /emos dispatch; hardware deferred.
+- [ ] **[AUDIT-008](docs/tasks/AUDIT-008.md)** — Retire cancelled provider machinery and validate minimal foreground /emos dispatch; deployed with bounded physical checks passing; broader acceptance pending.
 
 - [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — Provisional MOSlet SD gateway admission and bounded validation.
 

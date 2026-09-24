@@ -42,3 +42,12 @@ transfer claim. All durable measurements/transcripts are in the Extender
 AUDIT-008 implementation evidence. A08-E04 remains pending: bench untouched.
 
 The routine contract is [foreground EMOS utilities](../emos-utilities.md).
+
+## Authorized physical follow-through — 2026-09-24
+
+Author released bench and requested deployment. v0.1.19 is installed with full
+128 KiB readback equality. ExCom/Legacy, injected keyboard, mixed-case /emos
+listener dispatch, fast/normal transfers and 4096-byte application sentinel pass.
+Listener moved to /emos/sdserve.bin; startup and P4/VDP unchanged. A08-E04 stays
+open for broader acceptance; this is no longer an uninstalled candidate. Exact
+evidence is in agon-extender docs/tasks/AUDIT-008/HARDWARE.md.
