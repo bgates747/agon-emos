@@ -16,7 +16,7 @@ ceiling; do not alter Moslet$Path/Run$Path or application RAM. Preserve stock
 return codes and argument forwarding. Utilities remain trusted executables:
 a standard MOS header cannot prove their link address or runtime memory use.
 
-A08-E03 [ ] Validate admission/error paths, stock MOSlet ABI in emulator and
+A08-E03 [x] Validate admission/error paths, stock MOSlet ABI in emulator and
 resident linked contracts. Measure ROM/RAM against 131056-byte baseline. Existing
 historical provider tooling is retained for evidence, not current qualification.
 
@@ -28,3 +28,17 @@ plugin registry or physical utility migration is included. Existing listener is
 already disk-resident; adding its `/emos` invocation does not itself save ROM.
 The Author authorized unattended commits without waiting for visual review for
 this run; human/hardware acceptance remains separate.
+
+## Local result — 2026-09-24
+
+Final ordinary draft build `agon-emos-v0.1.19-b2026-09-24-02-02-56Z`, product
+source `49cbd36`, occupies 124774 ROM bytes with 6298 free. It recovers 6282 ROM
+and 3155 static RAM bytes. All selected-profile firmware/link guards and all 91
+host tests pass. The official Fab 1.2.5 CLI harness passes autoexec plus 28
+commands in 39.3 host seconds, including a 4096-byte application sentinel,
+re-entry, return code, negative executable/name tests and nested launch denial.
+Existing sdserve launches and returns unavailable without a peer; no live
+transfer claim. All durable measurements/transcripts are in the Extender
+AUDIT-008 implementation evidence. A08-E04 remains pending: bench untouched.
+
+The routine contract is [foreground EMOS utilities](../emos-utilities.md).

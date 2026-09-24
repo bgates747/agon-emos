@@ -5,7 +5,7 @@ derivative that integrates the Agon Extender. It retains an upstream-shaped
 MOS source tree so tagged official releases can be incorporated without
 maintaining a second, structurally unrelated port.
 
-The firmware behavior, EMOS module/service contract, implementation tasks,
+The firmware behavior, resident EMOS service contract, implementation tasks,
 tests, and qualification evidence are maintained here. Generic ZDS-to-AgonDev
 translation, linking, runtime, emulator, and inspection infrastructure remains
 in the separate `mos-agondev` project. See [OWNERSHIP.md](OWNERSHIP.md) for the
@@ -17,6 +17,10 @@ network endpoint while preserving native Extender keyboard input. The exact
 v0.1.14/service v0.1.0/console r12 combination passed scoped physical checks;
 see [the acceptance log](research/devlog/2026-09-13.md). It is not a background
 service during gameplay or a general firmware release.
+
+Draft v0.1.19 adds [foreground `/emos` utilities](docs/emos-utilities.md) and
+retires cancelled external `.emo` provider loading. Local checks do not imply
+physical installation or acceptance.
 
 The source lineage begins with official Agon Platform MOS v3.0.2. The original
 upstream README follows because its build, hardware, recovery, and licensing
