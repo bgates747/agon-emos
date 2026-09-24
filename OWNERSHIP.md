@@ -7,18 +7,20 @@ for development convenience.
 ## This repository owns
 
 1. The complete maintained, upstream-shaped MOS source used to build EMOS.
-2. EMOS behavior, APIs, dispatch, module/service ABI, mode coordination, and
+2. EMOS behavior, APIs, foreground utility dispatch, resident service ABI, mode coordination, and
    eZ80-side Extender integration.
-3. EMOS-specific source tests, module/container tools, provider fixtures,
+3. EMOS-specific source tests, retained historical module/container tools and fixtures,
    qualification procedures, evidence, release metadata, tasks, and research.
 4. The process for incorporating later tagged official MOS releases into the
    EMOS lineage.
 
 ## Neighboring repositories
 
-1. `agon-mos` is the Author's upstream-oriented official-MOS fork. Generic MOS
-   fixes may live there, but EMOS product behavior, branches, and task history
-   do not.
+1. The canonical `agon-mos` and `agon-vdp` directories under the Agon workspace
+   are read-only official tagged-release references. The distinct
+   `mystuff/agon-mos` checkout is the Author's upstream-oriented MOS fork for
+   generic MOS development. Do not confuse that working fork with the canonical
+   reference or place EMOS product behavior/task history in either.
 2. `mos-agondev` owns reusable preparation, ZDS-to-GNU-as translation,
    AgonDev compilation and linking, restricted runtime support, emulator setup,
    generic ABI probes, and generic qualification infrastructure. Generated
@@ -32,9 +34,11 @@ for development convenience.
 ## Change routing
 
 1. A change to what EMOS does belongs here.
-2. A generally useful stock-MOS correction should first be isolated in
-   `agon-mos`; EMOS then incorporates that clean source commit or an equivalent
-   tagged upstream release.
+2. A generally useful stock-MOS correction belongs in the distinct working
+   fork (`mystuff/agon-mos`) or a separate project-owned checkout for upstream
+   review, preserving the canonical official reference. EMOS incorporates the
+   reviewed correction or a tagged upstream release. This makes the existing
+   fork/reference distinction explicit; it does not change firmware ownership.
 3. A change needed to translate, compile, link, emulate, or inspect arbitrary
    supported MOS-family source belongs in `mos-agondev`.
 4. A requirement spanning the eZ80, EDP/P4 firmware, onboard VDP, wiring, or

@@ -1,8 +1,21 @@
 # EMOS v1 provisional contract
 
-Status: provisional v1 byte layouts frozen by `EMOS-102` on 2026-08-24. This
-document states decisions and non-goals. It is not an actionable checklist;
-`TODO.md` is the only task list.
+## Current applicability — 2026-09-24
+
+The provisional module design below was frozen on 2026-08-24. **Its external
+provider discovery, registry, container loading, module swapping and generic
+command fallback are cancelled and removed in EMOS v0.1.19.** The product
+boundary, selected-v1-behavior and decision-inventory sections preserve that
+historical contract; they are not instructions for the current firmware.
+`DISCOVER`/`CLEAR` are reserved unavailable commands; unknown external services
+are not loaded. No `/.emos-swap.bin` workflow is part of the current utility path.
+
+Current foreground utility dispatch is specified in [EMOS utilities](emos-utilities.md).
+Resident API `0x51`, C slot `0x20`, mode/VDU ownership and retained resident
+services remain; their implementation and exact validation are recorded in
+[AUDIT-008](tasks/AUDIT-008.md). The resident text and SD sections below remain
+service references, with SD caller bounds updated for the supported MOSlet.
+Historical qualification records describe only their recorded candidates.
 
 ## Product boundary
 
@@ -160,8 +173,9 @@ changes its text independently; this is not an ordinary printf-to-EDP API.
 
 `ext.sdlink` is a reserved Core service behind the existing 66-byte gateway,
 ABI 1.0, service operation 2. It does not load a transient module. Core validates
-the request, input and output wholly within ordinary application RAM
-040000..0AFFFF. Admission requires Legacy mode, healthy Extender keyboard
+the request, input and output wholly within 040000..0B7FFF, including
+the MOSlet region for this resident service. This supported exception does not
+restore external provider loading or nested utility launch. Admission requires Legacy mode, healthy Extender keyboard
 selection and EMOS ownership of UART1; interrupt-context calls are rejected.
 
 The first input byte selects OPEN=0, RECEIVE=1, SEND=2 or CLOSE=3. OPEN/CLOSE

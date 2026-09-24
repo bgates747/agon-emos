@@ -19,12 +19,22 @@ see [the acceptance log](research/devlog/2026-09-13.md). It is not a background
 service during gameplay or a general firmware release.
 
 Draft v0.1.19 adds [foreground `/emos` utilities](docs/emos-utilities.md) and
-retires cancelled external `.emo` provider loading. Local checks do not imply
-physical installation or acceptance.
+retires cancelled external `.emo` provider loading. It passed the later scoped
+physical deployment described in [AUDIT-008](docs/tasks/AUDIT-008.md), including
+`/emos/sdserve.bin` dispatch and checked/fast transfers. That is not general
+native-keyboard/gameplay acceptance or a release qualification.
+
+For current product builds use the repository-root `make firmware-check` and
+its selected EMOS source profile; see [ownership/build boundaries](OWNERSHIP.md).
+The Extender [build guide](https://github.com/bgates747/agon-extender/blob/main/docs/building.md)
+and [operation entry point](https://github.com/bgates747/agon-extender/blob/main/docs/using-extender.md)
+cover the companion firmware and host clients.
 
 The source lineage begins with official Agon Platform MOS v3.0.2. The original
-upstream README follows because its build, hardware, recovery, and licensing
-information still applies to this derivative.
+upstream README follows as attributed reference. Its generic build, emulator
+and SD-root recovery examples are not the current EMOS deployment procedure;
+use the project wrappers and Extender recovery/SD-layout guides. Upstream
+licensing and attribution remain applicable.
 
 ## Upstream MOS documentation
 

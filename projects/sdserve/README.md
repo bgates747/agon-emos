@@ -1,108 +1,102 @@
 # Mainboard SD foreground service
 
-The service uses the resident `ext.sdlink` gateway and matching Extender P4
-firmware. EMOS v0.1.14, sdserve v0.1.0 and uart-excom-console r12 passed scoped
-physical file-transfer and native-keyboard checks on 2026-09-13 UTC; see the
-[dated acceptance record](../../research/devlog/2026-09-13.md). The frozen
-artifact identities remain candidates, not a general release. EMOS v0.1.13
-does not provide this gateway. No custom onboard VDP is required and the
-application performs no graphics mode change.
-
-Exploratory build with AgonDev on PATH:
-
-```sh
-make -C projects/sdserve
-```
-
-Or supply `AGONDEV_TOOLCHAIN=/absolute/path/to/agondev`. Output is
-`projects/sdserve/bin/sdserve.bin`. Keep that filename on the card: it is a
-reserved write target so this service cannot replace its own executing file.
-The application accepts an absolute allowed filesystem root; default
-`/extender/sdtest`. Provision that directory first. Typical MOS startup:
+The listener uses resident `ext.sdlink` and matching Extender P4 firmware.
+The recorded current installation is the sdserve v0.2.0 EMOSlet at
+`/emos/sdserve.bin`, launched through EMOS v0.1.19:
 
 ```text
-VDU 22 3
-SET KEYBOARD 1
-EMOS KEYINPUT extender
-LOAD /extender/sdserve.bin
-RUN . /
+EMOS sdserve /
 ```
 
-The explicit `/` permits whole-card development and is now used by the bench
-startup; `/extender/sdtest` was the initial commissioning scope. Changing the
-root requires stopping and restarting the foreground service.
+Add `--fast` before or after `/` for opt-in fast uploads. The service requires
+Legacy mode and healthy Extender keyboard admission **before launch**. A remote
+agent cannot enable its own unavailable keyboard path by typing through it.
+Use an operator or prepared startup to establish `EMOS KEYINPUT extender`, then
+start at a verified prompt. No custom onboard VDP or graphics mode change is
+required. An EMOSlet runs in the foreground, not alongside a game.
 
-Escape returns to MOS, preserving unfinished stages. The network EXIT operation
-is accepted only without an active transfer. The server does not launch games,
-flash firmware, install callbacks or take over UART. An EMOS-owned mailbox
-carries one bounded request; all filesystem work runs in the foreground.
+The root is an absolute existing directory. `/` permits the whole card;
+`/extender/sdtest` remains the no-argument default and must be provisioned first.
+The endpoint is unauthenticated, for a trusted LAN. Change root or checked/fast
+mode by stopping and restarting the listener. Escape returns to its caller and
+preserves unfinished stages; if the caller is a batch, its next command can run.
+Network EXIT requires no active transfer. Neither operation proves an idle CLI.
 
-The wire contract and host client belong to agon-extender:
-`docs/protocols/mainboard-sd.md`, `docs/mainboard-sd.md` and `scripts/sdcard.py`.
-Historical task paths forward to these maintained authorities. The local
-`src/sd_wire.h` is a reviewed byte-identical copy of its maintained codec;
-keep both copies synchronized. No sibling checkout is needed for compilation.
+## Maintained authorities
 
-Files are staged alongside the target as `.p17part`, with immutable `.p17meta`
-identity and retained `.p17bak` previous target. FINISH checks sync/close then
-independent size/CRC readback. ACTIVATE verifies again after renaming. These
-steps permit explicit recovery but do not make FAT rename power-failure atomic.
-The host client also reads back the complete stage and compares original bytes.
-See the contract for recovery state bits and safe ordering; never manually
-discard an ambiguous journal just to make the next BEGIN succeed.
+| Subject | Authority |
+|---|---|
+| Invocation, host client, sessions, backup cleanup and recovery | [Extender SD operating guide](https://github.com/bgates747/agon-extender/blob/main/docs/mainboard-sd.md) |
+| Packet layouts and ownership | [Extender SD wire contract](https://github.com/bgates747/agon-extender/blob/main/docs/protocols/mainboard-sd.md) |
+| Prefixed dispatch, executable bounds and caller restrictions | [EMOS utilities](../../docs/emos-utilities.md) |
+| SD file placement and historical path changes | [SD layout](https://github.com/bgates747/agon-extender/blob/main/docs/sd-layout.md) |
+| Latest scoped physical installation | [AUDIT-008 hardware receipt](https://github.com/bgates747/agon-extender/blob/main/docs/tasks/AUDIT-008/HARDWARE.md) |
 
-Do not replace a file held open by another owner. MOS keeps an EXEC/OBEY batch
-open while its child application runs; exit the service and restart it directly
-at the CLI before replacing that batch. This FatFS build has `FF_FS_LOCK=0`:
-the service is cooperative foreground file access, not a global file-lock
-monitor. A hung eZ80 cannot serve requests, and this interface supplies neither
-automatic hardware reset nor remote game execution.
+`src/sd_wire.h` is a reviewed copy of the Extender-owned codec; keep both copies
+synchronized. Compilation does not require a sibling checkout. EMOS owns UART
+admission and bounded mailboxes; the listener owns foreground MOS/FatFS calls.
+It does not install callbacks, take over UART, launch games or reset hardware.
+Do not replace running or held-open files, including an EXEC/autoexec batch
+whose child is this listener. `FF_FS_LOCK=0` is not a global open-file monitor.
 
-Host checks from the repository root:
+## Build layouts
+
+With AgonDev on PATH, from this repository root:
+
+```sh
+# Ordinary application fallback (LOAD/RUN replaces application RAM).
+make -C projects/sdserve clean
+make -C projects/sdserve
+
+# MOSlet for /emos/sdserve.bin (32 KiB region at B0000).
+make -C projects/sdserve clean
+make -C projects/sdserve RAM_START=0xB0000 RAM_SIZE=0x8000
+```
+
+Both produce `projects/sdserve/bin/sdserve.bin`. Clean when changing layouts;
+do not interchange the binaries. `AGONDEV_TOOLCHAIN=/absolute/path/to/agondev`
+can select the toolchain explicitly. Preserve the `sdserve.bin` basename: the
+wire service rejects writes to that basename to protect its executing file.
+A compile-only unversioned build is not a deployment candidate.
+
+`scripts/prepare_sdserve.py --output build/sdserve-candidate --toolchain ...`
+prepares an identified **ordinary application** bundle, with source/compiler
+hashes. It does not select the MOSlet layout. The identified MOSlet workflow
+and frozen validation are in Extender's
+[fast-transfer tasklet](https://github.com/bgates747/agon-extender/blob/main/docs/tasks/REMOTE-005/FAST-TRANSFER.md).
+The ordinary fallback remains `/extender/sdserve.bin`, using
+`LOAD /extender/sdserve.bin` then `RUN . /`. The installed listener moved out of
+`/mos`; bare `sdserve` is not its current installed invocation.
+
+## Checked versus fast uploads
+
+Normal mode checks sync/close and rereads staged and activated bytes for
+length/CRC. The host additionally downloads both copies for comparison. Fast
+mode requires `--fast` on the listener and on the host client's `put` command;
+a mismatch is rejected before BEGIN. HELLO bit 0x10 advertises fast mode.
+Fast FINISH echoes the declared CRC, not a measured one. Packet CRCs, checked
+byte counts, sync/close, staging, backups, replay and recovery remain, but fast
+success does not verify stored contents. Both modes retain target-adjacent
+`.p17part`, `.p17meta` and `.p17bak` files. FAT rename is not power-failure atomic;
+follow the operating guide rather than manually deleting an uncertain journal.
+
+## Validation scope
+
+Run from the repository root:
 
 ```sh
 .venv/bin/python -m unittest discover -s tests -p test_sdserve.py -v
 .venv/bin/python -m unittest discover -s tests -p test_emos_sdlink.py -v
 ```
 
-The filesystem adapter tests the real engine using injected POSIX failures;
-it is not FAT or hardware proof. Extender's headless runner tests the compiled
-eZ80 application, actual EMOS/FatFS, raw FAT image, maintained P4 queue and host
-HTTP client. New candidates require fresh physical validation; the historical
-pass does not validate a rebuild. The ordinary directory SD
-backend has known create-new/sync differences documented in Extender REMED-003.
+Injected POSIX failures exercise the real service engine, not physical FAT.
+Extender's raw-FAT emulator runs exercise compiled eZ80/EMOS/FatFS with the P4
+queue and HTTP client. Directory-backed emulator SD has documented create-new
+and sync differences; use the raw-FAT fixture for those semantics.
 
-For an identified candidate from clean committed source:
-
-```sh
-.venv/bin/python scripts/prepare_sdserve.py --output build/sdserve-candidate --toolchain /absolute/path/to/agondev
-```
-
-The wrapper stamps the banner and preserves a YAML manifest with source commit,
-source/compiler hashes and executable digest. Ordinary make keeps an explicit
-unversioned development identity and is not a commissioning payload.
-
-## Draft v0.2.0 fast mode
-
-Add `--fast` before or after the absolute root to omit the listener's full stage
-and target digest rereads. Pair this with the Extender client's `put --fast`,
-which omits its two full readback downloads. Normal mode remains the default.
-HELLO bit 0x10 advertises fast mode; updated clients refuse upload mode mismatch
-before BEGIN. FINISH in fast mode echoes the declared CRC, not a measured one.
-Packet checks, exact byte counts, sync/close errors, staging/backup, admission,
-replay and recovery checks remain. Stored-content verification is deliberately
-omitted; this may accept corruption that normal mode detects.
-
-Build as a MOSlet with `make RAM_START=0xB0000 RAM_SIZE=0x8000`. With the draft
-EMOS utility dispatcher, install at `/emos/sdserve.bin` and use
-`EMOS sdserve --fast /`; the traditional `/mos` MOSlet invocation also works.
-The binary name remains reserved. Local host and raw-FAT emulator tests passed;
-no new physical qualification or deployment is claimed. See Extender's
-`docs/tasks/REMOTE-005/FAST-TRANSFER.md` for the frozen contract and evidence.
-
-Physical follow-through on 2026-09-24 also passed: normal/fast transfers, backup
-verification, mode mismatch, self-write refusal and return/reentry. The installed
-MOSlet at `/mos/sdserve.bin` averaged 5.00× throughput on two matched 8192-byte
-activated uploads per mode. Firmware/startup unchanged. This is bounded draft
-evidence, not general qualification; see Extender
-`docs/tasks/REMOTE-005/fast-transfer-hardware-results.json`.
+The original EMOS v0.1.14 / listener v0.1.0 physical check is retained in the
+[September 13 log](../../research/devlog/2026-09-13.md). On September 24, fast
+v0.2.0 at its then `/mos` location passed eight bounded transfers and measured
+5.00× end-to-end throughput for two 8192-byte uploads per mode. Later v0.1.19
+checks passed `/emos` dispatch, normal/fast transfer, reentry and an application
+sentinel. Those receipts do not qualify every rebuilt binary or broader gameplay.

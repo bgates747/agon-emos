@@ -124,7 +124,7 @@ an absent parallel owner. This is a conservative engine-removal measurement,
 not a fully pruned or supported UART-only product profile.
 
 Forward support already includes record splitting up to 4,096 bytes, READY
-handshaking, bounded waits, pin ownership and cleanup. [INTEG-002](../INTEG-002.md)
+handshaking, bounded waits, pin ownership and cleanup. [INTEG-002](../../INTEG-002.md)
 remains on hold with target proof and physical qualification incomplete;
 production activation and whole-mode integration also remain outstanding.
 Reverse transfer through these same parallel data pins is **not implemented**

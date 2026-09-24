@@ -1,5 +1,12 @@
 # EMOS modular-service implementation handoff
 
+> Historical migration-era handoff. Relative links and commands below retain
+> their former workspace context and are not current setup instructions. Begin
+> with [the current README](../README.md), [ownership](../OWNERSHIP.md) and
+> [migration provenance](../docs/repository-migration.md). The external provider
+> loader described here was subsequently retired; see
+> [foreground EMOS utilities](../docs/emos-utilities.md).
+
 ## Purpose
 
 This handoff prepares a fresh agent to design and, when its invocation explicitly
