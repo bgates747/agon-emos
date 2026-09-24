@@ -1,25 +1,21 @@
 # EMOS documentation
 
-Repository ownership and reconstruction provenance are recorded in
-`../OWNERSHIP.md` and `repository-migration.md`.
+Current interfaces and operating rules:
 
-1. `emos-v1-contract.md` defines the provisional EMOS Core, module/service,
-   application-safety, dispatcher, mode, and ownership contract.
-2. `emos-v1-qualification.md` preserves the superseded first candidate's
-   automated evidence and its limits; it is not a current qualification.
-3. `port-200-qualification.md` preserves the accepted emulator, ABI, parity,
-   and reproducibility qualification of the first candidate.
-4. `port-203-hardware.md` defines the outstanding physical gate.
-5. `prior-art-rainbow-mos.md` records the prior-art review.
-6. `tasks/` contains detailed unfinished-work authorities indexed by
-   `TODO.md`.
-7. [Ordinary boot test sheet](qualification/minimal-boot/README.md),
-   `emos-ordinary-boot-r02`, is the corrected candidate procedure for automatic
-   Legacy boot and MOS-only installation under QUAL-002. The
-   [ordinary hardware smoke passed on three cold boots](qualification/minimal-boot/runs/QUAL-002-2026-09-08-01-23-44Z/hardware-result.md).
-   Revision r02 corrects the case-sensitive updater argument and retains the
-   rename guard; original r01 evidence is archived. The Author accepted and
-   froze the bounded milestone. Artifact status remains candidate.
+1. [Resident service contract](emos-v1-contract.md): gateway ABI, EMOS ownership,
+   SD transport and diagnostic service limits.
+2. [Foreground utilities](emos-utilities.md): `EMOS <utility>`, `/emos` placement,
+   executable bounds, caller admission and return behavior.
+3. [SD listener](../projects/sdserve/README.md): build layouts and current invocation;
+   the linked Extender guide owns host commands, fast mode and recovery.
+4. [Repository ownership](../OWNERSHIP.md): maintained source versus generic
+   AgonDev tooling, official references and the working MOS fork.
+5. [Extender handbook](https://github.com/bgates747/agon-extender/blob/main/docs/README.md):
+   companion P4 firmware, bench operation, builds, SD layout and recovery.
 
-Repository ownership is defined by the root `OWNERSHIP.md`. Historical
-reasoning and chronological implementation records are under `research/`.
+[TODO](../TODO.md) owns unfinished EMOS work. Task/qualification records and
+`research/` preserve evidence for their recorded revisions, not alternative
+current instructions. The [migration record](repository-migration.md) explains
+repository lineage; old provider-module qualification does not qualify current
+foreground utilities. Current limits are stated in the contracts above, so
+routine readers do not need to reconstruct them from historical tasks.

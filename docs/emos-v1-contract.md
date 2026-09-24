@@ -1,202 +1,112 @@
-# EMOS v1 provisional contract
+# EMOS resident service contract
 
-## Current applicability — 2026-09-24
+Current maintained EMOS v0.1.19 behavior. This file keeps its stable path;
+[foreground EMOS utilities](emos-utilities.md) owns disk-utility invocation.
+This is a product-local ABI, not an upstream MOS module standard.
 
-The provisional module design below was frozen on 2026-08-24. **Its external
-provider discovery, registry, container loading, module swapping and generic
-command fallback are cancelled and removed in EMOS v0.1.19.** The product
-boundary, selected-v1-behavior and decision-inventory sections preserve that
-historical contract; they are not instructions for the current firmware.
-`DISCOVER`/`CLEAR` are reserved unavailable commands; unknown external services
-are not loaded. No `/.emos-swap.bin` workflow is part of the current utility path.
+## Ownership and supported entry points
 
-Current foreground utility dispatch is specified in [EMOS utilities](emos-utilities.md).
-Resident API `0x51`, C slot `0x20`, mode/VDU ownership and retained resident
-services remain; their implementation and exact validation are recorded in
-[AUDIT-008](tasks/AUDIT-008.md). The resident text and SD sections below remain
-service references, with SD caller bounds updated for the supported MOSlet.
-Historical qualification records describe only their recorded candidates.
+EMOS is one complete MOS firmware. It owns ordinary VDU routing, committed
+mode, keyboard admission, canonical MOS sysvars and Extender UART transport.
+Applications use the resident interfaces; they do not take UART/GPIO ownership.
+Cold boot uses Legacy and mainboard keyboard selection. Startup may explicitly
+select Extender input; changing display mode does not select a keyboard source.
 
-## Product boundary
+MOS API `0x51` and C-function slot `0x20` reach the resident gateway. It accepts
+service operation 2 and resolves compiled services. There is no external `.emo`
+discovery, registry, provider execution or swap-file facility. `EMOS DISCOVER`
+and `EMOS CLEAR` are reserved commands returning unavailable. An unknown valid
+service identity returns `EMOS_NOT_FOUND` with output length zero.
 
-EMOS v1 is one backward-compatible MOS firmware image built from maintained
-ZDS-shaped source and carried through this repository's existing conversion and
-AgonDev qualification pipeline. Core MOS owns discovery, registry publication,
-module-area loading, every supported gateway, VDU routing, mode commitment,
-canonical VDP sysvars, and all eZ80-memory writes. External providers receive
-bounded requests; they do not become a second operating-system authority.
+`EMOS EXCOM` and `EMOS LEGACY` request the named display route. Ordinary mode
+changes are idle/Core operations; a live application may request the explicit
+`--keep-display` variant at complete VDU/query boundaries. EMOS validates and
+commits the transition; an error does not authorize drawing on the requested
+backend. The [cross-component console contract](https://github.com/bgates747/agon-extender/blob/main/docs/protocols/excom-console.md)
+owns the paired handshake. Other mode identities and fake/qualification adapters
+in source are not proof of available production hardware modes.
 
-The upstream MOS Modules document remains a proposal. EMOS therefore uses a
-local ABI with an explicit version and a narrow Core gateway. Module binaries,
-manifests, and calls fail on an unknown major version. Upstream adoption can
-replace the loader and translate requests behind that gateway without changing
-ordinary Core MOS entry points.
+## Gateway request
 
-## Selected v1 behavior
+The 66-byte `t_emosGatewayRequest` in [emos.h](../src/emos.h) uses byte-array
+integers to avoid compiler padding. All multibyte fields are little endian.
 
-1. External modules are ADL binaries linked for the existing 32 KiB moslet area
-   at `0x0B0000`. A fixed, versioned header describes file length, entry offset,
-   Core ABI range, provider class and identity, capability flags, and CRC-32.
-   Discovery reads and validates metadata without executing code.
-2. `EMOS$Path` names the configured module directory. Discovery occurs only on
-   an explicit `*EMOS DISCOVER` or equivalent gateway request, never merely
-   because hardware is present or at early boot. Entries are sorted by
-   class/namespace/name before transactional publication, so FatFS enumeration
-   order cannot change the result. Any duplicate claim fails the whole new
-   registry and preserves the old one.
-3. V1 external providers are synchronous and transient. Core loads exactly one
-   selected provider, validates it again, invokes one fixed entry with a
-   versioned request block, and considers all provider code/data pointers dead
-   when the call returns. The Core gateway address is stable; transient entry
-   addresses are never exposed through `mos_getfunction` or public handles.
-4. Nested module calls, reentrant dispatch, interrupt entry into module code,
-   asynchronous callbacks, external persistent residents, dependencies between
-   external modules, and provider-controlled teardown are rejected. A future
-   loader may add them without weakening the v1 call boundary. Persistent or
-   asynchronous transport belongs in statically linked Core adapters until a
-   separately qualified resident-memory design exists.
-5. Provider classes in v1 are star commands and namespaced services. Existing
-   built-ins and aliases win before module commands. A versioned MOS API and a
-   non-colliding C-function slot reach the same Core service gateway. New
-   project-owned operations use the `edu.*` namespace. No transient pointer is
-   a public API result.
-6. A module-safe advanced-header ADL program may use transient providers. A
-   module-compatible ADL program may do so only through a Core-controlled,
-   transactional save/replace/restore of the entire 32 KiB module area and only
-   when request buffers do not overlap it. Unheadered, version-0, malformed,
-   Z80, unaware, and moslet callers receive a deterministic unavailable/unsafe
-   result for module-backed facilities. Core-only MOS calls continue to work.
-   The compatible path requires writable FatFS storage and reserves
-   `/.emos-swap.bin` as a private synchronized preservation file. A failed save
-   is removed before the area changes. A failed restore retains that file and
-   blocks implicit replay while the application remains live; a later call may
-   retry restoration, and application exit discards state that no longer has a
-   live owner. Cold boot removes any orphan from an interrupted prior session.
-7. RST 10, RST 18, and C-runtime output call one semantic VDU dispatcher. Each
-   invocation snapshots one committed backend. Raw UART APIs keep their public
-   identities. Legacy and Dual use only onboard VDP for ordinary VDU; exclusive
-   modes use only EDP. Ordinary output is never mirrored.
-8. The mode coordinator stores ordinary-VDU route and EDP-service state as two
-   committed planes whose only public combinations are Legacy, Dual, Exclusive
-   Compatible, and Exclusive Extended. Legacy is the transition hub. Every
-   non-Legacy request performs prepare/readiness/commit/recover and publishes
-   only after all actors are ready. With no qualified EDP adapter, activation
-   fails boundedly and leaves Legacy fully operational.
-   Production cold boot selects an unavailable adapter. The explicit
-   `*EMOS FAKE ON` test seam supports only Dual: it marks a separate fake EDU
-   result domain active while ordinary VDU remains onboard. It deliberately
-   rejects both exclusive modes because it supplies no physical VDU backend.
-   `*EMOS FAKE OFF` is accepted only in Legacy. This fake is qualification
-   scaffolding, not EDP discovery or transport.
-9. The generic example proves discovery and synchronous command/service
-   dispatch. The Extender-shaped fake proves `edu.*` negotiation and separate
-   result ownership but is not a physical EDP backend. Its data never updates
-   canonical stock VDP sysvars.
-10. All container and manifest output is generated and validated by one
-    deterministic host tool. The target and host share mechanically checked
-    magic values, versions, sizes, limits, flags, and status codes. Negative
-    fixtures are first-class contract evidence.
+| Offset | Bytes | Meaning |
+|---|---|---|
+| 0 | 2 | Size: 66 |
+| 2 | 1 | ABI major: 1 |
+| 3 | 1 | ABI minor: 0 |
+| 4 | 1 | Namespace length: 1..16 |
+| 5 | 1 | Service-name length: 1..24 |
+| 6 | 2 | Operation: 2 (service) |
+| 8 | 2 | Flags: zero |
+| 10 | 3 | Input pointer |
+| 13 | 3 | Input byte length |
+| 16 | 3 | Output pointer |
+| 19 | 3 | Output capacity |
+| 22 | 3 | Returned output length |
+| 25 | 16 | Zero-padded namespace |
+| 41 | 24 | Zero-padded service name |
+| 65 | 1 | Reserved: zero |
 
-## Decision inventory
-
-| Decision | Rationale | Rejected alternative | Compatibility effect | Replacement seam | Required evidence |
-| --- | --- | --- | --- | --- | --- |
-| Fixed-address transient image | Matches upstream direction and existing 32 KiB area; avoids an invented relocator | Persistent arbitrary binaries or ad hoc relocation records | Existing moslets remain unchanged; eligibility gates prevent overwrite | Container loader behind Core gateway | Boundary, size, CRC, reload, and stale-pointer tests |
-| Transactional sorted registry | Enumeration order must not choose providers or partial state | First file wins | Built-ins/aliases retain precedence; duplicates are explicit failures | Registry builder/publication interface | Reordered-media and collision fixtures |
-| One request-block gateway | Versionable, testable, and prevents public transient pointers | Direct per-module function pointers | Adds APIs without renumbering existing calls | MOS API/C-function wrappers | Assembly and C ABI probes |
-| Transient-only external v1 | The module area cannot safely host asynchronous Extender state | Pretend swappable code can own interrupts/callbacks | Unsupported capabilities fail, rather than corrupting state | Statically linked resident adapter table | Flag rejection and reentrancy tests |
-| Full-area disk preservation for compatible apps | Implements the documented meaning instead of silently treating compatible as safe | Treat compatible as safe or deny it forever | Requires writable storage and non-overlapping buffers | Save/restore provider in Core | Atomicity, overlap, storage, and restore-failure tests |
-| Fixed VDU dispatcher | Required by accepted Extender architecture; one authority and snapshot per call | Vector swapping or mirroring | Legacy byte behavior remains the default | Backend table and mode coordinator | Linked-path audit and Legacy transcript parity |
-| Fail-closed physical EDP adapters | Wiring and reverse protocols remain unresolved | Invent a production wire contract | Stock behavior stays operational in Legacy | Adapter table selected by later accepted work | Failed activation recovery and fake-only tests |
-
-## Explicit non-goals
-
-1. EMOS v1 does not implement EDP firmware, carrier wiring, power sequencing,
-   physical discovery signaling, final enhanced transport, or a qualified
-   Exclusive Compatible UART circuit.
-2. It does not claim that the local container, request ABI, API number, or
-   C-function number is accepted upstream or stable beyond its declared major
-   version.
-3. It does not relocate arbitrary object files, dynamically link symbols, or
-   support multiple simultaneously resident external modules.
-4. It does not permit external providers to own interrupts, callbacks, queues,
-   canonical VDP sysvars, VDP response parsing, mode state, or direct route
-   changes.
-5. It does not provide nested or reentrant external-module calls, external
-   dependencies, hot replacement during a call, or asynchronous teardown.
-6. It does not make unheadered programs, version-0 executables, Z80 programs,
-   or moslets module-safe by inference.
-7. It does not preserve live graphical, audio, input, RTC, or VDP parser state
-   across non-Legacy mode changes. V1 may require a documented controlled
-   restart; state-preserving transitions remain v2 work.
-8. It does not settle unresolved D003 through D008 Extender policy. Fake seams
-   are labelled and replaceable, and their results remain outside stock sysvars.
-9. It does not alter raw UART APIs or promise to police arbitrary machine code
-   that directly accesses hardware or memory.
-10. Emulator evidence will not be presented as electrical, SD-timing,
-    power-order, or physical-hardware qualification.
-
-## Compatibility and failure posture
-
-Legacy is the cold-boot default and remains fully usable when no module
-directory, provider, Extender, or writable preservation storage exists. No
-automatic discovery runs before normal boot is complete. Registry replacement
-and mode activation are prepare-then-commit operations; failure retains a known
-stable state. Malformed lengths, offsets, flags, versions, identities, CRCs,
-collisions, oversized images, unavailable adapters, active-call replacement,
-and unsafe callers receive bounded errors rather than partial activation.
-
-The design cannot protect against arbitrary privileged eZ80 machine code.
-Safety statements apply to EMOS firmware, its supported gateways, shipped
-providers, tools, and examples only.
-
-
-## Resident text qualification service
-
-The Author-approved SD sample uses `edu.text-probe` through the existing
-66-byte gateway, ABI 1.0 and service operation 2. Core resolves this reserved
-name before transient provider discovery. It loads no module and therefore
-permits an ordinary ADL application without a module-safe header; the request
-and payload must nevertheless lie wholly in ordinary application RAM
-040000..0AFFFF. Output pointer/capacity/length must be zero.
-
-EMOS rejects a busy/recovery state or non-Legacy mode, invalid buffer bounds,
-zero/over-1024-byte lengths, unsupported commands or incomplete parameters
-before UART access. The admitted qualification grammar is printable ASCII,
-VDU 8..13, 30 and 31,x,y. EMOS alone supplies the UART1 settings/ownership,
-RTS/CTS, flush/General Poll A7, bounded reply/quiet validation and cleanup.
-The old VDPTEXT command retains its fixed A6 exchange. Neither path changes
-ordinary VDU routing, committed mode or canonical VDP sysvars. The sample
-changes its text independently; this is not an ordinary printf-to-EDP API.
+Names begin with lowercase ASCII a–z; remaining characters are lowercase
+letters, digits, dot, underscore or hyphen. The dispatcher validates size,
+version, operation, flags, names and padding before service dispatch. Buffer
+admission is service-specific. A request overlapping MOSlet memory must be
+wholly contained there and is admitted only for resident `ext.sdlink`; do not
+infer that other resident services accept MOSlet callers. The gateway rejects
+reentrancy through its busy state. See [emos.c](../src/emos.c) for dispatch and
+[mos_api.asm](../src/mos_api.asm) for target bindings.
 
 ## Resident foreground SD transport service
 
-`ext.sdlink` is a reserved Core service behind the existing 66-byte gateway,
-ABI 1.0, service operation 2. It does not load a transient module. Core validates
-the request, input and output wholly within 040000..0B7FFF, including
-the MOSlet region for this resident service. This supported exception does not
-restore external provider loading or nested utility launch. Admission requires Legacy mode, healthy Extender keyboard
-selection and EMOS ownership of UART1; interrupt-context calls are rejected.
+`ext.sdlink` carries bounded messages between a foreground application/EMOSlet
+and P4. Complete request/input/output ranges must lie in `0x040000..0x0B7FFF`.
+Admission requires Legacy, healthy `EMOS KEYINPUT extender`, EMOS ownership of
+UART1 and foreground calls with interrupts enabled. No caller pointer is kept
+by the receive ISR.
 
-The first input byte selects OPEN=0, RECEIVE=1, SEND=2 or CLOSE=3. OPEN/CLOSE
-carry only that selector. SEND carries one 20..240-byte record after it;
-RECEIVE requires capacity for 240 bytes and returns one complete record, or
-outputLength zero when none is ready. Other operations use no output buffer.
-EMOS retains only Core buffers: a 240-byte mailbox and 244-byte transmit buffer.
-No caller pointer survives in the receive ISR. Application entry/exit, explicit
-close and transport/input-source faults invalidate admission and pending input.
+| First input byte | Operation | Remaining input / output |
+|---|---|---|
+| 0 | OPEN | No remaining input or output; clears pending mailbox |
+| 1 | RECEIVE | No remaining input; output capacity at least 240; returns one complete record or outputLength 0 |
+| 2 | SEND | One 20..240-byte record; no output buffer |
+| 3 | CLOSE | No remaining input or output; clears admission and mailbox |
 
-The owned UART1 parser receives private 8D envelopes into the bounded mailbox;
-the owned writer sends private F6 envelopes to P4. Existing keyboard and console
-packets retain their meanings. The foreground `sdserve` application validates
-record CRCs and performs MOS/FatFS operations; filesystem work never runs in the
-keyboard ISR. P4 owns its network request queue and multiplexes whole service
-packets with keyboard traffic. Neither application nor HTTP code takes UART
-ownership from the existing EMOS/P4 transport owners.
+The resident buffers are a 240-byte receive mailbox and a 244-byte transmit
+buffer. Application entry/exit, explicit close and transport/input faults revoke
+admission. EMOS receives private `8D` records and sends private `F6` envelopes;
+the [SD wire contract](https://github.com/bgates747/agon-extender/blob/main/docs/protocols/mainboard-sd.md)
+owns framing, CRC and host operations. The foreground listener performs file
+I/O and record validation; the ISR does not run a filesystem server. P4's
+console owner multiplexes complete service packets with keyboard traffic.
 
-The cross-component wire/operation authority is agon-extender
-`docs/protocols/mainboard-sd.md`; avoid duplicating its record layouts here.
-See [the service guide](../projects/sdserve/README.md) and
-[physical acceptance](../research/devlog/2026-09-13.md). This provides cooperative
-foreground file access, not concurrent game execution or automatic hard-hang
-recovery. Exact firmware acceptance does not validate later builds.
+[Listener source/build guide](../projects/sdserve/README.md) and
+[operator guide](https://github.com/bgates747/agon-extender/blob/main/docs/mainboard-sd.md)
+own invocation, checked/fast semantics, sessions and recovery.
+
+## Resident text qualification service
+
+`edu.text-probe` is a bounded diagnostic, not ordinary application printf.
+Request and input must lie wholly in ordinary application RAM
+`0x040000..0x0AFFFF`; input length is 1..1024. Output pointer, capacity and length
+must be zero. EMOS requires Legacy and an idle resident dispatcher, validates
+the complete text command grammar, and owns UART setup/exchange/cleanup.
+
+The accepted grammar is printable ASCII, VDU 8..13, 30 and 31,x,y. It does not
+change ordinary VDU routing, committed mode or canonical VDP sysvars. The
+legacy-named VDPTEXT diagnostic command has a separate fixed exchange.
+Source: [emos_uart_probe.c](../src/emos_uart_probe.c). Profile-gated telemetry
+and transport probes are diagnostic contracts, not universally available APIs.
+
+## Limits and validation
+
+These interfaces coordinate trusted eZ80 software; they do not isolate arbitrary
+code that writes registers or memory directly. Return codes and bounds do not
+prove that a caller-linked utility respects its runtime memory limit. The
+[utility contract](emos-utilities.md) owns that distinct executable boundary.
+
+[AUDIT-008](tasks/AUDIT-008.md) records the current resident/utility validation
+and remaining acceptance gates. A test receipt applies to its identified build,
+not any later compile. The superseded module design remains in Git history at
+`895715e:docs/emos-v1-contract.md`; it is not part of this current contract.

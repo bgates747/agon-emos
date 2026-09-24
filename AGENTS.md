@@ -8,6 +8,10 @@ Read `OWNERSHIP.md` before changing source, build integration, tasks, or
 qualification evidence. `TODO.md` is this repository's only authoritative
 unfinished-work list.
 
+Use `docs/README.md` for current resident and foreground-utility contracts.
+Keep that maintained documentation current in place; old task/qualification
+records are supporting evidence, not competing operating instructions.
+
 Maintain EMOS as an upstream-shaped derivative of official MOS. Preserve
 official names, source placement, ZDS idioms, APIs, and control flow wherever
 practical so later tagged upstream releases remain reviewable. Put EMOS product
