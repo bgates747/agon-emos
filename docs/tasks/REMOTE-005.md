@@ -81,3 +81,14 @@ Normal P4 r57 restored; temporary sdjob probe removed from the dispatch path;
 startup unchanged. This is a development candidate, not a production promotion
 or a working automatic file-transfer engine. Detailed evidence belongs to
 Extender `docs/tasks/REMOTE-005/A04-HARDWARE.md` and its results JSON.
+
+### A05 linked application helper — development
+
+Implemented application-owned transport lease plus caller-linked checked transfer
+helper under `lib/sdapp`; no second utility load, file engine remains outside ROM.
+Extender owns `docs/tasks/REMOTE-005/A05-CONTRACT.md` and qualification results.
+Host tests cover both directions/faults; target UART-peer send proves caller return
+and 4096-byte sentinel preservation. EMOS image 127699 bytes (+207 over A04),
+3373 bytes below 128 KiB. Receive durability cannot be qualified by the retained
+emulator's unsupported filesystem-sync interception. Physical P4 staging and ExCom
+remain downstream. Source awaits Author review; installed A04 firmware unchanged.

@@ -681,3 +681,8 @@ int emos_cmd(char *args) {
 	if (strcasecmp(operation, "call") == 0) return emos_call_service(args);
 	return emos_run_utility(operation, args);
 }
+
+/* A05 private query: gateway busy is expected while admitting this caller. */
+BYTE emos_application_context(void) {
+    return emosPolicy != EMOS_POLICY_CORE && !emos_admission_dispatching();
+}

@@ -9,7 +9,8 @@
 #include "emos_keyboard.h"
 #include "uart.h"
 
-static volatile BYTE active, ready;
+static volatile BYTE active, ready, application_owned;
+static UINT32 application_token; /* Never reused within a boot. */
 static BYTE mailbox[EMOS_SDLINK_LIMIT], transmit[EMOS_SDLINK_LIMIT + 4];
 
 static BYTE range(UINT24 address, UINT24 length) {
@@ -19,12 +20,12 @@ static BYTE range(UINT24 address, UINT24 length) {
 }
 void emos_sdlink_reset(void) {
     BYTE irq = emos_keyboard_lock();
-    active = ready = 0;
+    active = ready = application_owned = 0;
     emos_keyboard_unlock(irq);
 }
 void emos_sdlink_packet(const BYTE *data, BYTE length) {
     /* Existing UART1 ISR, all registers saved, interrupts disabled. */
-    if (length >= 4 && data[3] == 5) { emos_admission_packet(data, length); return; }
+    if (!application_owned && length >= 4 && data[3] == 5) { emos_admission_packet(data, length); return; }
     if (active && !ready && length >= 20 && length <= EMOS_SDLINK_LIMIT) {
         memcpy(mailbox, data, length);
         ready = length; /* Publish only after the complete record is copied. */
@@ -40,15 +41,30 @@ UINT24 emos_sdlink_gateway(t_emosGatewayRequest *r) {
         (capacity ? !range(output,capacity) : output != 0)) return FR_INVALID_PARAMETER;
     memset(r->outputLength, 0, 3);
     operation = *(BYTE *)input;
-    if (operation > 3 || (operation != 2 && length != 1) ||
+    if (operation > 4 || (operation != 2 && length != 1) ||
         (operation == 2 && (length < 21 || length > EMOS_SDLINK_LIMIT+1)) ||
-        (operation == 1 ? capacity < EMOS_SDLINK_LIMIT : capacity != 0))
+        (operation == 1 ? capacity < EMOS_SDLINK_LIMIT : operation == 4 ? capacity != 4 : capacity != 0))
         return FR_INVALID_PARAMETER;
     if (emos_get_mode() != EMOS_MODE_LEGACY || emos_key_source != EMOS_KEY_EXTENDER ||
         emos_key_faulted || !uart1_keyboard_owned) return EMOS_UNAVAILABLE;
     irq = emos_keyboard_lock();
     if (!irq) return EMOS_BUSY; /* A service call never runs inside an ISR. */
+    /* A05: only an executing application/MOSlet can request this lease.
+     * It never loads another program. No P4 packet can set application_owned. */
+    if (operation == 4) {
+        if (active || !emos_application_context()) { emos_keyboard_unlock(irq); return EMOS_BUSY; }
+        if (application_token == 0xffffffffUL) { emos_keyboard_unlock(irq); return EMOS_UNAVAILABLE; }
+        ++application_token; active = application_owned = 1; ready = 0;
+        ((BYTE *)output)[0]=application_token; ((BYTE *)output)[1]=application_token>>8;
+        ((BYTE *)output)[2]=application_token>>16; ((BYTE *)output)[3]=application_token>>24;
+        r->outputLength[0]=4;
+        emos_keyboard_unlock(irq);
+        emos_admission_reset();
+        return FR_OK;
+    }
+    if (operation == 0 && application_owned) { emos_keyboard_unlock(irq); return EMOS_BUSY; }
     if (operation == 0 || operation == 3) {
+        application_owned = 0;
         active = operation == 0; ready = 0;
         emos_keyboard_unlock(irq);
         return FR_OK;

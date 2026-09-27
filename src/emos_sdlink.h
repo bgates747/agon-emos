@@ -4,6 +4,7 @@
 #include "emos.h"
 #define EMOS_SDLINK_LIMIT 240
 /* Private Core helper shared with the gateway; not a MOS API slot. */
+BYTE emos_application_context(void);
 UINT24 emos_read24(const BYTE *data);
 UINT24 emos_sdlink_gateway(t_emosGatewayRequest *request);
 void emos_sdlink_packet(const BYTE *data, BYTE length);

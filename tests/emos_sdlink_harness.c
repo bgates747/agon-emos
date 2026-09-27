@@ -7,6 +7,9 @@
 #include "emos_sdlink.h"
 #include "emos_keyboard.h"
 
+static BYTE app_context;
+BYTE emos_application_context(void) { return app_context; }
+void emos_admission_reset(void) {}
 void emos_admission_packet(const BYTE *p, BYTE n) { (void)p; (void)n; }
 volatile BYTE uart1_keyboard_owned=1, emos_key_source=EMOS_KEY_EXTENDER, emos_key_faulted;
 static BYTE irq=1, mode=EMOS_MODE_LEGACY, tx_result;
@@ -75,6 +78,19 @@ int main(void) {
     put24(r->input,0xb8000);assert(emos_sdlink_gateway(r)==19);
     put24(r->input,0xb1000);put24(r->inputLength,0xffffff);
     assert(emos_sdlink_gateway(r)==19);
+    /* App lease is locally classified, single-owner, and released on exit. */
+    emos_sdlink_reset();put24(r->inputLength,1);put24(r->output,0xb7f10);
+    put24(r->outputCapacity,4);input[0]=4;
+    assert(emos_sdlink_gateway(r)==31);app_context=1;
+    assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==4 && output[0]==1);
+    assert(emos_sdlink_gateway(r)==31);
+    data[3]=5;emos_sdlink_packet(data,48);input[0]=1;put24(r->outputCapacity,240);
+    assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==48);
+    input[0]=0;put24(r->output,0);put24(r->outputCapacity,0);assert(emos_sdlink_gateway(r)==31);
+    input[0]=3;assert(emos_sdlink_gateway(r)==0);
+    input[0]=4;put24(r->output,0xb7f10);put24(r->outputCapacity,4);
+    assert(emos_sdlink_gateway(r)==0 && output[0]==2);
+    emos_sdlink_reset();input[0]=1;put24(r->outputCapacity,240);assert(emos_sdlink_gateway(r)==35);
     assert(munmap(ram,0x78000)==0);
     puts("sdlink gateway bounds, mailbox, ownership and lifecycle passed");
 }

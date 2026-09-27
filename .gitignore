@@ -34,3 +34,6 @@ projects/keyboard-api/build/
 /projects/emos-utility/obj/
 /projects/admission-probe/bin/
 /projects/admission-probe/obj/
+
+/projects/app-transfer/bin/
+/projects/app-transfer/obj/

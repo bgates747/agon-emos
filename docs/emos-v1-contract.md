@@ -110,3 +110,14 @@ prove that a caller-linked utility respects its runtime memory limit. The
 and remaining acceptance gates. A test receipt applies to its identified build,
 not any later compile. The superseded module design remains in Git history at
 `895715e:docs/emos-v1-contract.md`; it is not part of this current contract.
+
+## Development application SD lease (R05-A05)
+
+The v0.1.21 development source adds `ext.sdlink` operation 4: application-only,
+exclusive open with a four-byte boot-local token result. Existing operation 3
+closes it. Core/ISR/nested opens fail; application exit resets ownership. Control
+replies join the bounded mailbox only while that application lease is active.
+The [linked helper](../lib/sdapp/README.md) owns negotiation and foreground file
+work; it retains no callback after return. This candidate is not production and
+requires a future application-capable P4 staging peer. Legacy-only mode guard
+remains; neither the manual listener nor ExCom support is silently widened.
