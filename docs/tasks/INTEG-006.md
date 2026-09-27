@@ -3,6 +3,25 @@
 Status: complete. Started: 2026-09-08. Finished: 2026-09-08.
 Coordinator: [PORT-012](../../../agon-extender/docs/tasks/PORT-012.md).
 
+## Current applicability — 2026-09-26
+
+This task is complete for its recorded candidate and bounded diagnostic scope.
+Installation, rollback and pending-review statements in the dated sequence below
+are historical checkpoints, not today's board state or outstanding approvals.
+Use the [production selector](../../../agon-extender/production/README.md) and
+current machine-local bench record for actual firmware selection.
+
+Current `src/emos.c` retains the diagnostic dispatch, requires Legacy and rejects
+UART1 diagnostic use while Extender keyboard input owns UART1. UARTFLOW is also
+absent from the telemetry-only bench composition. A future replay needs a paired
+P4 diagnostic peer and a reviewed noninteractive setup/recovery procedure under
+[current bench constraints](../../../agon-extender/docs/qualification/bench-constraints.md).
+Do not disable the sole working input path merely to type this diagnostic, or
+assume the ordinary console implements its historical peer exchange. This audit
+neither reruns the test nor modifies its firmware/procedure identity.
+
+## Historical implementation and acceptance
+
 The Author approved EMOS v0.5.0 for the same bounded Legacy-only UARTFLOW
 exchange at the stock MOS/VDP operating baud. Retain v0.4.0 for rollback.
 Official MOS API section 0x15 supplies the settings contract; the coordinator
