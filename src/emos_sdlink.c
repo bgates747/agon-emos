@@ -41,14 +41,23 @@ UINT24 emos_sdlink_gateway(t_emosGatewayRequest *r) {
         (capacity ? !range(output,capacity) : output != 0)) return FR_INVALID_PARAMETER;
     memset(r->outputLength, 0, 3);
     operation = *(BYTE *)input;
-    if (operation > 4 || (operation != 2 && length != 1) ||
+    if (operation > 6 || (operation != 2 && operation != 6 && length != 1) || (operation == 6 && length != 6) ||
         (operation == 2 && (length < 21 || length > EMOS_SDLINK_LIMIT+1)) ||
-        (operation == 1 ? capacity < EMOS_SDLINK_LIMIT : operation == 4 ? capacity != 4 : capacity != 0))
+        (operation == 1 ? capacity < EMOS_SDLINK_LIMIT : operation == 4 ? capacity != 4 : operation == 5 ? capacity != 36 : capacity != 0))
         return FR_INVALID_PARAMETER;
     if (emos_get_mode() != EMOS_MODE_LEGACY || emos_key_source != EMOS_KEY_EXTENDER ||
         emos_key_faulted || !uart1_keyboard_owned) return EMOS_UNAVAILABLE;
     irq = emos_keyboard_lock();
     if (!irq) return EMOS_BUSY; /* A service call never runs inside an ISR. */
+    if (operation == 5) {
+        if(active || !emos_admission_binding((BYTE *)output)) { emos_keyboard_unlock(irq); return EMOS_BUSY; }
+        active=1;application_owned=2;ready=0;r->outputLength[0]=36;
+        emos_keyboard_unlock(irq);return FR_OK;
+    }
+    if(operation == 6) {
+        if(application_owned!=2 || !emos_admission_terminal((BYTE *)input+1)) { emos_keyboard_unlock(irq); return EMOS_BUSY; }
+        emos_keyboard_unlock(irq);return FR_OK;
+    }
     /* A05: only an executing application/MOSlet can request this lease.
      * It never loads another program. No P4 packet can set application_owned. */
     if (operation == 4) {

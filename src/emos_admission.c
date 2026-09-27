@@ -3,8 +3,9 @@
  * this code. Legacy HELLO is safe on old P4 (whole F6 consumed, kind rejected).
  * ExCom bootstrap is intentionally forbidden until a Legacy capability grant.
  * The separate finite sdjob utility is NOT the existing indefinite sdserve.
- * A04 never publishes READY or successful file completion; those belong to the
- * finite utility/SDK tranche. Missing utility and old peers fail closed.
+ * READY/FINISH belong to the finite utility, not resident polling. The private
+ * handoff returns its final control sequence before resident CLOSE. Missing
+ * utility, an unreported terminal result and old peers fail closed.
  */
 #include <string.h>
 #include "emos.h"
@@ -19,7 +20,7 @@ static BYTE state, caps, mode_seen, last_tick, sent_at, retry_at, retrying;
 static BYTE tx[52], rx[48], link[8], grant[8], job[4];
 static volatile BYTE received, waiting;
 static UINT32 sequence, generation=1, grant_counter, spin_budget;
-static BYTE exhausted, job_class;
+static BYTE exhausted, job_class, utility_terminal;
 
 static UINT32 u32(const BYTE *p) {
     return (UINT32)p[0] | ((UINT32)p[1]<<8) | ((UINT32)p[2]<<16) | ((UINT32)p[3]<<24);
@@ -50,7 +51,7 @@ static void clear_wait(void) {
     BYTE irq=emos_keyboard_lock(); waiting=received=0; emos_keyboard_unlock(irq);
 }
 void emos_admission_reset(void) {
-    clear_wait(); state=OFF; caps=0; job_class=0;
+    clear_wait(); state=OFF; caps=0; job_class=0; utility_terminal=0;
     memset(link,0,8); memset(job,0,4); memset(grant,0,8);
     /* Saturation disables admission rather than reusing an in-boot identity. */
     if(++generation==0)exhausted=1;
@@ -151,15 +152,26 @@ BYTE emos_admission_idle(BYTE observed) {
     } else if(state==IDLE) {state=POLL_WAIT;send_control(POLL,0);}
     return 0;
 }
+BYTE emos_admission_binding(BYTE *out) {
+    if(state!=RUNNING || utility_terminal)return 0;
+    memset(out,0,36);memcpy(out,link,8);put32(out+8,generation);
+    memcpy(out+12,job,4);memcpy(out+16,grant,8);out[24]=1;out[25]=job_class;
+    put32(out+28,1);put32(out+32,sequence);return 1;
+}
+BYTE emos_admission_terminal(const BYTE *p) {
+    UINT32 n=u32(p);
+    if(state!=RUNNING || utility_terminal || n<sequence || n==0xffffffffUL || p[4]>1)return 0;
+    sequence=n;utility_terminal=p[4]?2:1;return 1;
+}
 int emos_admission_dispatch(void) {
     int result;
     if(state!=CLAIMED || !emos_admission_core())return EMOS_BUSY;
-    state=RUNNING;
+    state=RUNNING;utility_terminal=0;
     result=emos_admission_run();
-    /* A04 has no READY-capable finite service yet: an arbitrary MOSlet return
-     * cannot be mistaken for confirmed file completion. Later utility gateway
-     * must report an explicit terminal outcome before success is possible. */
-    send_control(CLOSE, result ? 7 : 5);
+    /* Only the claimed finite utility can acknowledge FINISH through sdlink.
+     * A random MOSlet return never means the filesystem job completed. */
+    send_control(CLOSE, result || utility_terminal!=1 ? 7 : 0);
+    if(!result && utility_terminal!=1)result=EMOS_UNAVAILABLE;
     emos_admission_reset();
-    return result ? result : EMOS_UNAVAILABLE;
+    return result;
 }

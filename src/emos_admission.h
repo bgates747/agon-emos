@@ -12,4 +12,7 @@ int emos_admission_dispatch(void);
 /* Owned by emos.c, reusing its policy and checked MOSlet loader. */
 BYTE emos_admission_core(void);
 int emos_admission_run(void);
+/* Finite utility handoff: full binding, control session and last sequence. */
+BYTE emos_admission_binding(BYTE *out);
+BYTE emos_admission_terminal(const BYTE *sequence_and_result);
 #endif

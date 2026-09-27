@@ -48,3 +48,14 @@ ExCom/Legacy, mixed-case utility dispatch, listener transfers/reentry and a 4096
 application sentinel passed. The maintained listener is now `/emos/sdserve.bin`,
 invoked with `EMOS sdserve [--fast] /`. Moving it itself saves no ROM. Broader
 human/native-keyboard acceptance remains distinct from these bounded checks.
+
+## Finite external-job handoff (development only)
+
+Resident `ext.sdlink` operations 5/6 provide the claimed-utility binding and final
+control-sequence handoff. Ordinary application/manual callers cannot acquire it.
+The utility must explicitly report completion; returning zero alone is failure.
+The finite `sdjob` file engine and P4 runtime connection are not implemented yet.
+This does not replace or change the production `EMOS sdserve` procedure.
+The owning contract and current implementation boundary are recorded in
+[Extender admission](../../agon-extender/docs/tasks/REMOTE-005/ADMISSION-CONTRACT.md)
+and [runtime results](../../agon-extender/docs/tasks/REMOTE-005/A08-RUNTIME-RESULTS.md).

@@ -9,13 +9,20 @@ static BYTE irq=1,tick,mode,core=1,send_fail;
 static BYTE sent[52];
 static unsigned sends,runs;
 static int run_result=4;
+static BYTE report_terminal;
 BYTE emos_keyboard_lock(void){BYTE old=irq;irq=0;return old;}
 void emos_keyboard_unlock(BYTE b){irq=b;}
 BYTE emos_keyboard_clock(void){return tick;}
 BYTE emos_get_mode(void){return mode;}
 BYTE emos_admission_core(void){return core;}
 BYTE emos_keyboard_send(const BYTE *p,UINT16 n){assert(irq&&n==52);memcpy(sent,p,n);++sends;return send_fail;}
-int emos_admission_run(void){assert(irq && emos_admission_dispatching());++runs;return run_result;}
+int emos_admission_run(void){assert(irq && emos_admission_dispatching());++runs;
+ if(report_terminal){BYTE b[36],t[5];assert(emos_admission_binding(b));
+   assert(b[24]==1 && b[25]==3 && b[28]==1);
+   memcpy(t,b+32,4);t[0]+=4;t[4]=0;
+   assert(emos_admission_terminal(t));assert(!emos_admission_terminal(t));
+   assert(!emos_admission_binding(b));}
+ return run_result;}
 /* Include maintained implementation to inject wrap/clock fault boundaries. */
 #include "../src/emos_admission.c"
 static void answer(BYTE status, BYTE is_job) {
@@ -66,7 +73,9 @@ int main(void){
     /* Loss of input path discards grants. */
     emos_key_faulted=1;assert(!emos_admission_idle(keycount));assert(state==OFF);emos_key_faulted=0;
     fresh();answer(0,1);assert(!emos_admission_idle(keycount));answer(0,0);assert(emos_admission_idle(keycount));
-    run_result=0;assert(emos_admission_dispatch()==EMOS_UNAVAILABLE);assert(sent[17]==5);
+    run_result=0;assert(emos_admission_dispatch()==EMOS_UNAVAILABLE);assert(sent[17]==7);
+    fresh();answer(0,1);assert(!emos_admission_idle(keycount));answer(0,0);assert(emos_admission_idle(keycount));
+    report_terminal=1;assert(emos_admission_dispatch()==0);assert(sent[17]==0);
     fresh();sequence=0xffffffffUL;tick+=24;retrying=0;state=OFF;tick++;
     assert(!emos_admission_idle(keycount));assert(exhausted);
     assert(irq);
