@@ -66,3 +66,18 @@ that protocol still reports unavailable. A future utility must not equate a
 normal MOSlet return with confirmed commit. Stalled/missing peers fail closed;
 manual sdserve retains its existing lifecycle and Legacy restriction. Do not
 remove the ExCom guard until paired parser/data transport work is validated.
+
+### A04 physical qualification — 2026-09-27
+
+Author released the bench. Corrected build
+`agon-emos-v0.1.20-b2026-09-27-21-03-57Z` (source `01d07a9`) passed complete ROM
+readback and bounded physical admission checks using Extender's temporary r58
+peer. Initial hardware run exposed stale `job_class` after failed utility load;
+reset now clears it and a regression test covers subsequent NO_WORK polling.
+All 112 host tests pass. Physical checks cover missing/corrupt/raced offers,
+4096-byte application sentinel, nested loader exclusion, ordinary public editor,
+durable result, manual-listener isolation, and Legacy/ExCom routing restoration.
+Normal P4 r57 restored; temporary sdjob probe removed from the dispatch path;
+startup unchanged. This is a development candidate, not a production promotion
+or a working automatic file-transfer engine. Detailed evidence belongs to
+Extender `docs/tasks/REMOTE-005/A04-HARDWARE.md` and its results JSON.
