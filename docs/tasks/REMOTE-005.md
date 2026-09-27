@@ -112,3 +112,14 @@ protection applies before mutation; incomplete move fragments never rename.
 8216 bytes remaining heap/stack region. No hardware or emulator qualification
 was performed. Installed v0.2.0 and production selection remain unchanged.
 Extender docs/tasks/REMOTE-005/A07-RESULTS.md records cross-component evidence.
+
+## A08 finite utility and receive composition — local development
+
+`projects/sdjob` now implements the fixed claimed job with descriptor/path scope,
+cooperative STATUS, checked engine reuse and explicit FINISH/terminal handoff.
+Finite ownership has two receive slots for the valid control-ACK/file-request
+burst; manual and application behavior stays single-slot. The 129 EMOS tests and
+paired host HTTP/Channel/peer/utility/engine tests pass. EMOS compiles to 128369
+bytes; the MOSlet is 23067 bytes with 5760 bytes heap/stack address space left.
+No physical/emulator deployment or production change. The exact cross-component
+scope and remaining gates are in Extender's A08-INTEGRATION-RESULTS.md.

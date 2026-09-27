@@ -37,3 +37,5 @@ projects/keyboard-api/build/
 
 /projects/app-transfer/bin/
 /projects/app-transfer/obj/
+/projects/sdjob/bin/
+/projects/sdjob/obj/

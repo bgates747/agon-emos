@@ -9,7 +9,12 @@
 #include "emos_keyboard.h"
 #include "uart.h"
 
-static volatile BYTE active, ready, application_owned;
+static volatile BYTE active, ready, application_owned, second_ready;
+/* A finite job can receive a control ACK followed immediately by its first
+ * file request. Keep both bounded packets until foreground consumption; a
+ * single mailbox silently loses that legitimate pair. Other owners retain
+ * their existing one-packet behavior. IRQ still only copies bytes. */
+static BYTE second_mailbox[EMOS_SDLINK_LIMIT];
 static UINT32 application_token; /* Never reused within a boot. */
 static BYTE mailbox[EMOS_SDLINK_LIMIT], transmit[EMOS_SDLINK_LIMIT + 4];
 
@@ -20,15 +25,19 @@ static BYTE range(UINT24 address, UINT24 length) {
 }
 void emos_sdlink_reset(void) {
     BYTE irq = emos_keyboard_lock();
-    active = ready = application_owned = 0;
+    active = ready = application_owned = second_ready = 0;
     emos_keyboard_unlock(irq);
 }
 void emos_sdlink_packet(const BYTE *data, BYTE length) {
     /* Existing UART1 ISR, all registers saved, interrupts disabled. */
     if (!application_owned && length >= 4 && data[3] == 5) { emos_admission_packet(data, length); return; }
-    if (active && !ready && length >= 20 && length <= EMOS_SDLINK_LIMIT) {
-        memcpy(mailbox, data, length);
-        ready = length; /* Publish only after the complete record is copied. */
+    if (active && length >= 20 && length <= EMOS_SDLINK_LIMIT) {
+        if(!ready) {
+            memcpy(mailbox, data, length);
+            ready = length; /* Publish only after the complete record is copied. */
+        } else if(application_owned==2 && !second_ready) {
+            memcpy(second_mailbox,data,length);second_ready=length;
+        }
     }
 }
 UINT24 emos_sdlink_gateway(t_emosGatewayRequest *r) {
@@ -51,7 +60,7 @@ UINT24 emos_sdlink_gateway(t_emosGatewayRequest *r) {
     if (!irq) return EMOS_BUSY; /* A service call never runs inside an ISR. */
     if (operation == 5) {
         if(active || !emos_admission_binding((BYTE *)output)) { emos_keyboard_unlock(irq); return EMOS_BUSY; }
-        active=1;application_owned=2;ready=0;r->outputLength[0]=36;
+        active=1;application_owned=2;ready=second_ready=0;r->outputLength[0]=36;
         emos_keyboard_unlock(irq);return FR_OK;
     }
     if(operation == 6) {
@@ -74,7 +83,7 @@ UINT24 emos_sdlink_gateway(t_emosGatewayRequest *r) {
     if (operation == 0 && application_owned) { emos_keyboard_unlock(irq); return EMOS_BUSY; }
     if (operation == 0 || operation == 3) {
         application_owned = 0;
-        active = operation == 0; ready = 0;
+        active = operation == 0; ready = second_ready = 0;
         emos_keyboard_unlock(irq);
         return FR_OK;
     }
@@ -82,7 +91,9 @@ UINT24 emos_sdlink_gateway(t_emosGatewayRequest *r) {
     if (operation == 1) {
         n = ready;
         if (n) memcpy((BYTE *)output,mailbox,n);
-        ready = 0; r->outputLength[0] = n;
+        ready = second_ready;
+        if(second_ready)memcpy(mailbox,second_mailbox,second_ready);
+        second_ready=0;r->outputLength[0] = n;
         emos_keyboard_unlock(irq);
         return FR_OK;
     }

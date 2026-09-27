@@ -54,7 +54,8 @@ human/native-keyboard acceptance remains distinct from these bounded checks.
 Resident `ext.sdlink` operations 5/6 provide the claimed-utility binding and final
 control-sequence handoff. Ordinary application/manual callers cannot acquire it.
 The utility must explicitly report completion; returning zero alone is failure.
-The finite `sdjob` file engine and P4 runtime connection are not implemented yet.
+The finite [sdjob utility](../projects/sdjob/README.md) and P4 runtime connection
+are implemented and host-tested; hardware qualification remains open.
 This does not replace or change the production `EMOS sdserve` procedure.
 The owning contract and current implementation boundary are recorded in
 [Extender admission](../../agon-extender/docs/tasks/REMOTE-005/ADMISSION-CONTRACT.md)

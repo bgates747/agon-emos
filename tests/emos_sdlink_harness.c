@@ -96,8 +96,12 @@ int main(void) {
     input[0]=5;put24(r->outputCapacity,36);assert(emos_sdlink_gateway(r)==31);
     finite_context=1;assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==36 && output[35]==17);
     assert(emos_sdlink_gateway(r)==31);
-    data[3]=5;emos_sdlink_packet(data,48);input[0]=1;put24(r->outputCapacity,240);
-    assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==48);
+    data[3]=5;emos_sdlink_packet(data,48);data[3]=1;emos_sdlink_packet(data,60);
+    data[3]=9;emos_sdlink_packet(data,70); // third cannot overwrite either
+    input[0]=1;put24(r->outputCapacity,240);
+    assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==48 && output[3]==5);
+    assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==60 && output[3]==1);
+    assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==0);
     input[0]=6;put24(r->output,0);put24(r->outputCapacity,0);
     put24(r->inputLength,5);assert(emos_sdlink_gateway(r)==19);
     put24(r->inputLength,6);assert(emos_sdlink_gateway(r)==0 && terminal_seen==1);
