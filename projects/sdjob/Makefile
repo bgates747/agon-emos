@@ -4,3 +4,6 @@ RAM_SIZE = 0x8000
 AGONDEV_TOOLCHAIN ?= $(shell agondev-config --prefix)
 include $(AGONDEV_TOOLCHAIN)/config/makefile.inc
 CFLAGS += -Wall -Wextra -Werror
+ifeq ($(SDJOB_IDENTIFIED_BUILD),1)
+CFLAGS += -include build/build_identity.h
+endif
