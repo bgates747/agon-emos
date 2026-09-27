@@ -91,4 +91,10 @@ Host tests cover both directions/faults; target UART-peer send proves caller ret
 and 4096-byte sentinel preservation. EMOS image 127699 bytes (+207 over A04),
 3373 bytes below 128 KiB. Receive durability cannot be qualified by the retained
 emulator's unsupported filesystem-sync interception. Physical P4 staging and ExCom
-remain downstream. Source awaits Author review; installed A04 firmware unchanged.
+remain downstream. Source frozen at `7cd480e`; v0.1.21 installed and full ROM
+readback verified. Both directions pass with the diagnostic RAM-only P4 peer;
+4096-byte sentinel, external-request rejection and subsequent manual listener pass.
+The test harness must wait for a fresh idle POLL after transfer completion before
+typing the next command. Earlier premature collection showed Invalid executable;
+no speculative firmware fix was added. Normal P4 restored after qualification.
+Production unchanged; emulator-specific driver remains pending human review.

@@ -73,5 +73,7 @@ Host tests execute real helper and checked engine code against a controlled peer
 The eZ80 UART-peer fixture validates send, caller-memory sentinel and return to MOS.
 The retained directory-backed emulator does not implement filesystem sync, so its
 receive path is not a durability qualification. P4 spool integration, ExCom framing,
-and physical paired transfers remain in the owning Extender task. Do not advertise
+and production integration remain in the owning Extender task. Physical Legacy
+qualification now passes both directions with Extender's RAM-only r59 diagnostic
+peer, actual mainboard FAT, 4096-byte caller sentinel and external-request rejection. Do not advertise
 this candidate as an available network file-transfer feature.
