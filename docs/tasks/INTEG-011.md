@@ -1,6 +1,23 @@
 # INTEG-011 — Preserve displays during application-requested route switches
 
 Status: Implementation, visual review and the paired EDP graphics hardware review are accepted within their recorded scope in Extender [QUAL-003](https://github.com/bgates747/agon-extender/blob/main/docs/tasks/QUAL-003.md). Mainboard artifacts and wider coverage remain separately recorded; this is not universal compatibility. The original preparation contract below is evidence, not a new deployment instruction.
+## Current applicability — 2026-09-26
+
+`--keep-display` preserves each processor's existing scene; it does not clone
+resources between processors or provide transparent migration of an arbitrary
+running application. Current command parsing still routes this option through
+EMOS's coordinator and clears the per-request flag after success or failure.
+Applications use the existing mos_oscli surface at complete VDU boundaries.
+
+The original draft size, human-review pending and deployment-pending statements
+below are historical checkpoints superseded within the accepted scope above.
+They do not select today's image or describe current ROM headroom. Consult
+[production selection](../../../agon-extender/production/README.md) and
+[later ROM measurements](../../../agon-extender/docs/tasks/AUDIT-008/IMPLEMENTATION.md).
+Wider graphics/lifecycle qualification remains separate; no tests were rerun.
+
+## Historical implementation and review
+
 The Author requested application switching and authorized implementing an
 interface where needed. Existing mos_oscli already executes EMOS commands.
 The Author accepted keeping both images visible with this explicit option.

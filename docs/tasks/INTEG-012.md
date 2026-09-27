@@ -7,6 +7,32 @@ original hardware-pending checkpoint below. Diagnostic instrumentation and known
 mainboard failures remain distinct from a production generalized-callback ABI;
 no such API is qualified by these results.
 
+## Current applicability — 2026-09-26
+
+This remains a private diagnostic use of the existing single keyboard callback,
+not an additional callback slot, queued event API or production generalized
+callback contract. The callback runs with normal ISR restrictions and receives
+a pointer to transient protocol storage: validate its diagnostic discriminator,
+copy needed data into bounded application storage and return promptly. Ordinary
+keyboard callbacks still share that registered vector. Source token/metric
+matching remains the application's responsibility, not proof supplied by EMOS.
+
+Current code checks the diagnostic signature/discriminator and selected backend;
+UART1 additionally requires a committed console lease. These checks preserve
+routing ownership but do not qualify every malformed/stale sequence or workload.
+The [timing guide](../../../agon-extender/docs/testing/game-timing.md) separates
+submission, worker completion and physical scanout. A callback is not evidence
+of a displayed frame, and instrumentation may alter scheduling. Follow the
+[capture-control protocol](../../../agon-extender/docs/qualification/capture-failure-protocol.md)
+when investigating capture-associated failures. Its checks and the retained
+runner's reuse gate remain separate from this reception implementation.
+
+The hardware-pending paragraph below is the original emulator checkpoint;
+later results linked above supersede it only within their measured scope.
+No public callback ABI or fresh test acceptance is introduced by this review.
+
+## Original implementation contract
+
 1. Preserve ordinary VDU routing and keyboard handling. UART0 diagnostic effects
    are accepted only in Legacy; UART1 only with a committed ExCom lease.
 2. Receive new experimental response 8C, exactly 16 bytes: `QTG`, discriminator A1 (version 1; invalid keyboard down byte),
