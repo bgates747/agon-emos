@@ -38,6 +38,11 @@ int main(void){
     assert(emos_admission_dispatch()==4 && runs==1 && sent[16]==CLOSE);
     assert(!emos_admission_dispatching());
     assert(emos_admission_dispatch()==EMOS_BUSY && runs==1);
+    /* A completed/failed job must not poison later NO_WORK polls. Physical
+     * peer echoed the stale request class, causing endless renegotiation. */
+    fresh();assert(!job_class && !sent[49]);answer(1,0);
+    assert(!emos_admission_idle(keycount));assert(state==IDLE);
+    tick++;assert(!emos_admission_idle(keycount));assert(sent[16]==POLL);
     /* Late key wins even after peer acknowledged provisional grant. */
     fresh();answer(0,1);assert(!emos_admission_idle(keycount));answer(0,0);
     {BYTE observed=keycount;keycount++;assert(!emos_admission_idle(observed));}

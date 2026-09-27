@@ -50,7 +50,7 @@ static void clear_wait(void) {
     BYTE irq=emos_keyboard_lock(); waiting=received=0; emos_keyboard_unlock(irq);
 }
 void emos_admission_reset(void) {
-    clear_wait(); state=OFF; caps=0;
+    clear_wait(); state=OFF; caps=0; job_class=0;
     memset(link,0,8); memset(job,0,4); memset(grant,0,8);
     /* Saturation disables admission rather than reusing an in-boot identity. */
     if(++generation==0)exhausted=1;
