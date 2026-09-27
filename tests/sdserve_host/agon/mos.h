@@ -25,6 +25,7 @@ uint8_t ffs_dopen(DIR *,const char *);
 uint8_t ffs_dclose(DIR *);
 uint8_t ffs_dread(DIR *,FILINFO *);
 uint8_t ffs_stat(FILINFO *,const char *);
+uint8_t ffs_mkdir(const char *);
 uint8_t ffs_unlink(const char *);
 uint8_t ffs_rename(const char *,const char *);
 #endif

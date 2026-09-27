@@ -16,12 +16,25 @@ static FIL stage;
 static uint8_t previous[SD_MAX_RECORD],cached[SD_MAX_RECORD];
 static unsigned previous_size,cached_size;
 static uint8_t scratch[256],fs_error;
+/* A07: one bounded rename descriptor; no recursion or new resident ROM code.
+ * Final fragment alone executes ffs_rename. Replay is handled by the existing
+ * exact-request cache; interruption never turns into a delayed rename. */
+static uint8_t move_descriptor[248];
+static unsigned move_total,move_at;
+static uint32_t move_crc;
+static int folded_equal(const char *a,const char *b,size_t n) {
+    while(n--) { unsigned char x=*a++,y=*b++;
+        if(x>='A'&&x<='Z')x+=32;
+        if(y>='A'&&y<='Z')y+=32;
+        if(x!=y)return 0;
+    }return 1;
+}
 
 static int fail(uint8_t error) { fs_error=error;return SD_FILE_ERROR; }
 static int path_ok(const char *p) {
     size_t n=strlen(p),rn=strlen(root),i,start=1;
     if(!n || n>120 || p[0]!='/' || (n>1 && p[n-1]=='/')) return 0;
-    if(rn>1 && (strncmp(p,root,rn) || (p[rn] && p[rn]!='/'))) return 0;
+    if(rn>1 && (n<rn || !folded_equal(p,root,rn) || (p[rn] && p[rn]!='/'))) return 0;
     for(i=1;i<=n;++i) {
         unsigned char c=p[i];
         if(c && (c<32 || c>126 || c==':' || c=='\\' || c=='*' || c=='?')) return 0;
@@ -51,6 +64,21 @@ static int siblings(const char *path) {
     strcpy(target,path);strcpy(part,path);strcat(part,".p17part");
     strcpy(meta,path);strcat(meta,".p17meta");strcpy(backup,path);strcat(backup,".p17bak");
     return 1;
+}
+/* Root and live utility/journal protection applies to NEW mutations only;
+ * READ/RECOVER retain their existing ability to inspect recovery artifacts. */
+static int mutable_path(const char *p) {
+    char lower[121];size_t i,n=strlen(p),rn=strlen(root);
+    if(!path_ok(p) || n==1 || (n==rn && folded_equal(p,root,n)))return 0;
+    for(i=0;i<=n;++i)lower[i]=(p[i]>='A'&&p[i]<='Z')?p[i]+32:p[i];
+    if(strstr(lower,".p17part") || strstr(lower,".p17meta") || strstr(lower,".p17bak") ||
+       !strcmp(strrchr(lower,'/')+1,"sdserve.bin"))return 0;
+    if(!strcmp(lower,"/emos") || !strcmp(lower,"/extender"))return 0;
+    return 1;
+}
+static int related(const char *a,const char *b) {
+    size_t an=strlen(a),bn=strlen(b),n=an<bn?an:bn;
+    return folded_equal(a,b,n) && (an==bn || (an<bn?b[n]:a[n])=='/');
 }
 static int exists(const char *path,FILINFO *info) {
     uint8_t r=ffs_stat(info,path);
@@ -113,10 +141,11 @@ static int remove_if_present(const char *p) {
 static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *out_n) {
     char path[121];FILINFO info;uint8_t r,bits,metadata[20];int result;uint32_t tid;
     *out_n=0;
+    if(op!=SD_MOVE)move_total=move_at=0;
     switch(op) {
     case SD_HELLO:
         if(n) return SD_BAD_REQUEST;
-        sd_put32(out,boot_id);sd_put16(out+4,212);sd_put16(out+6,15 | (fast_mode?16:0));*out_n=8;return SD_OK;
+        sd_put32(out,boot_id);sd_put16(out+4,212);sd_put16(out+6,15 | 32 | (fast_mode?16:0));*out_n=8;return SD_OK;
     case SD_STAT:
         if(!path_read(p,n,path)) return SD_BAD_REQUEST;
         r=ffs_stat(&info,path);if(r) return fail(r);
@@ -228,6 +257,39 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
             result=remove_if_present(backup);if(result) return result;
         }
         result=state(&bits,metadata);if(!result) { out[0]=bits;*out_n=1; }return result;
+    case SD_MKDIR:
+        if(active)return SD_BUSY;
+        if(!path_read(p,n,path) || !mutable_path(path))return SD_BAD_REQUEST;
+        r=ffs_mkdir(path);return r?fail(r):SD_OK;
+    case SD_REMOVE:
+        if(active)return SD_BUSY;
+        if(n<3 || p[0]>1 || !path_read(p+1,n-1,path) || !mutable_path(path))return SD_BAD_REQUEST;
+        if(p[0])return SD_OK; /* Guard-only preflight before recursive host deletion. */
+        r=ffs_unlink(path);return r?fail(r):SD_OK;
+    case SD_MOVE: {
+        unsigned total,at,count,a,b;uint32_t crc;char destination[121];
+        if(active)return SD_BUSY;
+        if(n<9 || n>192){move_total=move_at=0;return SD_BAD_REQUEST;}
+        total=sd_u16(p);at=sd_u16(p+2);crc=sd_u32(p+4);count=n-8;
+        if(!at){move_total=move_at=0;move_crc=crc;if(total>=10 && total<=248)move_total=total;}
+        if(!move_total || total!=move_total || at!=move_at || crc!=move_crc || count>total-at) {
+            move_total=move_at=0;return SD_BAD_REQUEST;
+        }
+        memcpy(move_descriptor+at,p+8,count);move_at+=count;
+        sd_put16(out,move_at);out[2]=move_at==move_total;*out_n=3;
+        if(move_at<move_total)return SD_OK;
+        move_total=move_at=0;
+        if(sd_crc(move_descriptor,total)!=crc)return SD_INTEGRITY;
+        a=sd_u16(move_descriptor+2);b=sd_u16(move_descriptor+4);
+        if(move_descriptor[0]!=6 || move_descriptor[1] || move_descriptor[6] || move_descriptor[7] ||
+           a>120 || b>120 || 8+a+b!=total || memchr(move_descriptor+8,0,a+b))return SD_BAD_REQUEST;
+        memcpy(path,move_descriptor+8,a);path[a]=0;
+        memcpy(destination,move_descriptor+8+a,b);destination[b]=0;
+        if(!mutable_path(path) || !mutable_path(destination) || related(path,destination))return SD_BAD_REQUEST;
+        result=exists(destination,&info);if(result<0)return SD_FILE_ERROR;
+        if(result)return fail(FR_EXIST);
+        r=ffs_rename(path,destination);return r?fail(r):SD_OK;
+    }
     case SD_EXIT:
         if(n) return SD_BAD_REQUEST;
         if(active) return SD_BUSY;
@@ -240,7 +302,7 @@ int service_init_mode(const char *scope,uint32_t boot,int fast) {
     if(strlen(scope)>120) return 0;
     strcpy(root,"/");if(!path_ok(scope)) return 0;
     strcpy(root,scope);boot_id=boot?boot:1;session=sequence=0;
-    active=finished=exiting=0;fast_mode=fast!=0;previous_size=cached_size=0;return 1;
+    move_total=move_at=0;active=finished=exiting=0;fast_mode=fast!=0;previous_size=cached_size=0;return 1;
 }
 int service_init(const char *scope,uint32_t boot) { return service_init_mode(scope,boot,0); }
 unsigned service_request(const uint8_t *in,unsigned n,uint8_t *out) {
@@ -266,5 +328,5 @@ int service_exiting(void) { return exiting; }
 void service_stop(void) {
     if(active && !finished) (void)ffs_fclose(&stage);
     // Preserve an interrupted transfer and journal for explicit recovery.
-    active=finished=0;
+    active=finished=0;move_total=move_at=0;
 }

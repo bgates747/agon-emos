@@ -52,6 +52,47 @@ class SdserveTests(unittest.TestCase):
         self.begin(data)
         for at in range(0,len(data),212):self.rpc(6,S.pack('<II',73,at)+data[at:at+212])
         self.rpc(7,S.pack('<I',73))
+    def move_descriptor(self,source,destination):
+        a=source.encode();b=destination.encode()
+        return S.pack('<BBHHH',6,0,len(a),len(b),0)+a+b
+    def move_frag(self,d,offset=0,count=184,status=0,crc=None):
+        return self.rpc(14,S.pack('<HHI',len(d),offset,zlib.crc32(d) if crc is None else crc)+d[offset:offset+count],status)
+    def test_directory_primitives_and_guards(self):
+        self.rpc(12,path('/test/new'));self.assertTrue((self.disk/'test/new').is_dir())
+        self.rpc(12,path('/test/new'),6)
+        self.rpc(13,b'\x01'+path('/test/new'));self.assertTrue((self.disk/'test/new').exists())
+        (self.disk/'test/new/file').write_bytes(b'keep')
+        self.rpc(13,b'\x00'+path('/test/new'),6)
+        for p in ('/test','/TEST','/test/../else','/test/a.p17part','/test/X.P17BAK','/test/sdserve.bin','/'):
+            self.rpc(12,path(p),1);self.rpc(13,b'\x01'+path(p),1)
+        self.rpc(13,b'\x00'+path('/test/new/file'));self.rpc(13,b'\x00'+path('/test/new'))
+        self.assertFalse((self.disk/'test/new').exists())
+    def test_move_full_paths_final_only_replay_and_collision(self):
+        a='/test/'+('a'*114);b='/test/'+('b'*114);(self.disk/a[1:]).write_bytes(b'payload')
+        d=self.move_descriptor(a,b);self.assertEqual(len(d),248)
+        self.assertEqual(self.move_frag(d),S.pack('<HB',184,0));self.assertTrue((self.disk/a[1:]).exists())
+        self.assertEqual(self.move_frag(d,184),S.pack('<HB',248,1))
+        self.assertEqual(self.send(self.last),(0,S.pack('<HB',248,1)))
+        self.assertFalse((self.disk/a[1:]).exists());self.assertEqual((self.disk/b[1:]).read_bytes(),b'payload')
+        (self.disk/'test/other').write_bytes(b'old');self.move_frag(self.move_descriptor(b,'/test/other'),status=6)
+        self.assertEqual((self.disk/'test/other').read_bytes(),b'old')
+    def test_move_fragments_cancelled_by_interleave_and_bad_identity(self):
+        a='/test/'+('a'*114);b='/test/'+('b'*114);(self.disk/a[1:]).write_bytes(b'x');d=self.move_descriptor(a,b)
+        self.move_frag(d);self.rpc(2,path(a));self.move_frag(d,184,status=1)
+        self.move_frag(d);self.move_frag(d,183,status=1)
+        self.move_frag(d,crc=0);self.move_frag(d,184,crc=0,status=7)
+        self.assertTrue((self.disk/a[1:]).exists());self.assertFalse((self.disk/b[1:]).exists())
+    def test_move_relationships_reserved_and_fault(self):
+        (self.disk/'test/dir').mkdir();(self.disk/'test/dir/a').write_bytes(b'x')
+        for a,b in [('/test','/test/z'),('/test/dir','/test/dir/sub'),('/test/dir/a','/test/dir'),('/test/dir/a','/test/x.p17meta'),('/test/dir/a','/test/DIR/A')]:
+            self.move_frag(self.move_descriptor(a,b),status=1)
+        self.lib.fs_fault(6,1);self.move_frag(self.move_descriptor('/test/dir/a','/test/b'),status=6)
+        self.assertEqual((self.disk/'test/dir/a').read_bytes(),b'x')
+    def test_directory_mutations_busy_during_stage(self):
+        self.begin(b'x');self.rpc(12,path('/test/new'),3);self.rpc(13,b'\x00'+path('/test/game.p17part'),3)
+        self.move_frag(self.move_descriptor('/test/a','/test/b'),status=3)
+        self.rpc(9,S.pack('<I',73))
+
     def test_empty_binary_boundaries_and_game_size(self):
         for size in (0,1,211,212,213,256,65536,131731):
             with self.subTest(size=size):
@@ -144,7 +185,7 @@ class SdserveTests(unittest.TestCase):
         self.assertEqual(list((self.disk/'test').iterdir()),[])
 
     def test_mode_and_verification_read_cost(self):
-        self.assertEqual(S.unpack('<IHH',self.rpc(1)),(101,212,15|(16 if self.FAST else 0)))
+        self.assertEqual(S.unpack('<IHH',self.rpc(1)),(101,212,47|(16 if self.FAST else 0)))
         data=bytes(range(256))*16
         before=self.lib.fs_read_bytes()
         self.stage(data);self.rpc(8,S.pack('<I',73))

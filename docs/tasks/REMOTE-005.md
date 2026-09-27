@@ -98,3 +98,17 @@ The test harness must wait for a fresh idle POLL after transfer completion befor
 typing the next command. Earlier premature collection showed Invalid executable;
 no speculative firmware fix was added. Normal P4 restored after qualification.
 Production unchanged; emulator-specific driver remains pending human review.
+
+## A07 directory extension — local development only
+
+The EMOSlet now implements capability 0x20: MKDIR 12, REMOVE 13 (execute or
+preflight), and fragmented no-overwrite MOVE 14. Extender owns the shared wire
+contract and recursive host orchestration. The engine uses public MOS FatFS
+APIs; no resident ROM source changed. Root, journal and maintained utility
+protection applies before mutation; incomplete move fragments never rename.
+
+129 EMOS tests pass with the A05 prepared EMOS baseline; the engine subset has
+42 checks across normal/fast variants. AgonDev MOSlet compile: 21981 bytes,
+8216 bytes remaining heap/stack region. No hardware or emulator qualification
+was performed. Installed v0.2.0 and production selection remain unchanged.
+Extender docs/tasks/REMOTE-005/A07-RESULTS.md records cross-component evidence.

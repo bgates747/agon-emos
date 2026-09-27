@@ -100,3 +100,17 @@ v0.2.0 at its then `/mos` location passed eight bounded transfers and measured
 5.00× end-to-end throughput for two 8192-byte uploads per mode. Later v0.1.19
 checks passed `/emos` dispatch, normal/fast transfer, reentry and an application
 sentinel. Those receipts do not qualify every rebuilt binary or broader gameplay.
+
+## A07 directory extension — local development only
+
+The EMOSlet now implements capability 0x20: MKDIR 12, REMOVE 13 (execute or
+preflight), and fragmented no-overwrite MOVE 14. Extender owns the shared wire
+contract and recursive host orchestration. The engine uses public MOS FatFS
+APIs; no resident ROM source changed. Root, journal and maintained utility
+protection applies before mutation; incomplete move fragments never rename.
+
+129 EMOS tests pass with the A05 prepared EMOS baseline; the engine subset has
+42 checks across normal/fast variants. AgonDev MOSlet compile: 21981 bytes,
+8216 bytes remaining heap/stack region. No hardware or emulator qualification
+was performed. Installed v0.2.0 and production selection remain unchanged.
+Extender docs/tasks/REMOTE-005/A07-RESULTS.md records cross-component evidence.

@@ -54,7 +54,11 @@ uint8_t ffs_dread(DIR *d,FILINFO *info) {
     strcpy(p,d->path);strcat(p,"/");strcat(p,e->d_name);
     if(stat(p,&s))return error();info->fsize=s.st_size;info->fattrib=S_ISDIR(s.st_mode)?AM_DIR:0;return 0;
 }
-uint8_t ffs_unlink(const char *name) { char p[550];path(p,name);return bad(7)?FR_DISK_ERR:unlink(p)?error():0; }
+uint8_t ffs_mkdir(const char *name) { char p[550];path(p,name);return mkdir(p,0700)?error():0; }
+uint8_t ffs_unlink(const char *name) {
+    char p[550];struct stat st;path(p,name);if(bad(7))return FR_DISK_ERR;
+    if(stat(p,&st))return error();return (S_ISDIR(st.st_mode)?rmdir(p):unlink(p))?error():0;
+}
 uint8_t ffs_rename(const char *source,const char *target) {
     char a[550],b[550];path(a,source);path(b,target);
     if(bad(6))return FR_DISK_ERR;
