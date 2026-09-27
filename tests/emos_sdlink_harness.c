@@ -7,6 +7,7 @@
 #include "emos_sdlink.h"
 #include "emos_keyboard.h"
 
+void emos_admission_packet(const BYTE *p, BYTE n) { (void)p; (void)n; }
 volatile BYTE uart1_keyboard_owned=1, emos_key_source=EMOS_KEY_EXTENDER, emos_key_faulted;
 static BYTE irq=1, mode=EMOS_MODE_LEGACY, tx_result;
 static BYTE sent[244]; static UINT16 sent_length;

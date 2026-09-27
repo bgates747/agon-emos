@@ -16,6 +16,7 @@ PREAMBLE = r'''
 #include <sys/mman.h>
 #include <assert.h>
 typedef uintptr_t UINT24;
+typedef unsigned char BYTE;
 typedef struct { unsigned fattrib; unsigned long fsize; } FILINFO;
 #define EMOS_NAME_SIZE 24
 #define EMOS_MODULE_BASE 0xB0000

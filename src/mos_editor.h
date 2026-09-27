@@ -16,6 +16,7 @@
 #define cmd_historyDepth	16
 
 UINT24	mos_EDITLINE(char * buffer, int bufferLength, UINT16 flags);
+UINT24 emos_cli_editline(char *buffer, int length);
 void getModeInformation();
 void readPalette(BYTE entry, BOOL wait);
 

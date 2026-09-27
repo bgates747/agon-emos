@@ -32,3 +32,5 @@ projects/keyboard-api/build/
 /projects/browser-typing/build/
 /projects/emos-utility/bin/
 /projects/emos-utility/obj/
+/projects/admission-probe/bin/
+/projects/admission-probe/obj/

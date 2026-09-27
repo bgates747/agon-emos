@@ -21,3 +21,9 @@ current instructions. The [migration record](repository-migration.md) explains
 repository lineage; old provider-module qualification does not qualify current
 foreground utilities. Current limits are stated in the contracts above, so
 routine readers do not need to reconstruct them from historical tasks.
+
+## Development candidate
+
+[REMOTE-005](tasks/REMOTE-005.md) adds private idle-CLI admission and finite utility
+dispatch. It is not an available automatic file-transfer service or production
+release. Continue using the documented manual listener until paired qualification.

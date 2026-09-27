@@ -5,6 +5,7 @@
 #include <string.h>
 #include "ff.h"
 #include "emos_sdlink.h"
+#include "emos_admission.h"
 #include "emos_keyboard.h"
 #include "uart.h"
 
@@ -23,6 +24,7 @@ void emos_sdlink_reset(void) {
 }
 void emos_sdlink_packet(const BYTE *data, BYTE length) {
     /* Existing UART1 ISR, all registers saved, interrupts disabled. */
+    if (length >= 4 && data[3] == 5) { emos_admission_packet(data, length); return; }
     if (active && !ready && length >= 20 && length <= EMOS_SDLINK_LIMIT) {
         memcpy(mailbox, data, length);
         ready = length; /* Publish only after the complete record is copied. */

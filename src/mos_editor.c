@@ -26,6 +26,7 @@
 #include "uart.h"
 #include "timer.h"
 #include "mos_editor.h"
+#include "emos_admission.h"
 #include "mos_file.h"
 #include "umm_malloc.h"
 
@@ -381,7 +382,7 @@ const char * findTermStart(char * buffer, int insertPos, UINT16 flags, int * ter
 // Returns:
 // - The exit key pressed (ESC or CR)
 //
-UINT24 mos_EDITLINE(char * buffer, int bufferLength, UINT16 flags) {
+static UINT24 editline(char * buffer, int bufferLength, UINT16 flags, BYTE cli) {
 	BOOL	clear = flags & 0x01;		// Clear the buffer on entry
 	BOOL	enableTab = flags & 0x02;	// Enable tab completion (default off)
 	BOOL	enableHotkeys = !(flags & 0x04); // Enable hotkeys (default on)
@@ -415,7 +416,20 @@ UINT24 mos_EDITLINE(char * buffer, int bufferLength, UINT16 flags) {
 	while (keyr == 0) {
 		BYTE historyAction = 0;
 		len = strlen(buffer);
-		waitKey();
+		/* Private top-level CLI only. Keep public API flags/returns unchanged.
+         * No utility runs until the editor frees tab-completion storage. */
+        if (cli && len == 0) {
+            BYTE c;
+            do {
+                c = keycount;
+                while (c == keycount) {
+                    if (emos_admission_idle(c)) { keyr = EMOS_CLI_SERVICE; break; }
+                }
+                if (keyr) break;
+            } while (keydown == 0);
+            if (keyr) break;
+        } else waitKey();
+        if (cli) emos_admission_leave();
 		keya = keyascii;
 		keyc = keycode;
 		switch (keyc) {
@@ -671,6 +685,13 @@ UINT24 mos_EDITLINE(char * buffer, int bufferLength, UINT16 flags) {
 
 	if (enableTab) umm_free(path);
 	return keyr;					// Finally return the keycode
+}
+
+UINT24 mos_EDITLINE(char *buffer, int length, UINT16 flags) {
+    return editline(buffer, length, flags, 0);
+}
+UINT24 emos_cli_editline(char *buffer, int length) {
+    return editline(buffer, length, 3, 1);
 }
 
 void editHistoryInit() {

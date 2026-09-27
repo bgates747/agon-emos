@@ -226,7 +226,7 @@ UINT24 mos_input(char * buffer, int bufferLength) {
 
 	printf("%s", prompt ? prompt : "*");
 	umm_free(prompt);
-	retval = mos_EDITLINE(buffer, bufferLength, 3);
+	retval = emos_cli_editline(buffer, bufferLength);
 	printf("\n\r");
 	return retval;
 }

@@ -1,5 +1,7 @@
 # EMOS TODO
 
+- [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — Idle-CLI admission boundary implemented; automated checks pass, human emulator review pending.
+
 - [ ] **[AUDIT-008](docs/tasks/AUDIT-008.md)** — Retire cancelled provider machinery and validate minimal foreground /emos dispatch; deployed with bounded physical checks passing; broader acceptance pending.
 
 

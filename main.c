@@ -50,6 +50,7 @@
 #include "i2c.h"
 #include "umm_malloc.h"
 #include "emos.h"
+#include "emos_admission.h"
 
 extern BYTE scrcolours, scrpixelIndex;	// In globals.asm
 
@@ -244,7 +245,11 @@ int main(void) {
 	// The main loop
 	//
 	while (1) {
-		if (mos_input(&cmd, sizeof(cmd)) == 13) {
+        UINT24 reason = mos_input(&cmd, sizeof(cmd));
+        if (reason == EMOS_CLI_SERVICE) {
+            int err = emos_admission_dispatch();
+            if (err) mos_error(err);
+        } else if (reason == 13) {
 			int err = mos_exec(&cmd, true);
 			createOrUpdateSystemVariable("Sys$ReturnCode", MOS_VAR_NUMBER, (void *)err);
 			if (err > 0) {

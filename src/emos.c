@@ -12,6 +12,7 @@
 #include "emos_uart_probe.h"
 #include "emos_keyboard.h"
 #include "emos_sdlink.h"
+#include "emos_admission.h"
 #include "emos_telemetry.h"
 #include "emos_console.h"
 #include "uart.h"
@@ -240,6 +241,7 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
 BYTE emos_application_enter(UINT8 *image, UINT24 address) {
 	BYTE previous = emosPolicy;
 	BYTE flags;
+    if (!emos_admission_dispatching()) emos_admission_leave();
     emos_sdlink_reset();
 #ifdef EMOS_BENCH_TELEMETRY
     emos_telemetry_reset();
@@ -262,6 +264,7 @@ BYTE emos_application_enter(UINT8 *image, UINT24 address) {
 }
 
 void emos_application_leave(BYTE previousPolicy) {
+    if (!emos_admission_dispatching()) emos_admission_leave();
     emos_sdlink_reset();
 #ifdef EMOS_BENCH_TELEMETRY
     emos_telemetry_reset();
@@ -569,6 +572,10 @@ static int emos_run_utility(const char *name, char *args) {
     if (result != FR_OK) return result;
     return mos_runBin(EMOS_MODULE_BASE, args);
 }
+
+/* REMOTE-005: never nested-load a utility into a running application. */
+BYTE emos_admission_core(void) { return !emosBusy && emosPolicy == EMOS_POLICY_CORE; }
+int emos_admission_run(void) { return emos_run_utility("sdjob", "--admitted"); }
 
 int emos_cmd(char *args) {
 	char *operation;
