@@ -7,6 +7,22 @@ The Author confirmed the fresh key check. See
 [operating instructions](../../projects/sdserve/README.md). The progress entries
 below retain their chronological meaning; earlier pending gates are superseded.
 
+## Current applicability
+
+This acceptance records the original foreground application and gateway, not the
+current executable packaging. The maintained listener is now the sdserve v0.2.0
+EMOSlet in `/emos/sdserve.bin`, dispatched by EMOS v0.1.19. Use the
+[current listener guide](../../projects/sdserve/README.md) for invocation,
+prior keyboard admission and checked/fast behavior. It remains foreground;
+conversion to an EMOSlet did not make it a background service.
+
+The ROM sizes, candidate labels, pending commissioning and uncommitted-state
+statements below are dated development checkpoints. They neither describe
+current ROM headroom nor reopen this original scoped acceptance. Later utility
+packaging and its separate qualification are recorded in the
+[utility guide](../emos-utilities.md); do not reuse old deployment instructions
+as a current installation plan.
+
 Author released Extender PORT-017 on 2026-09-12; this is its EMOS component.
 It was highest EMOS priority until that acceptance. Maintained wire contract:
 agon-extender `docs/protocols/mainboard-sd.md`; this task owns maintained eZ80
@@ -24,7 +40,7 @@ P4/network ownership remains in agon-extender.
    entry/exit and explicit close; no dangling application pointers in the ISR.
 4. Prove the new gateway fits the 128KiB ROM without dropping existing behavior.
    Build using wrapper firmware-check and every profile link guard. Baseline
-   reproduced at 130344 bytes; only 728 bytes are currently spare. Keep bulk
+   reproduced at 130344 bytes; only 728 bytes were spare at that baseline. Keep bulk
    filesystem and CRC logic in the foreground application.
 5. Test malformed/bounded/lifecycle/concurrency behavior on host and headless
    target. Freeze exact candidate inputs, preserve recovery, and establish

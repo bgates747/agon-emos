@@ -7,9 +7,10 @@ each pass384 exact controls, three captures and both symmetric return scopes.
 Ordinary forward588.096ms versus589.670ms and return85.156ms versus86.068ms
 meet the frozen mainboard targets with separated reverse timing bounds.
 [Full report](INTEG-014/E07P-results/README.md) records ranges, profile overhead,
-remaining short-command latency and136 free flash bytes in ordinary EMOS.
+remaining short-command latency and 136 free flash bytes in that ordinary
+EMOS build (a historical measurement, not current ROM headroom).
 
-Exact original EMOS/ESP/startup is restored and verified, with actual CLI/SD
+At that run's closeout, exact original EMOS/ESP/startup was restored and verified, with actual CLI/SD
 proof and neutral input. The hardware voice command has a fresh completion
 receipt; human hearing/review remains open. No experimental push.
 
@@ -20,6 +21,17 @@ preserved. Original firmware/CLI/SD are restored and verified. Await Author
 review; E10 production remeasurement is not started.
 Requested: 2026-09-13. EMOS owns implementation; Extender PORT-008 owns
 paired transport/graphics qualification. This is the next UART priority.
+
+## Current applicability
+
+E07P/E09 establish their bounded UART/rendering comparisons, not production
+browser FPS or whole-game performance. Their restoration receipts identify the
+pre-run images restored then; they do not select today's installed firmware.
+Use Extender's production selection and machine-local bench record for current
+operation. Later ROM reclamation and EMOSlet dispatch are described in the
+[utility guide](../emos-utilities.md), separately from these timing measurements.
+E10 remains unstarted; this reconciliation closes no further qualification gate
+and authorizes no replay of historical bench scripts.
 
 ## Objective and boundaries
 
