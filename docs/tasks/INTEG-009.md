@@ -9,6 +9,26 @@
   [REMOTE-001](../../../agon-extender/docs/tasks/REMOTE-001.md) and
   [SETUP-005](../../../agon-extender/docs/tasks/SETUP-005.md) K001–K008 and REMOTE-001 K004.
 
+## Current operating boundary — 2026-09-26
+
+Use the [maintained keyboard guide](../../../agon-extender/docs/remote-keyboard.md)
+and [startup prerequisites](../../../agon-extender/docs/using-extender.md) for
+operation. The combined P4 console accepts physical USB, browser capture and
+agent automation through the EMOS-admitted `extender` source. Browser capture
+is P4 arbitration, not a requirement to switch EMOS to the historical `browser`
+selector or flash a separate acquisition image. Source/focus release behavior
+is specified in that guide; another eligible P4 source can take control.
+
+The resident selector still rejects direct changes between different non-mainboard
+selectors (emos_keyboard.c); that restriction is distinct from source arbitration
+inside the combined P4 console. Do not turn it into a routine mainboard detour for
+browser capture. Display route and keyboard admission remain independent.
+
+The original browser-first scope/CLI and native-source amendment below preserve
+implementation history, not current firmware selection. Broader parity, locale,
+platform and fault qualification remain open; basic CLI/gameplay acceptance does
+not close them. No fresh qualification follows from this review.
+
 ## Resident implementation boundary
 
 Extend resident EMOS using ordinary compile-time linking and existing command
@@ -18,7 +38,7 @@ module loader, runtime relocation, transient command provider, or moslet-space
 residency restriction. MOS-001's proposed foundation was rejected; this task
 has no generic module-system prerequisite. Document actual flash/RAM costs.
 
-## Scope
+## Original scope
 
 Add persistent interrupt-driven EMOS-owned reception of stock keyboard packets from P4 over
 the existing r03 UART1 at 1152000/8N1 RTS/CTS. P4 obtains focused browser keys;
@@ -35,7 +55,7 @@ handling. SETUP-005 owns session/source selection and eventual product mode
 integration. K005 permits explicitly selected browser input in Legacy while
 ordinary mainboard VDU routing continues.
 
-## Accepted CLI contract
+## Original accepted CLI contract
 
 Follow the coordinator's ADR-0014 CLI section and SETUP-005 K004: commands and
 named arguments are case-insensitive; `EMOS KEYINPUT browser` selects browser
@@ -488,7 +508,7 @@ for this session. Keep v0.1.9 candidate; no full qualification promotion.
 The Author requested a documentation checkpoint and a stop for the night.
 
 
-## Native USB source increment — PORT-015 W3
+## Historical native USB source increment — PORT-015 W3
 
 Author authorized the ordinary-CLI USB increment on 2026-09-09. Draft
 agon-emos-v0.1.10 reuses resident UART1 framing/interrupt effects for the

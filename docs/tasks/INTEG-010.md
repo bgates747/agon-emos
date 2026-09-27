@@ -5,7 +5,24 @@
 - Status: Ordinary ExCom console and native USB input achieved the accepted physical milestone in Extender [PORT-008](https://github.com/bgates747/agon-extender/blob/main/docs/tasks/PORT-008.md#first-ordinary-excom-console-accepted--2026-09-09), including the retained Nurples observation. Wider lifecycle and VDU parity remain open. The preparation notes below describe the original checkpoint; they are not current bench instructions.
 - Owner: EMOS resident mode coordinator, UART dispatch and stock reply effects.
 
-## Scope and contracts
+## Current operating boundary — 2026-09-26
+
+The ordinary ExCom milestone is accepted; this task remains open for its wider
+lifecycle/VDU compatibility scope. Current operation uses the
+[Extender handbook](../../../agon-extender/docs/README.md) and selected
+[production bundle](../../../agon-extender/production/README.md). Later
+[INTEG-011](INTEG-011.md) implements `--keep-display`; browser/USB arbitration is
+now part of the combined P4 console under the
+[keyboard guide](../../../agon-extender/docs/remote-keyboard.md). Their exclusion
+from the original slice below is not a claim that those features are absent.
+
+The draft installation/pending statements and ROM measurements below describe
+the original checkpoint. Later [ROM audit results](../../../agon-extender/docs/tasks/AUDIT-008/IMPLEMENTATION.md)
+record recovered headroom; measure the exact selected build rather than using
+this task's original size as today's budget. Broader qualification remains with
+PORT-008 and its existing evidence owners; no new test pass is asserted here.
+
+## Original scope and contracts
 
 Implement case-insensitive EMOS EXCOM / EMOS LEGACY at the idle CLI without
 rebooting. Preserve keyboard source/layout and mainboard VBlank. Prepare and
@@ -69,7 +86,7 @@ Extender PORT-008 N001 records an intermittent native-reference glyph omission,
 reproduced without EMOS and with the native VDP echo confirming complete input.
 Control/stream assertions pass; native pixels are not qualified. Mainboard
 visual review passed; physical P4 text/cursor checks remain a separate gate.
-The current flash image is 130055 bytes, leaving 1017 bytes before the existing
+The original checkpoint flash image was 130055 bytes, leaving 1017 bytes before the existing
 128 KiB bound; later resident additions must continue satisfying that guard.
 
 On 2026-09-09 the Author supplied the final Legacy/Extender-keyboard/MOS-prompt
