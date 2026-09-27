@@ -3,6 +3,24 @@
 Status: complete; Author accepted analyzer exceptions. Started: 2026-09-08. Completed: 2026-09-08.
 Coordinator: [PORT-013](../../../agon-extender/docs/tasks/PORT-013.md).
 
+## Current applicability — 2026-09-26
+
+Completed historical diagnostic, not current installation instructions. The
+pending-review, staging and installed-version statements below are checkpoints
+superseded by the final acceptance section. Select current firmware through the
+[production authority](../../../agon-extender/production/README.md), not these
+old payload names. The current Legacy diagnostic requires a prepared matching
+P4 peer and available UART1; Extender keyboard ownership blocks that UART.
+Review [bench constraints](../../../agon-extender/docs/qualification/bench-constraints.md)
+and [SD layout](../../../agon-extender/docs/sd-layout.md) before reuse; do not
+disable the sole input path without a prepared noninteractive recovery plan.
+This documentation review does not authorize another run.
+
+The final PASS retains the accepted acquisition and waveform-tail exceptions;
+a clean serial tail does not turn the short waveform into a passing acquisition.
+
+## Historical implementation and acceptance
+
 Author-approved v0.6.0 adds Legacy-only EMOS VDPPOLL at 1152000/8N1 with
 RTS/CTS. Send `17 00 80 A5`; require `80 01 A5`, followed by a bounded quiet
 interval. Keep state local, UART0/onboard VDP sysvars unchanged, and reject

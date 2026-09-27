@@ -5,6 +5,25 @@ Completed: 2026-09-08.
 Started: 2026-09-08.
 Coordinator: [PORT-014](../../../agon-extender/docs/tasks/PORT-014.md).
 
+## Current applicability — 2026-09-26
+
+Completed historical diagnostic, not current installation instructions. The
+pending-review, staging and installed-version statements below are checkpoints
+superseded by the final acceptance section. Select current firmware through the
+[production authority](../../../agon-extender/production/README.md), not these
+old payload names. The current Legacy diagnostic requires a prepared matching
+P4 peer and available UART1; Extender keyboard ownership blocks that UART.
+Review [bench constraints](../../../agon-extender/docs/qualification/bench-constraints.md)
+and [SD layout](../../../agon-extender/docs/sd-layout.md) before reuse; do not
+disable the sole input path without a prepared noninteractive recovery plan.
+This documentation review does not authorize another run.
+
+The v0.7.0 to v0.1.7 numbering reset records distinct builds, not renamed bytes.
+Parser acknowledgements, the visible count and three Author-confirmed runs are
+separate evidence; only the first run has a waveform capture.
+
+## Historical implementation and acceptance
+
 Author approved EMOS v0.7.0. Add Legacy-only EMOS VDPTEXT using the proven
 private UART polling/RTS ownership, 1152000 baud and finite deadlines. Send
 the coordinator's exact clear/position/text/flush/General Poll sequence;
@@ -84,7 +103,7 @@ seconds. The Author supplied the rendered banner/count screenshot and confirmed
 SD/CLOCK, sample PASS and final MOS prompt for the captured run plus two
 additional Agon-only resets. Only the first run is waveform-captured.
 
-Installed EMOS is `agon-emos-v0.1.7-b2026-09-08-20-53-57Z` from clean `026ac46`.
+At the accepted run, installed EMOS was `agon-emos-v0.1.7-b2026-09-08-20-53-57Z` from clean `026ac46`.
 The coordinating sample and P4 receiver are the clean r03 candidates from
 `18024d8`. INTEG-008 is complete; the coordinator retains the authoritative
 cross-component evidence at
