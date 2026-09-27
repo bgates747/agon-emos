@@ -57,7 +57,7 @@ preserved; no downstream implementation was started during SD delivery.
 - [ ] **[INTEG-002 — Implement the production forward-parallel data plane](docs/tasks/INTEG-002.md)**
   - Started: 2026-09-01
   - Finished: --
-  - Status: On hold while the UART keyboard increment takes priority.
+  - Status: Parallel implementation retained; target/provenance/physical gates remain open. Original UART-keyboard dependency is historical; resume under Extender PORT-008's bounded contract.
   - Details: [INTEG-002](docs/tasks/INTEG-002.md)
 
 ## Hardware qualification

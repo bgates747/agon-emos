@@ -23,7 +23,17 @@ restore the GPIO mux; do not claim all Port C pads become passive afterward.
 Hardware flow control, return data and Exclusive Compatible activation remain
 later work. Existing candidate identity and three-boot evidence stay unchanged.
 
-## Local validation and inherited wrapper defect
+## Current applicability — 2026-09-26
+
+This completed 115200-baud one-way probe is historical diagnostic evidence.
+Later [INTEG-009](INTEG-009.md) and [INTEG-010](INTEG-010.md) record keyboard
+return and ordinary ExCom milestones. Those later results do not broaden this
+probe's acceptance, nor do the original "later work" statements below describe
+current product capability. Use the [current handbook](../../../agon-extender/docs/README.md)
+and selected installation for operation; review startup, input and receipt
+placement before any reuse. No probe was rerun for this documentation review.
+
+## Historical local validation and inherited wrapper defect
 
 The ordinary `projects/uart-forward` caller compiles with warnings treated as
 errors. The paired Extender build verifies the linked open/write/close wrapper

@@ -9,7 +9,19 @@
 - Started: 2026-09-01
 - Finished: --
 
-## Scheduling hold — 2026-09-08
+## Current scheduling applicability — 2026-09-26
+
+The UART keyboard milestone that motivated the historical hold below has since
+passed within its recorded scope; see [INTEG-009](INTEG-009.md). The Author has
+reaffirmed parallel transport as mainline Extender work under
+[PORT-008](../../../agon-extender/docs/tasks/PORT-008.md) and the future
+[TRS-80 bridge](../../../agon-extender/docs/tasks/TRS-80-003.md). This does not
+close this task's target-derived proof, provenance or physical gates, or make
+its fixed qualification profile production firmware. Resume only under the
+cross-component task's bounded work contract, not an obsolete keyboard dependency.
+The v10 figures below remain historical build evidence, not current selection.
+
+## Historical scheduling hold — 2026-09-08
 
 The Author selected focused browser keyboard input over UART as the next
 increment. INTEG-009 now has priority. This parallel task's implementation,
