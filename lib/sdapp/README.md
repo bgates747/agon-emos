@@ -2,8 +2,8 @@
 
 `emos_file_transfer()` runs synchronously inside an ADL C caller. It reuses
 EMOS gateway 0x51 (`ext.sdlink`) and the checked foreground SD engine; it does
-not load an EMOSlet, access UART registers or change display mode. Current normal
-P4 firmware does not implement the required application staging service.
+not load an EMOSlet, access UART registers or change display mode. The staged-WebDAV development composition supplies a P4 card worker;
+selected production does not yet include this capability.
 
 ```c
 #include "sdapp.h"
@@ -26,7 +26,7 @@ uses static working buffers, so it is deliberately single-owner/non-reentrant.
 ## Contract and limits
 
 1. Caller executes with interrupts enabled, at a complete VDU command boundary.
-   Legacy only initially; unsupported mode fails without changing it. The resident
+   Legacy and negotiated ExCom; unsupported mode fails without changing it. The resident
    gate classifies actual application/MOSlet context; Core cannot claim the lease.
 2. Paths are copied before transmission. Absolute ASCII file paths are limited to
    120 source bytes and 112 destination bytes (existing recovery siblings).
@@ -77,3 +77,9 @@ and production integration remain in the owning Extender task. Physical Legacy
 qualification now passes both directions with Extender's RAM-only r59 diagnostic
 peer, actual mainboard FAT, 4096-byte caller sentinel and external-request rejection. Do not advertise
 this candidate as an available network file-transfer feature.
+
+Application HELLO sets origin byte 24 to 2 with other prefix fields empty and
+revision flag 1. P4 keeps this incarnation separate from the idle CLI handshake.
+EMOS classifies the caller before permitting the marker; it is not independent
+authorization. P4 worker owns card access, snapshots and checked activation; no
+filesystem work runs in its UART task. Failed or uncertain stages are retained.

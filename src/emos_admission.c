@@ -70,6 +70,7 @@ void emos_admission_leave(void) {
 }
 BYTE emos_admission_dispatching(void) { return state==RUNNING; }
 BYTE emos_admission_excom(void) { return (caps&7)==7; }
+BYTE emos_admission_application(void) { return (caps&11)==11; }
 static BYTE send_control(BYTE op, BYTE result) {
     BYTE *p=tx+4, irq;
     if(++sequence==0){exhausted=1;return 0;}

@@ -9,6 +9,7 @@ void emos_admission_reset(void);
 void emos_admission_packet(const BYTE *data, BYTE length);
 BYTE emos_admission_dispatching(void);
 BYTE emos_admission_excom(void);
+BYTE emos_admission_application(void);
 int emos_admission_dispatch(void);
 /* Owned by emos.c, reusing its policy and checked MOSlet loader. */
 BYTE emos_admission_core(void);

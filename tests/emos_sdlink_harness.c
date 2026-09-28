@@ -9,6 +9,9 @@
 
 static BYTE app_context, finite_context, terminal_seen, excom_cap;
 BYTE emos_admission_excom(void) { return excom_cap; }
+static BYTE app_cap;
+BYTE emos_admission_application(void) { return app_cap; }
+void emos_admission_leave(void) {}
 BYTE emos_application_context(void) { return app_context; }
 void emos_admission_reset(void) {}
 BYTE emos_admission_binding(BYTE *p) { if(!finite_context)return 0;memset(p,17,36);return 1; }
@@ -118,6 +121,11 @@ int main(void) {
     input[0]=3;put24(r->output,0);put24(r->outputCapacity,0);assert(emos_sdlink_gateway(r)==0);
     input[0]=0;assert(emos_sdlink_gateway(r)==35);
     input[0]=4;put24(r->output,0xb7f10);put24(r->outputCapacity,4);assert(emos_sdlink_gateway(r)==35);
+    app_cap=1;app_context=0;assert(emos_sdlink_gateway(r)==31);
+    app_context=1;assert(emos_sdlink_gateway(r)==0 && r->outputLength[0]==4);
+    input[0]=1;put24(r->outputCapacity,240);assert(emos_sdlink_gateway(r)==0);
+    input[0]=3;put24(r->output,0);put24(r->outputCapacity,0);assert(emos_sdlink_gateway(r)==0);
+    input[0]=0;assert(emos_sdlink_gateway(r)==35);
     assert(munmap(ram,0x78000)==0);
     puts("sdlink gateway bounds, mailbox, ownership and lifecycle passed");
 }

@@ -135,3 +135,13 @@ FINISH/CLOSE normally and retain negotiation. P4 still records the operation as
 cancelled; this does not turn it into successful file work or roll back earlier
 mutations. Unfinished Agon write stages still fail closure. This candidate requires the paired P4 active
 F6 parser and is not production acceptance.
+
+
+### Application card candidate
+
+EMOS v0.1.23 admits locally classified application OPEN in ExCom only when
+resident negotiation advertised application plus active-parser support. It retains
+the separate resident incarnation while the linked helper uses origin-2 HELLO
+for its own P4 worker session. Manual OPEN remains Legacy-only. The helper never
+loads over the caller or accesses UART directly. This requires the paired P4 r61
+application-card composition, not the earlier RAM probe or selected production.

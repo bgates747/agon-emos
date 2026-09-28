@@ -3,7 +3,8 @@
  * The existing service engine owns mainboard FAT staging/verification. Its
  * sibling journal scheme is recoverable, not power-atomic (REMOTE-005/A05).
  * A remote peer must implement the frozen application control contract; the
- * ordinary P4 console is intentionally rejected during capability negotiation.
+ * ordinary production P4 console is rejected during capability negotiation;
+ * the staged application-card composition is separately qualified.
  */
 #include <string.h>
 #include "sdapp.h"
@@ -54,7 +55,7 @@ static unsigned control(unsigned op,unsigned result,const uint8_t *extra,unsigne
     unsigned got,r;
     if(n>192 || sequence==UINT32_MAX)return EMOS_FILE_PROTOCOL;
     sd_header(tx,4,token,++sequence,op,result,28+n);memcpy(tx+20,prefix,28);
-    if(op==1){memset(tx+20,0,28);tx[46]=1;}
+    if(op==1){memset(tx+20,0,28);tx[44]=2;tx[46]=1;}
     if(n)memcpy(tx+48,extra,n);
     sd_seal(tx);r=exchange(48+n,5,&got);if(r)return r;
     if(got!=48)return EMOS_FILE_PROTOCOL;

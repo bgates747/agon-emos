@@ -1,8 +1,8 @@
 /* Synchronous ADL C helper; link into the caller, never load another MOSlet.
  * Paths are absolute ASCII <=120 bytes. Receive destination <=112 for the
  * existing recoverable sibling names. Caller keeps interrupts enabled and
- * enters only at a complete VDU boundary. First implementation is Legacy only.
- * P4 staging capability is required; normal r57 does not implement it. */
+ * enters only at a complete VDU boundary. ExCom requires prior resident
+ * capability negotiation. The paired P4 application-card worker is required. */
 #ifndef EMOS_SDAPP_H
 #define EMOS_SDAPP_H
 #include <stdint.h>
