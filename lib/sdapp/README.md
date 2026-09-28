@@ -83,3 +83,11 @@ revision flag 1. P4 keeps this incarnation separate from the idle CLI handshake.
 EMOS classifies the caller before permitting the marker; it is not independent
 authorization. P4 worker owns card access, snapshots and checked activation; no
 filesystem work runs in its UART task. Failed or uncertain stages are retained.
+
+
+The paired P4 r61 card worker and EMOS v0.1.23 now pass bounded physical
+4,097-byte transfers in both directions in Legacy and negotiated ExCom, exact
+independent readback, caller sentinel, external busy exclusion and CLI recovery.
+This supersedes the RAM-only integration limit above. Large-file deadlines,
+media/reset faults and production acceptance remain open. Current evidence is
+Extender's `docs/tasks/REMOTE-005/A09-A11-QUALIFICATION.md`.
