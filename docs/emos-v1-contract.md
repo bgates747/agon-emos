@@ -129,5 +129,6 @@ Legacy HELLO must advertise capability bit 1 before the gateway accepts a finite
 binding in ExCom. Manual listener and application-owned leases retain their
 Legacy-only restriction. Successful ExCom completion retires the job/grant but
 keeps the negotiated incarnation; any failed completion invalidates admission
-and requires Legacy renegotiation. This candidate requires the paired P4 active
+and requires Legacy renegotiation (including a cancelled client upload). This
+candidate requires the paired P4 active
 F6 parser and is not production acceptance.
