@@ -121,3 +121,13 @@ The [linked helper](../lib/sdapp/README.md) owns negotiation and foreground file
 work; it retains no callback after return. This candidate is not production and
 requires a future application-capable P4 staging peer. Legacy-only mode guard
 remains; neither the manual listener nor ExCom support is silently widened.
+
+### Finite external ExCom candidate
+
+REMOTE-005 extends only the negotiated finite external utility to ExCom.
+Legacy HELLO must advertise capability bit 1 before the gateway accepts a finite
+binding in ExCom. Manual listener and application-owned leases retain their
+Legacy-only restriction. Successful ExCom completion retires the job/grant but
+keeps the negotiated incarnation; any failed completion invalidates admission
+and requires Legacy renegotiation. This candidate requires the paired P4 active
+F6 parser and is not production acceptance.

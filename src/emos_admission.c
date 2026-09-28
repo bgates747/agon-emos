@@ -69,6 +69,7 @@ void emos_admission_leave(void) {
     if(++generation==0)exhausted=1;
 }
 BYTE emos_admission_dispatching(void) { return state==RUNNING; }
+BYTE emos_admission_excom(void) { return (caps&7)==7; }
 static BYTE send_control(BYTE op, BYTE result) {
     BYTE *p=tx+4, irq;
     if(++sequence==0){exhausted=1;return 0;}
@@ -172,8 +173,13 @@ int emos_admission_dispatch(void) {
     result=emos_admission_run();
     /* Only the claimed finite utility can acknowledge FINISH through sdlink.
      * A random MOSlet return never means the filesystem job completed. */
-    send_control(CLOSE, result || utility_terminal!=1 ? 7 : 0);
     if(!result && utility_terminal!=1)result=EMOS_UNAVAILABLE;
-    emos_admission_reset();
+    if(!send_control(CLOSE,result ? 7 : 0) && !result)result=EMOS_UNAVAILABLE;
+    /* ExCom cannot bootstrap HELLO. Retain the negotiated incarnation after
+     * successful completion, but retire the job/grant. Faults invalidate it
+     * and require return to Legacy for renegotiation. */
+    if(!result && emos_get_mode()==EMOS_MODE_EXCLUSIVE_COMPAT)
+        emos_admission_leave();
+    else emos_admission_reset();
     return result;
 }

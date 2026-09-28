@@ -54,7 +54,12 @@ UINT24 emos_sdlink_gateway(t_emosGatewayRequest *r) {
         (operation == 2 && (length < 21 || length > EMOS_SDLINK_LIMIT+1)) ||
         (operation == 1 ? capacity < EMOS_SDLINK_LIMIT : operation == 4 ? capacity != 4 : operation == 5 ? capacity != 36 : capacity != 0))
         return FR_INVALID_PARAMETER;
-    if (emos_get_mode() != EMOS_MODE_LEGACY || emos_key_source != EMOS_KEY_EXTENDER ||
+    /* Only the negotiated finite dispatcher may use active ExCom framing.
+     * Manual and application-owned services retain their Legacy boundary. */
+    if ((emos_get_mode() != EMOS_MODE_LEGACY &&
+         !(emos_get_mode()==EMOS_MODE_EXCLUSIVE_COMPAT && emos_admission_excom() &&
+           (operation==5 || (application_owned==2 && operation!=0 && operation!=4)))) ||
+        emos_key_source != EMOS_KEY_EXTENDER ||
         emos_key_faulted || !uart1_keyboard_owned) return EMOS_UNAVAILABLE;
     irq = emos_keyboard_lock();
     if (!irq) return EMOS_BUSY; /* A service call never runs inside an ISR. */

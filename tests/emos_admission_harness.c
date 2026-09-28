@@ -82,6 +82,18 @@ int main(void){
     run_result=0;assert(emos_admission_dispatch()==EMOS_UNAVAILABLE);assert(sent[17]==7);
     fresh();answer(0,1);assert(!emos_admission_idle(keycount));answer(0,0);assert(emos_admission_idle(keycount));
     report_terminal=1;assert(emos_admission_dispatch()==0);assert(sent[17]==0);
+    /* ExCom success keeps negotiated capabilities; another POLL is possible
+     * without an unsafe active-parser HELLO. A failed CLOSE invalidates them. */
+    fresh();emos_admission_leave();mode=EMOS_MODE_EXCLUSIVE_COMPAT;tick++;
+    assert(!emos_admission_idle(keycount));answer(0,1);
+    assert(!emos_admission_idle(keycount));answer(0,0);assert(emos_admission_idle(keycount));
+    assert(emos_admission_dispatch()==0 && emos_admission_excom());
+    tick++;assert(!emos_admission_idle(keycount));assert(sent[16]==POLL);
+    answer(0,1);assert(!emos_admission_idle(keycount));answer(0,0);assert(emos_admission_idle(keycount));
+    send_fail=1;assert(emos_admission_dispatch()==EMOS_UNAVAILABLE);assert(!emos_admission_excom());
+    {unsigned n=sends;tick++;assert(!emos_admission_idle(keycount));assert(sends==n);}
+    fresh();caps=5;emos_admission_leave();mode=EMOS_MODE_EXCLUSIVE_COMPAT;tick++;
+    {unsigned n=sends;assert(!emos_admission_idle(keycount));assert(sends==n);}
     fresh();sequence=0xffffffffUL;tick+=24;retrying=0;state=OFF;tick++;
     assert(!emos_admission_idle(keycount));assert(exhausted);
     assert(irq);

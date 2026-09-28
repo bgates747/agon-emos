@@ -7,7 +7,8 @@
 #include "emos_sdlink.h"
 #include "emos_keyboard.h"
 
-static BYTE app_context, finite_context, terminal_seen;
+static BYTE app_context, finite_context, terminal_seen, excom_cap;
+BYTE emos_admission_excom(void) { return excom_cap; }
 BYTE emos_application_context(void) { return app_context; }
 void emos_admission_reset(void) {}
 BYTE emos_admission_binding(BYTE *p) { if(!finite_context)return 0;memset(p,17,36);return 1; }
@@ -108,6 +109,15 @@ int main(void) {
     input[0]=0;put24(r->inputLength,1);assert(emos_sdlink_gateway(r)==31);
     input[0]=3;assert(emos_sdlink_gateway(r)==0);
     input[0]=6;put24(r->inputLength,6);assert(emos_sdlink_gateway(r)==31 && terminal_seen==1);
+    /* ExCom admits only negotiated finite ownership, never manual/app opens. */
+    mode=EMOS_MODE_EXCLUSIVE_COMPAT;put24(r->inputLength,1);input[0]=5;
+    put24(r->output,0xb7f10);put24(r->outputCapacity,36);
+    assert(emos_sdlink_gateway(r)==35);excom_cap=1;
+    assert(emos_sdlink_gateway(r)==0);
+    input[0]=1;put24(r->outputCapacity,240);assert(emos_sdlink_gateway(r)==0);
+    input[0]=3;put24(r->output,0);put24(r->outputCapacity,0);assert(emos_sdlink_gateway(r)==0);
+    input[0]=0;assert(emos_sdlink_gateway(r)==35);
+    input[0]=4;put24(r->output,0xb7f10);put24(r->outputCapacity,4);assert(emos_sdlink_gateway(r)==35);
     assert(munmap(ram,0x78000)==0);
     puts("sdlink gateway bounds, mailbox, ownership and lifecycle passed");
 }
