@@ -57,6 +57,11 @@ class SdserveTests(unittest.TestCase):
         return S.pack('<BBHHH',6,0,len(a),len(b),0)+a+b
     def move_frag(self,d,offset=0,count=184,status=0,crc=None):
         return self.rpc(14,S.pack('<HHI',len(d),offset,zlib.crc32(d) if crc is None else crc)+d[offset:offset+count],status)
+    def test_root_metadata_uses_directory_api(self):
+        self.lib.service_stop()
+        self.assertEqual(self.lib.service_init_mode(b'/',101,self.FAST),1)
+        self.seq=0;self.rpc(1)
+        self.assertEqual(self.rpc(2,path('/')),S.pack('<IB',0,16))
     def test_directory_primitives_and_guards(self):
         self.rpc(12,path('/test/new'));self.assertTrue((self.disk/'test/new').is_dir())
         self.rpc(12,path('/test/new'),6)

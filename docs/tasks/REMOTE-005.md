@@ -123,3 +123,17 @@ paired host HTTP/Channel/peer/utility/engine tests pass. EMOS compiles to 128369
 bytes; the MOSlet is 23067 bytes with 5760 bytes heap/stack address space left.
 No physical/emulator deployment or production change. The exact cross-component
 scope and remaining gates are in Extender's A08-INTEGRATION-RESULTS.md.
+
+## Root metadata and silent CLI continuation — September 28
+
+The checked engine must use `ffs_dopen`/`ffs_dclose` to validate `/` before
+returning zero-size directory metadata. Official MOS v3.0.2
+`src_fatfs/ff.c:f_stat` intentionally returns `FR_INVALID_NAME` for the origin
+directory; the host FatFS adapter now mirrors that behavior. The official MOS
+API documents directory calls 0x91/0x92 and stat 0x96. No upstream code is changed.
+
+The private top-level `mos_input` wrapper dispatches a service only after its
+editor returns and frees editor storage. Successful silent jobs resume the same
+prompt; errors retain their diagnostic and get a fresh prompt. Ordinary CR/ESC
+and public line-editor APIs retain their behavior. Root, CLI-wrapper and linked
+firmware checks precede paired bench qualification in Extender REMOTE-005 A11.

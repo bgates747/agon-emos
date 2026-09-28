@@ -57,6 +57,7 @@
 #include "mos_file.h"
 #include "emos.h"
 #include "emos_keyboard.h"
+#include "emos_admission.h"
 #if DEBUG > 0
 # include "tests.h"
 #endif /* DEBUG */
@@ -221,14 +222,26 @@ BYTE mos_getkey() {
 // - The keycode (ESC or CR)
 //
 UINT24 mos_input(char * buffer, int bufferLength) {
-	INT24 retval;
-	char * prompt = expandVariableToken("CLI$Prompt");
-
-	printf("%s", prompt ? prompt : "*");
-	umm_free(prompt);
-	retval = emos_cli_editline(buffer, bufferLength);
-	printf("\n\r");
-	return retval;
+    INT24 retval;
+    BYTE prompt_needed = 1;
+    for (;;) {
+        if (prompt_needed) {
+            char * prompt = expandVariableToken("CLI$Prompt");
+            printf("%s", prompt ? prompt : "*");
+            umm_free(prompt);
+        }
+        retval = emos_cli_editline(buffer, bufferLength);
+        if (retval != EMOS_CLI_SERVICE) break;
+        /* The private editor has released its storage before dispatch.
+         * Silent finite jobs resume the same empty CLI line; ordinary CR/ESC
+         * behavior and the public editor API are unchanged. Errors remain
+         * visible and require a fresh prompt after their diagnostic. */
+        retval = emos_admission_dispatch();
+        prompt_needed = retval != 0;
+        if (retval) mos_error(retval);
+    }
+    printf("\n\r");
+    return retval;
 }
 
 // Parse a MOS command from the line edit buffer

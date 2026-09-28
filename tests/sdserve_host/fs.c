@@ -41,6 +41,7 @@ uint8_t ffs_fsize(FIL *f,uint32_t *size) {
 }
 uint8_t ffs_flseek_p(FIL *f,uint32_t *off) { return fseek(f->file,*off,SEEK_SET)?FR_DISK_ERR:0; }
 uint8_t ffs_stat(FILINFO *info,const char *name) {
+    if(!strcmp(name,"/"))return 6; /* FatFS f_stat rejects origin directory. */
     char p[550];struct stat s;path(p,name);
     if(stat(p,&s))return error();info->fsize=s.st_size;info->fattrib=S_ISDIR(s.st_mode)?AM_DIR:0;return 0;
 }

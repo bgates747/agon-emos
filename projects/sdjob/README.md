@@ -29,3 +29,7 @@ The cross-component host tests and qualification boundary live in
 The test compiles this actual utility and file engine with a host FatFS adapter,
 then runs them against the actual P4 peer/Channel. Physical timing, FAT durability
 and available stack must still be qualified on the bench.
+
+Root metadata uses the stock directory open/close APIs because FatFS stat rejects
+its origin directory. Successful silent jobs resume the existing CLI prompt;
+failures still print the MOS diagnostic before a fresh prompt.

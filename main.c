@@ -246,10 +246,7 @@ int main(void) {
 	//
 	while (1) {
         UINT24 reason = mos_input(&cmd, sizeof(cmd));
-        if (reason == EMOS_CLI_SERVICE) {
-            int err = emos_admission_dispatch();
-            if (err) mos_error(err);
-        } else if (reason == 13) {
+        if (reason == 13) {
 			int err = mos_exec(&cmd, true);
 			createOrUpdateSystemVariable("Sys$ReturnCode", MOS_VAR_NUMBER, (void *)err);
 			if (err > 0) {

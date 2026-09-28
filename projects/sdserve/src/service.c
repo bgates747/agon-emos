@@ -146,10 +146,20 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
     case SD_HELLO:
         if(n) return SD_BAD_REQUEST;
         sd_put32(out,boot_id);sd_put16(out+4,212);sd_put16(out+6,15 | 32 | (fast_mode?16:0));*out_n=8;return SD_OK;
-    case SD_STAT:
+    case SD_STAT: {
         if(!path_read(p,n,path)) return SD_BAD_REQUEST;
+        /* Stock MOS 3.0.2 FatFS f_stat rejects the origin directory with
+         * FR_INVALID_NAME. Validate root with the directory API instead;
+         * do not fabricate success when media is absent or inaccessible. */
+        if(!strcmp(path,"/")) {
+            DIR dir;
+            r=ffs_dopen(&dir,path);if(r) return fail(r);
+            r=ffs_dclose(&dir);if(r) return fail(r);
+            sd_put32(out,0);out[4]=AM_DIR;*out_n=5;return SD_OK;
+        }
         r=ffs_stat(&info,path);if(r) return fail(r);
         sd_put32(out,info.fsize);out[4]=info.fattrib;*out_n=5;return SD_OK;
+    }
     case SD_READ: {
         FIL f;uint32_t size;unsigned count,actual;uint32_t at;
         if(n<8 || (count=sd_u16(p+4))>216 || !path_read(p+6,n-6,path)) return SD_BAD_REQUEST;
