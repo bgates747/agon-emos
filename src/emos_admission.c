@@ -43,7 +43,9 @@ static BYTE nonzero(const BYTE *p, BYTE n) {
 }
 void emos_admission_packet(const BYTE *p, BYTE n) {
     /* ISR: bounded copy only; CRC/identity checks and decisions are foreground. */
-    if(waiting && !received && n==48 && p[3]==5) {
+    /* CLOSE is fire-and-forget. Its delayed ACK must not occupy the sole
+     * reply slot after a new HELLO starts; retain CRC checks in foreground. */
+    if(waiting && !received && n==48 && p[3]==5 && !memcmp(p+4,tx+8,9)) {
         memcpy(rx,p,48); received=1;
     }
 }

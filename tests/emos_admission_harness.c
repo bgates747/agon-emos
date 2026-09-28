@@ -50,6 +50,12 @@ int main(void){
     fresh();assert(!job_class && !sent[49]);answer(1,0);
     assert(!emos_admission_idle(keycount));assert(state==IDLE);
     tick++;assert(!emos_admission_idle(keycount));assert(sent[16]==POLL);
+    /* A late CLOSE acknowledgement must not occupy the single current-reply
+     * slot ahead of a back-to-back HELLO/POLL reply. */
+    fresh();
+    {BYTE old[48];memcpy(old,sent+4,48);old[3]=5;old[12]=CLOSE;
+     put32(old+16,crc(old));emos_admission_packet(old,48);
+     answer(1,0);assert(!emos_admission_idle(keycount));assert(state==IDLE);}
     /* Late key wins even after peer acknowledged provisional grant. */
     fresh();answer(0,1);assert(!emos_admission_idle(keycount));answer(0,0);
     {BYTE observed=keycount;keycount++;assert(!emos_admission_idle(observed));}
