@@ -119,15 +119,14 @@ closes it. Core/ISR/nested opens fail; application exit resets ownership. Contro
 replies join the bounded mailbox only while that application lease is active.
 The [linked helper](../lib/sdapp/README.md) owns negotiation and foreground file
 work; it retains no callback after return. This candidate is not production and
-requires a future application-capable P4 staging peer. Legacy-only mode guard
-remains; neither the manual listener nor ExCom support is silently widened.
+requires the paired application-capable P4 staging peer. Negotiated ExCom
+support is specified below; the manual listener remains Legacy-only.
 
 ### Finite external ExCom candidate
 
-REMOTE-005 extends only the negotiated finite external utility to ExCom.
+REMOTE-005 extends the negotiated finite external utility to ExCom.
 Legacy HELLO must advertise capability bit 1 before the gateway accepts a finite
-binding in ExCom. Manual listener and application-owned leases retain their
-Legacy-only restriction. Successful ExCom completion retires the job/grant but
+binding in ExCom. The manual listener retains its Legacy-only restriction. Successful ExCom completion retires the job/grant but
 keeps the negotiated incarnation; any failed completion invalidates admission
 and requires Legacy renegotiation. With the paired P4 clean-stop implementation,
 a client cancellation at a healthy quiet wire boundary can instead acknowledge

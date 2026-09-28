@@ -51,7 +51,7 @@ uses static working buffers, so it is deliberately single-owner/non-reentrant.
 
 Existing operations 0–3 are unchanged. Operation 4 (`APP_OPEN`) has one input byte,
 four output bytes and returns a nonzero monotonically increasing boot-local token.
-It requires application execution, enabled interrupts, Legacy transport and no
+It requires application execution, enabled interrupts, Legacy or previously negotiated application-capable ExCom, and no
 active listener. Nested open is BUSY. The application owns the control/file mailbox
 until CLOSE (operation 3) or application transition/reset. Counter exhaustion
 requires restart; it never wraps into a reused token. No application pointer is
