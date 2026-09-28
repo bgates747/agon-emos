@@ -137,3 +137,9 @@ editor returns and frees editor storage. Successful silent jobs resume the same
 prompt; errors retain their diagnostic and get a fresh prompt. Ordinary CR/ESC
 and public line-editor APIs retain their behavior. Root, CLI-wrapper and linked
 firmware checks precede paired bench qualification in Extender REMOTE-005 A11.
+
+Physical follow-through: v0.1.22 build 2026-09-28-01-40-45Z and sdjob v0.1.0 build
+2026-09-28-01-41-18Z (source dd3527e) passed full ROM/utility readback, root and
+file operations, fault recovery and native GVfs root-mounted file management.
+The selected production bundle is unchanged; wider ExCom/application/native GUI
+qualification remains with Extender. The deployed manual listener was not changed.
