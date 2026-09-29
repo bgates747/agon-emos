@@ -40,17 +40,20 @@ static uint32_t crc32(const uint8_t *p, unsigned n) {
 static int save_result(const char *status, unsigned test_rc, unsigned restore_rc,
                        unsigned verify_rc, uint32_t before_crc,
                        uint32_t pattern_crc, uint32_t observed_crc,
-                       uint32_t restored_crc) {
+                       uint32_t restored_crc, const char *detail,
+                       uint32_t first_partition_lba, unsigned write_attempted) {
   FIL file = {0};
   char record[384];
   int n = snprintf(record, sizeof record,
       "schema=1\ncase=a10-rp04-raw-sd-write\nstatus=%s\nsector=2\n"
       "test_rc=%u\nrestore_rc=%u\nrestore_verify_rc=%u\n"
       "before_crc32=%08lx\npattern_crc32=%08lx\n"
-      "observed_crc32=%08lx\nrestored_crc32=%08lx\n",
+      "observed_crc32=%08lx\nrestored_crc32=%08lx\n"
+      "detail=%s\nfirst_partition_lba=%lu\nwrite_attempted=%u\n",
       status, test_rc, restore_rc, verify_rc,
       (unsigned long)before_crc, (unsigned long)pattern_crc,
-      (unsigned long)observed_crc, (unsigned long)restored_crc);
+      (unsigned long)observed_crc, (unsigned long)restored_crc, detail,
+      (unsigned long)first_partition_lba, write_attempted);
   if (n < 0 || n >= (int)sizeof record ||
       ffs_fopen(&file, "/agents/extender/results/a10-rp04.txt",
                 FA_WRITE | FA_CREATE_ALWAYS))
@@ -78,25 +81,47 @@ int main(void) {
   control_write_t restore_write;
   unsigned test_rc = 255, restore_rc = 255, verify_rc = 255;
   uint32_t before_crc = 0, pattern_crc = 0, observed_crc = 0, restored_crc = 0;
+  uint32_t first_partition_lba = UINT32_MAX;
 
   puts("A10-RP04 physical raw-SD test starting.");
   if (!arm_recovery()) {
+    (void)save_result("infrastructure-error", 255, 255, 255, 0, 0, 0, 0,
+                      "recovery-arm-failed", first_partition_lba, 0);
     puts("FAIL: could not disarm the one-shot startup; no raw write attempted.");
     return 19;
   }
   unlock = sd_getunlockcode();
   restore_write = fwbug008_control_write();
-  if (!unlock || !restore_write || sd_init(unlock) != 0) {
+  unsigned init_rc = unlock ? sd_init(unlock) : 255;
+  if (!unlock || !restore_write || init_rc != 0) {
+    (void)save_result("infrastructure-error", init_rc, 255, 255, 0, 0, 0, 0,
+                      !unlock ? "unlock-zero" :
+                      !restore_write ? "control-lookup-zero" : "sd-init-failed",
+                      first_partition_lba, 0);
     puts("FAIL: raw-SD initialization/control lookup failed; no write attempted.");
     return 19;
   }
-  if (sd_readblocks(0, mbr, 1) != 0 || mbr[510] != 0x55 || mbr[511] != 0xaa ||
-      mbr[450] == 0 ||
-      le32(mbr + 454) <= sector) {
+  unsigned mbr_rc = sd_readblocks(0, mbr, 1);
+  if (!mbr_rc) {
+    for (unsigned entry = 0; entry != 4; ++entry) {
+      const uint8_t *partition = mbr + 446 + entry * 16;
+      uint32_t start = le32(partition + 8), count = le32(partition + 12);
+      if (partition[4] && count && start < first_partition_lba)
+        first_partition_lba = start;
+    }
+  }
+  if (mbr_rc != 0 || mbr[510] != 0x55 || mbr[511] != 0xaa ||
+      first_partition_lba <= sector || first_partition_lba == UINT32_MAX) {
+    (void)save_result("infrastructure-error", mbr_rc, 255, 255, 0, 0, 0, 0,
+                      mbr_rc ? "mbr-read-failed" : "unsafe-card-layout",
+                      first_partition_lba, 0);
     puts("FAIL: sector 2 is not proven outside the first MBR partition; no write attempted.");
     return 19;
   }
-  if (sd_readblocks(sector, before, 1) != 0) {
+  unsigned preimage_rc = sd_readblocks(sector, before, 1);
+  if (preimage_rc != 0) {
+    (void)save_result("infrastructure-error", preimage_rc, 255, 255, 0, 0, 0, 0,
+                      "preimage-read-failed", first_partition_lba, 0);
     puts("FAIL: sector preimage could not be retained; no write attempted.");
     return 19;
   }
@@ -121,7 +146,7 @@ int main(void) {
                        restored_ok ? "test-failure" : "restore-failure";
   int evidence_rc = save_result(status, test_rc, restore_rc, verify_rc,
                                 before_crc, pattern_crc, observed_crc,
-                                restored_crc);
+                                restored_crc, "completed", first_partition_lba, 1);
   if (!restored_ok) {
     puts("FAIL: sector restoration was not verified. Do not continue tests.");
     return 20;
