@@ -11,7 +11,8 @@ remains a separate explicit authorization gate.
 
 ## State
 
-- Status: Active under Extender `A10-RP04`.
+- Status: Physically validated under Extender `A10-RP04`; awaiting Author
+  acceptance and disposition.
 - Started: 2026-09-29.
 - Owner: EMOS `src/mos_api.asm`; `mos-tests` retains the runtime fixture.
 - Dependencies: official MOS API contract, current ordinary EMOS build profile,
@@ -52,14 +53,14 @@ F8-05 [x] Reuse `mos-tests` `sd_writeblocks.rst08.001` and
 readback and distinguish API status from actual media effect. Emulator evidence
 does not replace physical evidence.
 
-F8-06 [ ] Pause for Author validation and acceptance before commit or push.
-Because this candidate is exercised through an emulator, the repository's
-human emulator gate applies even though the decisive oracle is headless.
+F8-06 [x] Pause for Author review before commit or physical execution. The
+Author approved the candidate/tool selection and directed the commit-pinned
+hardware run. Publication remains outside this gate.
 
-F8-07 [ ] Only after a separately reviewed procedure and explicit authorization,
+F8-07 [x] Only after a separately reviewed procedure and explicit authorization,
 run the physical destructive-sector test on controlled disposable media with
-preimage, write, independent readback and restoration evidence. No current
-authorization is inferred.
+preimage, write, independent readback and restoration evidence. The authorized
+run passed; this does not itself record Author acceptance.
 
 ## Candidate evidence
 
@@ -103,9 +104,37 @@ hashes to
 `2df7210ba5c3c32624a3ad6d9f43de2f8af813ffbc609d7a108fb0fee45c7bca`.
 This is emulator evidence only.
 
+## Physical evidence
+
+Exact EMOS commit `8ecea5bc6cb4f9f563bc570316afbdaa08648632`
+contains repair commit `19b8b6f9e9983190edb7b0beca95355e257b6851`
+plus the physical fixture diagnostics and corrected direct-RST bindings. The
+128,579-byte flashed artifact has SHA-256
+`7c7ac79fcbdb4a9d67885aede552e808e0111bcc7e2d54b012c43add0305317a`.
+The independent 131,072-byte installed-ROM readback exactly matched the padded
+candidate and has SHA-256
+`4fab4a413ff3e7d163ee8bd605ef9390503ba25db116a5c9e6137e300932a729`.
+
+The first fixture attempt returned locked status 2 before any raw write. Review
+of the linked AgonDev library showed that its `sd_writeblocks` symbol dispatches
+through MOS's direct C function table, not public RST selector `0x73`; its
+`sd_getunlockcode` binding also does not accept the explicit destination needed
+by this oracle. The fixture therefore uses project-local assembly bindings for
+documented RST selectors `0x70`, `0x71` and `0x73`. Independent observation and
+restoration continue through the distinct C function-table controls. The final
+fixture is 10,492 bytes and has SHA-256
+`9ed1064702f339ca8b6f3bb4ba852cdb9ccf724b59446ff4859b69eb85a47ce3`.
+
+The authorized physical run proved sector 2 lies before the first partition at
+LBA 8192. RST `0x73` returned zero; independent readback matched the generated
+pattern CRC32 `3b3befd6`. The C control restore and its independent readback
+both returned zero and matched preimage CRC32 `b2aa7578`. The fixture recorded
+`write_attempted=1`, `status=pass` and `detail=completed`. The paired Extender
+runner restored the exact original startup and completed its full 55-case
+retained closure. Durable bench evidence is intentionally retained under the
+Extender repository's ignored hardware-validation directory.
+
 ## Completion
 
-Close only after the Author accepts the candidate and required nonphysical
-evidence. Keep F8-07 explicitly pending if physical qualification remains
-deferred; do not describe emulator success as hardware proof or production
-promotion.
+Close only after the Author accepts the candidate. The passing physical result
+is hardware proof for this bounded repair, not production promotion.
