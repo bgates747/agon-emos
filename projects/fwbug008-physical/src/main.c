@@ -13,6 +13,10 @@
 #include <string.h>
 
 typedef uint8_t (*control_write_t)(uint32_t, uint8_t *, uint16_t);
+extern void fwbug008_get_unlock(uint24_t *destination);
+extern uint8_t fwbug008_init(const uint24_t *unlock);
+extern uint8_t fwbug008_rst_write(const void *request, uint8_t *buffer,
+                                  uint16_t count);
 extern control_write_t fwbug008_control_write(void);
 
 static uint8_t mbr[512], before[512], pattern[512], observed[512], restored[512];
@@ -78,6 +82,7 @@ static int arm_recovery(void) {
 int main(void) {
   const uint32_t sector = 2;
   uint24_t unlock;
+  uint8_t write_request[7];
   control_write_t restore_write;
   unsigned test_rc = 255, restore_rc = 255, verify_rc = 255;
   uint32_t before_crc = 0, pattern_crc = 0, observed_crc = 0, restored_crc = 0;
@@ -90,9 +95,9 @@ int main(void) {
     puts("FAIL: could not disarm the one-shot startup; no raw write attempted.");
     return 19;
   }
-  unlock = sd_getunlockcode();
+  fwbug008_get_unlock(&unlock);
   restore_write = fwbug008_control_write();
-  unsigned init_rc = unlock ? sd_init(unlock) : 255;
+  unsigned init_rc = unlock ? fwbug008_init(&unlock) : 255;
   if (!unlock || !restore_write || init_rc != 0) {
     (void)save_result("infrastructure-error", init_rc, 255, 255, 0, 0, 0, 0,
                       !unlock ? "unlock-zero" :
@@ -130,7 +135,9 @@ int main(void) {
   before_crc = crc32(before, sizeof before);
   pattern_crc = crc32(pattern, sizeof pattern);
 
-  test_rc = sd_writeblocks(sector, pattern, 1);
+  memcpy(write_request, &sector, sizeof sector);
+  memcpy(write_request + sizeof sector, &unlock, sizeof unlock);
+  test_rc = fwbug008_rst_write(write_request, pattern, 1);
   unsigned read_rc = sd_readblocks(sector, observed, 1);
   observed_crc = crc32(observed, sizeof observed);
 
