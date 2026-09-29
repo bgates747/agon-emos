@@ -36,6 +36,10 @@ def verify(image: bytes, linked: dict[str, int]) -> None:
         "mos_function_block_start",
         "mos_function_block_size",
         "_open_UART1",
+        "sd_api_readblocks",
+        "sd_api_writeblocks",
+        "_SD_readBlocks_API",
+        "_SD_writeBlocks_API",
     )
     missing = [name for name in required if name not in linked]
     if missing:
@@ -80,6 +84,21 @@ def verify(image: bytes, linked: dict[str, int]) -> None:
     if call_target != linked["_emos_gateway"]:
         raise AbiError("MOS API wrapper does not call the resident Core gateway")
 
+    raw_calls = {
+        "read": ("sd_api_readblocks", "_SD_readBlocks_API"),
+        "write": ("sd_api_writeblocks", "_SD_writeBlocks_API"),
+    }
+    for operation, (wrapper_name, target_name) in raw_calls.items():
+        wrapper = linked[wrapper_name]
+        call = image[wrapper + 16 : wrapper + 20]
+        if len(call) != 4 or call[0] != 0xCD:
+            raise AbiError(f"raw {operation} wrapper lacks its fixed CALL instruction")
+        target = int.from_bytes(call[1:4], "little")
+        if target != linked[target_name]:
+            raise AbiError(
+                f"raw {operation} wrapper calls 0x{target:06x}, not {target_name}"
+            )
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -94,7 +113,7 @@ def main() -> int:
         return 2
     print(
         "EMOS ABI verified: MOS API 0x51, guarded UART1 slot 0x08, and resident "
-        "Core slot 0x20 are fixed"
+        "Core slot 0x20 and raw SD read/write dispatch are fixed"
     )
     return 0
 

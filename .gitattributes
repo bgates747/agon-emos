@@ -6,4 +6,5 @@ src/uart.c -text whitespace=cr-at-eol
 src/uart.h -text whitespace=cr-at-eol
 src/interrupts.asm -text whitespace=cr-at-eol
 src/vdp_protocol.asm -text whitespace=cr-at-eol
+src/mos_api.asm -text whitespace=cr-at-eol
 src/mos.c -text whitespace=cr-at-eol

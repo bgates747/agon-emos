@@ -1,5 +1,7 @@
 # EMOS TODO
 
+- [ ] **[FWBUG-008 — Correct raw SD API write dispatch](docs/tasks/FWBUG-008.md)** — A10-RP04 candidate: replace the inherited API `0x73` read-driver call with the write driver, preserve wrapper ABI/status behavior, reuse `mos-tests` raw-image controls, and retain the separately authorized physical destructive-sector gate.
+
 - [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — Idle-CLI admission boundary implemented; automated checks pass, human emulator review pending.
 
 - [ ] **[AUDIT-008](docs/tasks/AUDIT-008.md)** — Retire cancelled provider machinery and validate minimal foreground /emos dispatch; deployed with bounded physical checks passing; broader acceptance pending.

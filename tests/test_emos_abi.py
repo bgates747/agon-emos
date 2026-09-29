@@ -40,6 +40,20 @@ class EmosAbiTests(unittest.TestCase):
         self.assertIn("mos_function_emos_gateway:\tEQU\t20h", api)
         self.assertIn("0x12 is deliberately left available", api)
 
+    def test_raw_sd_wrappers_dispatch_to_distinct_driver_calls(self) -> None:
+        source = (MOS_SOURCE / "src" / "mos_api.asm").read_text(
+            encoding="utf-8"
+        )
+        read_start = source.index("sd_api_readblocks:")
+        write_start = source.index("sd_api_writeblocks:")
+        following = source.index("; C calling convention functions", write_start)
+        read_wrapper = source[read_start:write_start]
+        write_wrapper = source[write_start:following]
+        self.assertEqual(read_wrapper.count("CALL\t_SD_readBlocks_API"), 1)
+        self.assertNotIn("CALL\t_SD_writeBlocks_API", read_wrapper)
+        self.assertEqual(write_wrapper.count("CALL\t_SD_writeBlocks_API"), 1)
+        self.assertNotIn("CALL\t_SD_readBlocks_API", write_wrapper)
+
     def fixture(self) -> tuple[bytearray, dict[str, int]]:
         image = bytearray(0x800)
         linked = {
@@ -49,6 +63,10 @@ class EmosAbiTests(unittest.TestCase):
             "mos_function_block_start": 0x200,
             "mos_function_block_size": 0x21,
             "_open_UART1": 0x700,
+            "sd_api_readblocks": 0x500,
+            "sd_api_writeblocks": 0x520,
+            "_SD_readBlocks_API": 0x740,
+            "_SD_writeBlocks_API": 0x760,
         }
         image[0x100 + 0x51 * 2 : 0x100 + 0x51 * 2 + 2] = (0x400).to_bytes(
             2, "little"
@@ -62,6 +80,8 @@ class EmosAbiTests(unittest.TestCase):
         image[0x400:0x40F] = bytes(
             [0xED, 0x6E, 0xB7, 0xC2, 0, 0, 0, 0xE5, 0xCD, 0, 6, 0, 0x7D, 0xE1, 0xC9]
         )
+        image[0x500 + 16 : 0x500 + 20] = bytes([0xCD, 0x40, 0x07, 0x00])
+        image[0x520 + 16 : 0x520 + 20] = bytes([0xCD, 0x60, 0x07, 0x00])
         return image, linked
 
     def test_accepts_exact_gateway_layout(self) -> None:
@@ -79,6 +99,12 @@ class EmosAbiTests(unittest.TestCase):
             image[offset] ^= 1
             with self.subTest(offset=offset), self.assertRaises(abi.AbiError):
                 abi.verify(image, linked)
+
+    def test_rejects_linked_raw_write_dispatch_to_read_driver(self) -> None:
+        image, linked = self.fixture()
+        image[0x520 + 17 : 0x520 + 20] = (0x740).to_bytes(3, "little")
+        with self.assertRaisesRegex(abi.AbiError, "raw write wrapper"):
+            abi.verify(image, linked)
 
 
 if __name__ == "__main__":
