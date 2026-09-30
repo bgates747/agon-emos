@@ -134,6 +134,15 @@ runner restored the exact original startup and completed its full 55-case
 retained closure. Durable bench evidence is intentionally retained under the
 Extender repository's ignored hardware-validation directory.
 
+A later full-suite reuse exposed a protocol defect outside the accepted raw
+write repair: the host waited 120 seconds for a result service that the startup
+file did not reliably launch after `RUN`, then treated the timeout as permission
+to reset. The corrected fixture itself starts `EMOS sdserve --fast /` only after
+it has either made no raw write or independently verified restoration. Missing
+service is no longer considered a safe reset boundary. This fixture correction
+requires fresh physical validation; it does not alter production EMOS keyboard
+defaults or the accepted `src/mos_api.asm` repair.
+
 ## Completion
 
 Close only after the Author accepts the candidate. The passing physical result

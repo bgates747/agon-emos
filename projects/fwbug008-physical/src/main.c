@@ -26,6 +26,18 @@ static const char recovery_startup[] =
     "VDU 22 3\r\n"
     "EMOS sdserve --fast /\r\n";
 
+/* Positive host handoff: RUN returning is not a remotely observable fixture
+ * completion signal.  Start the result service here only after the fixture is
+ * known not to have touched media, or after sector restoration was verified.
+ * The host must never infer that a timeout makes an in-flight raw write safe
+ * to interrupt with a reset. */
+static int serve_result(int result) {
+  char command[] = "EMOS sdserve --fast /";
+  int service = mos_oscli(command, NULL, 0);
+  if (service) printf("FAIL: result service returned %d.\r\n", service);
+  return service ? service : result;
+}
+
 static uint32_t le32(const uint8_t *p) {
   return (uint32_t)p[0] | (uint32_t)p[1] << 8 | (uint32_t)p[2] << 16 |
          (uint32_t)p[3] << 24;
@@ -93,7 +105,7 @@ int main(void) {
     (void)save_result("infrastructure-error", 255, 255, 255, 0, 0, 0, 0,
                       "recovery-arm-failed", first_partition_lba, 0);
     puts("FAIL: could not disarm the one-shot startup; no raw write attempted.");
-    return 19;
+    return serve_result(19);
   }
   fwbug008_get_unlock(&unlock);
   restore_write = fwbug008_control_write();
@@ -104,7 +116,7 @@ int main(void) {
                       !restore_write ? "control-lookup-zero" : "sd-init-failed",
                       first_partition_lba, 0);
     puts("FAIL: raw-SD initialization/control lookup failed; no write attempted.");
-    return 19;
+    return serve_result(19);
   }
   unsigned mbr_rc = sd_readblocks(0, mbr, 1);
   if (!mbr_rc) {
@@ -121,14 +133,14 @@ int main(void) {
                       mbr_rc ? "mbr-read-failed" : "unsafe-card-layout",
                       first_partition_lba, 0);
     puts("FAIL: sector 2 is not proven outside the first MBR partition; no write attempted.");
-    return 19;
+    return serve_result(19);
   }
   unsigned preimage_rc = sd_readblocks(sector, before, 1);
   if (preimage_rc != 0) {
     (void)save_result("infrastructure-error", preimage_rc, 255, 255, 0, 0, 0, 0,
                       "preimage-read-failed", first_partition_lba, 0);
     puts("FAIL: sector preimage could not be retained; no write attempted.");
-    return 19;
+    return serve_result(19);
   }
   for (unsigned i = 0; i != sizeof pattern; ++i)
     pattern[i] = before[i] ^ (uint8_t)(0xa5U + i * 29U);
@@ -160,8 +172,8 @@ int main(void) {
   }
   if (!tested_ok || evidence_rc) {
     puts("FAIL: repaired API did not write the expected bytes.");
-    return 19;
+    return serve_result(19);
   }
   puts("PASS: repaired API wrote sector 2 and the original sector was restored.");
-  return 0;
+  return serve_result(0);
 }
