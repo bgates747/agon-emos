@@ -23,6 +23,9 @@ static uint8_t mbr[512], before[512], pattern[512], observed[512], restored[512]
 static const char recovery_startup[] =
     "SET KEYBOARD 1\r\n"
     "EMOS KEYINPUT extender\r\n"
+    /* The P4 can retain ExCom across an eZ80 reset. VDU 22 selects geometry;
+     * it does not return EMOS transport ownership to Legacy. */
+    "EMOS LEGACY\r\n"
     "VDU 22 3\r\n"
     "EMOS sdserve --fast /\r\n";
 

@@ -145,6 +145,24 @@ defaults or the accepted `src/mos_api.asm` repair. Exact fixture commit
 `150480e8054259131a00ad1b412d389b36339889` builds a 10,650-byte binary with
 SHA-256 `6e04a760f87ae503be57f4991c2a92c9128da32f7882fb6dee88f976d856ef81`.
 
+The first revalidation run against EMOS `13951a29` again produced a complete
+passing raw-media record: selector `0x73`, independent observation, independent
+C restoration and restoration readback all returned zero; CRC32 values remained
+`3b3befd6` for the pattern and `b2aa7578` for the restored preimage. The host did
+not receive the positive listener handoff because the P4 retained ExCom routing
+across the eZ80 reset. `VDU 22 3` selected geometry but did not return EMOS
+transport ownership to Legacy, so `ext.sdlink` correctly returned
+`EMOS_UNAVAILABLE` (35). The retained result was recovered only after an
+explicit `EMOS LEGACY` command.
+
+The fixture recovery startup and Extender-owned one-shot launcher now issue
+`EMOS LEGACY` after selecting Extender keyboard input and before `VDU 22 3`.
+This is a test-protocol correction: it does not change the accepted raw-write
+repair or production EMOS boot defaults. The corrected fixture is 10,663 bytes
+with SHA-256
+`5b0945ffcc5db2c37beb61c5aa4f0c749c8d220cc8a9364a4d7bbd9e0998fb4d`.
+Its build and source-order guard pass; fresh physical validation remains.
+
 ## Completion
 
 Close only after the Author accepts the candidate. The passing physical result
