@@ -161,7 +161,19 @@ This is a test-protocol correction: it does not change the accepted raw-write
 repair or production EMOS boot defaults. The corrected fixture is 10,663 bytes
 with SHA-256
 `5b0945ffcc5db2c37beb61c5aa4f0c749c8d220cc8a9364a4d7bbd9e0998fb4d`.
-Its build and source-order guard pass; fresh physical validation remains.
+Its build and source-order guard pass. The next run proved the raw operation
+and restoration again passed, but exposed a second protocol error: an ordinary
+running application cannot recursively launch `EMOS sdserve`; the EMOS utility
+dispatcher correctly returns busy until that application has returned.
+
+Exact fixture commit `888c9210619c50bdea507c3f6de134cf239f0969` removes the invalid nested
+utility call. The host supplies a fresh 16-digit hexadecimal token to `RUN`;
+after all raw I/O has ended, the fixture writes that token into its result file,
+prints `A10-RP04 COMPLETE <token>`, and returns. The host must observe that exact
+marker followed by a MOS prompt before it may start the result listener. The
+fixture builds to 10,747 bytes with SHA-256
+`4f83e462cad913537d0f0103468423f151d271531177a849fdfb8434a8ec64e6`;
+its focused source contracts pass. Fresh physical validation remains.
 
 ## Completion
 
