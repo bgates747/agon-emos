@@ -141,7 +141,9 @@ to reset. The corrected fixture itself starts `EMOS sdserve --fast /` only after
 it has either made no raw write or independently verified restoration. Missing
 service is no longer considered a safe reset boundary. This fixture correction
 requires fresh physical validation; it does not alter production EMOS keyboard
-defaults or the accepted `src/mos_api.asm` repair.
+defaults or the accepted `src/mos_api.asm` repair. Exact fixture commit
+`150480e8054259131a00ad1b412d389b36339889` builds a 10,650-byte binary with
+SHA-256 `6e04a760f87ae503be57f4991c2a92c9128da32f7882fb6dee88f976d856ef81`.
 
 ## Completion
 
