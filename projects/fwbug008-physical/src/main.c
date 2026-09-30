@@ -20,25 +20,36 @@ extern uint8_t fwbug008_rst_write(const void *request, uint8_t *buffer,
 extern control_write_t fwbug008_control_write(void);
 
 static uint8_t mbr[512], before[512], pattern[512], observed[512], restored[512];
+static char completion_token[17];
 static const char recovery_startup[] =
     "SET KEYBOARD 1\r\n"
     "EMOS KEYINPUT extender\r\n"
     /* The P4 can retain ExCom across an eZ80 reset. VDU 22 selects geometry;
      * it does not return EMOS transport ownership to Legacy. */
     "EMOS LEGACY\r\n"
-    "VDU 22 3\r\n"
-    "EMOS sdserve --fast /\r\n";
+    "VDU 22 3\r\n";
 
-/* Positive host handoff: RUN returning is not a remotely observable fixture
- * completion signal.  Start the result service here only after the fixture is
- * known not to have touched media, or after sector restoration was verified.
- * The host must never infer that a timeout makes an in-flight raw write safe
- * to interrupt with a reset. */
-static int serve_result(int result) {
-  char command[] = "EMOS sdserve --fast /";
-  int service = mos_oscli(command, NULL, 0);
-  if (service) printf("FAIL: result service returned %d.\r\n", service);
-  return service ? service : result;
+/* An ordinary application cannot recursively launch an EMOS utility: EMOS
+ * correctly returns EMOS_BUSY while the application owns the foreground.
+ * Instead, print a per-run token only after raw I/O has ended. The host waits
+ * for this marker and the following MOS prompt before it starts sdserve. The
+ * marker proves execution has ended; the result file separately says whether
+ * the test and restoration passed. */
+static int finish(int result) {
+  printf("A10-RP04 COMPLETE %s\r\n", completion_token);
+  return result;
+}
+
+static int accept_token(int argc, char **argv) {
+  if (argc != 2 || strlen(argv[1]) != sizeof completion_token - 1)
+    return 0;
+  for (unsigned i = 0; i != sizeof completion_token - 1; ++i) {
+    char c = argv[1][i];
+    if (!((c >= '0' && c <= '9') || (c >= 'A' && c <= 'F')))
+      return 0;
+  }
+  memcpy(completion_token, argv[1], sizeof completion_token);
+  return 1;
 }
 
 static uint32_t le32(const uint8_t *p) {
@@ -68,11 +79,12 @@ static int save_result(const char *status, unsigned test_rc, unsigned restore_rc
       "test_rc=%u\nrestore_rc=%u\nrestore_verify_rc=%u\n"
       "before_crc32=%08lx\npattern_crc32=%08lx\n"
       "observed_crc32=%08lx\nrestored_crc32=%08lx\n"
-      "detail=%s\nfirst_partition_lba=%lu\nwrite_attempted=%u\n",
+      "detail=%s\nfirst_partition_lba=%lu\nwrite_attempted=%u\n"
+      "token=%s\n",
       status, test_rc, restore_rc, verify_rc,
       (unsigned long)before_crc, (unsigned long)pattern_crc,
       (unsigned long)observed_crc, (unsigned long)restored_crc, detail,
-      (unsigned long)first_partition_lba, write_attempted);
+      (unsigned long)first_partition_lba, write_attempted, completion_token);
   if (n < 0 || n >= (int)sizeof record ||
       ffs_fopen(&file, "/agents/extender/results/a10-rp04.txt",
                 FA_WRITE | FA_CREATE_ALWAYS))
@@ -94,7 +106,7 @@ static int arm_recovery(void) {
   return okay;
 }
 
-int main(void) {
+int main(int argc, char **argv) {
   const uint32_t sector = 2;
   uint24_t unlock;
   uint8_t write_request[7];
@@ -103,12 +115,16 @@ int main(void) {
   uint32_t before_crc = 0, pattern_crc = 0, observed_crc = 0, restored_crc = 0;
   uint32_t first_partition_lba = UINT32_MAX;
 
-  puts("A10-RP04 physical raw-SD test starting.");
+  if (!accept_token(argc, argv)) {
+    puts("FAIL: a 16-digit uppercase hexadecimal run token is required.");
+    return 19;
+  }
+  printf("A10-RP04 physical raw-SD test %s starting.\r\n", completion_token);
   if (!arm_recovery()) {
     (void)save_result("infrastructure-error", 255, 255, 255, 0, 0, 0, 0,
                       "recovery-arm-failed", first_partition_lba, 0);
     puts("FAIL: could not disarm the one-shot startup; no raw write attempted.");
-    return serve_result(19);
+    return finish(19);
   }
   fwbug008_get_unlock(&unlock);
   restore_write = fwbug008_control_write();
@@ -119,7 +135,7 @@ int main(void) {
                       !restore_write ? "control-lookup-zero" : "sd-init-failed",
                       first_partition_lba, 0);
     puts("FAIL: raw-SD initialization/control lookup failed; no write attempted.");
-    return serve_result(19);
+    return finish(19);
   }
   unsigned mbr_rc = sd_readblocks(0, mbr, 1);
   if (!mbr_rc) {
@@ -136,14 +152,14 @@ int main(void) {
                       mbr_rc ? "mbr-read-failed" : "unsafe-card-layout",
                       first_partition_lba, 0);
     puts("FAIL: sector 2 is not proven outside the first MBR partition; no write attempted.");
-    return serve_result(19);
+    return finish(19);
   }
   unsigned preimage_rc = sd_readblocks(sector, before, 1);
   if (preimage_rc != 0) {
     (void)save_result("infrastructure-error", preimage_rc, 255, 255, 0, 0, 0, 0,
                       "preimage-read-failed", first_partition_lba, 0);
     puts("FAIL: sector preimage could not be retained; no write attempted.");
-    return serve_result(19);
+    return finish(19);
   }
   for (unsigned i = 0; i != sizeof pattern; ++i)
     pattern[i] = before[i] ^ (uint8_t)(0xa5U + i * 29U);
@@ -171,12 +187,12 @@ int main(void) {
                                 restored_crc, "completed", first_partition_lba, 1);
   if (!restored_ok) {
     puts("FAIL: sector restoration was not verified. Do not continue tests.");
-    return 20;
+    return finish(20);
   }
   if (!tested_ok || evidence_rc) {
     puts("FAIL: repaired API did not write the expected bytes.");
-    return serve_result(19);
+    return finish(19);
   }
   puts("PASS: repaired API wrote sector 2 and the original sector was restored.");
-  return serve_result(0);
+  return finish(0);
 }
