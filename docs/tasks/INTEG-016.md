@@ -16,6 +16,18 @@ admission, UART drain/ISR fencing, direction release acknowledgements and
 boot/reset recovery. Add the assembly hot loop using proved sender idioms.
 No application bypass or public raw GPIO API.
 
+I16-02a [x] — Current F02c1 increment: private four-byte handover sequencer,
+with completed-adapter inputs and bounded transition calls. Test entry/return,
+release failure and reset/cancel against the P4 counterpart, then execute the
+linked C code in the eZ80 interpreter. No live GPIO/UART calls or boot changes.
+
+I16-02b [ ] — F02c2: bind real UART packet drain, serializer/ISR fencing,
+coordinator-owned matching admission and reset fences. Preserve queues and key
+state during normal suspension; retained RAM is not promised across a reset.
+
+I16-02c [ ] — F02c3: assembly payload loop and current direct-wiring adapters,
+with exact target-build and software fault checks before the hardware gate.
+
 I16-03 [ ] — When separately authorized, qualify exact bytes, first/last edge,
 reset/timeout release and resumed keyboard input on hardware with Extender.
 Do not infer electrical behavior or throughput from emulation.
@@ -62,3 +74,33 @@ The Author explicitly authorized a safety commit and push on 2026-10-08,
 including the emulator-coupled development checkpoint. This supersedes the
 earlier commit hold only. Hardware qualification, activation and production
 promotion remain pending; no additional bench access is authorized.
+
+## F02c1 handover result — 2026-10-08
+
+The private handover state machine is compiled but has no live UART/GPIO
+caller. Paired EMOS/P4 tests pass 5,208 cases, including unequal adapter delays,
+reset/cancel at every step, failed release, blocked quiescence and retained
+keyboard queue order. The new linked eZ80 state machine passes 16,392 ABI and
+transition checks. Existing reverse-core host/CPU and forward/UART ownership
+regressions pass, as does the canonical complete `firmware-check` wrapper.
+Image 129,626 bytes: +430 bytes, 1,446 bytes below the image limit. IY is
+caller-clobbered in the established AgonDev C ABI; IX/SP/IFF are checked.
+
+The P4 candidate required an arming-cancellation guard: a negative control
+without it reproduces an EMOS UART/P4 parallel-driver overlap after reset.
+Extender's `docs/tasks/PORT-008/HANDOVER.md` specifies the exact candidate phases
+and adapter contracts; `HANDOVER-RESULTS.md` and `HANDOVER-RESULT.json` retain
+paired results and source/artifact hashes. The adapter must clear completion
+bits for each new operation and on cancellation; a requested release is not
+an acknowledged release. Only the existing EMOS coordinator may admit a
+matching ExExt transaction. No actual wire opcode, boot fence, ISR/serializer
+suspension or hardware activation is implemented by this increment.
+
+No bench accessed or firmware deployed. New changes are uncommitted pending
+Author review; the earlier safety-checkpoint permission did not automatically
+approve this subsequent emulator-coupled tranche. Unrelated application-peer
+work remains untouched.
+
+The Author subsequently authorized committing and pushing the F02c1 checkpoint
+before the next development tranche. Bench access remains prohibited; this is
+not physical acceptance or production promotion.

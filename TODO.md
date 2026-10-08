@@ -1,6 +1,6 @@
 # EMOS TODO
 
-- [ ] **[INTEG-016 — Bidirectional ExExt parallel transport](docs/tasks/INTEG-016.md)** — Receive reference and linked eZ80 checks pass; next: coordinator-owned UART/pin handover. No physical activation; Author emulator review pending.
+- [ ] **[INTEG-016 — Bidirectional ExExt parallel transport](docs/tasks/INTEG-016.md)** — Receive and private handover cores pass paired and linked eZ80 checks; next: actual coordinator-owned UART/admission/ISR/boot integration. No physical activation; Author emulator review pending.
 
 - [ ] **[INTEG-015 — Pingo completion callback compatibility](docs/tasks/INTEG-015.md)** — Bounded assembly correction builds; 796 linked CPU cases and existing keyboard checks pass. Installed ROM verified; unchanged Pingo application passes bounded completion/input check. Author acceptance and fsim visual review pending.
 
