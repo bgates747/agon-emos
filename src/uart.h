@@ -193,7 +193,15 @@ extern INT putch(INT ich);				// Now in serial.asm
 extern INT getch(VOID);					// Now in serial.asm
 
 /* Private resident keyboard driver; not an application UART API. */
+/* Nonzero still reserves the public UART API. 2 means pins parked for
+ * private parallel ownership, not a released keyboard lease. Assembly agrees. */
+#define UART_KEYBOARD_PARKED 2
 extern volatile BYTE uart1_keyboard_owned;
+/* IRQ-off leaves; coordinator must fence the peer and reserve Port C first.
+ * Normal park never clears FIFOs, key state, baud rate or the installed vector.
+ * Unpark requires all eight local lanes input and peer release acknowledged. */
+BYTE uart1_keyboard_park(void);
+BYTE uart1_keyboard_unpark(void);
 BYTE uart1_keyboard_open(void);
 void uart1_keyboard_close(void);
 void uart1_keyboard_stop(void);

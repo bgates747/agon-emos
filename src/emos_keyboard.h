@@ -17,6 +17,10 @@
 extern volatile BYTE emos_key_source, emos_key_faulted;
 BYTE emos_keyboard_select(BYTE source);
 BYTE emos_keyboard_transport_claim(void);
+/* Private handover leaves, not an ExExt command/API. Caller owns admission,
+ * peer quiescence, handover signals, deadline and recovery (PORT-008). */
+BYTE emos_keyboard_parallel_park(void);
+BYTE emos_keyboard_parallel_unpark(void);
 void emos_keyboard_transport_release(void);
 BYTE emos_keyboard_send(const BYTE *data, UINT16 length);
 /* BENCH-001: copy one bounded packet; ISR owner drains it without waiting. */

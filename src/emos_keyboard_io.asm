@@ -40,6 +40,8 @@ _uart1_keyboard_put:
             ADD HL, SP
             LD C, (HL)
             LD A, (_uart1_keyboard_owned)
+            CP 2              ; private parallel parking retains logical ownership
+            JR Z, keyboard_put_unavailable
             OR A
             JR Z, keyboard_put_unavailable
             LD A, (_emos_key_faulted)
@@ -118,6 +120,8 @@ keyboard_block_retry:
 keyboard_block_attempt:
             DI
             LD A, (_uart1_keyboard_owned)
+            CP 2
+            JR Z, keyboard_block_unavailable
             OR A
             JR Z, keyboard_block_unavailable
             LD A, (_emos_key_faulted)
@@ -202,6 +206,8 @@ _emos_keyboard_byte:
             OR A
             RET NZ
             LD A, (_uart1_keyboard_owned)
+            CP 2
+            RET Z
             OR A
             RET Z
             LD HL, 3
@@ -215,6 +221,8 @@ _emos_keyboard_byte:
 ; retains both checks. The complete-IRQ harness enforces this private contract.
 keyboard_rx_register:
             LD A, (_uart1_keyboard_owned)
+            CP 2
+            RET Z
             OR A
             RET Z
 keyboard_rx_state:
@@ -285,6 +293,8 @@ keyboard_rx_empty:
 ; RX04 keeps BC saved across callbacks and passes its existing C byte directly.
 _uart1_keyboard_irq:
             LD A, (_uart1_keyboard_owned)
+            CP 2
+            RET Z
             OR A
             RET Z
             LD A, (_emos_key_faulted)

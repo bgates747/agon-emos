@@ -254,6 +254,45 @@ static int test_cts_and_explicit_rts_ownership(void) {
     return 0;
 }
 
+static int test_keyboard_park(void) {
+    unsigned status;
+    UART settings=uart_settings();
+    hostPcDdr=0xFF;hostPcAlt1=0;hostPcAlt2=3;hostPcDr=0xF3;
+    hostUart1Ier=0;serialFlags=1;emos_key_faulted=0;
+    initialState=snapshot_uart1();
+    CHECK(uart1_keyboard_open()==UART_POLL_READY);
+    /* All status values: TEMT (not THRE), DR, and acknowledging errors. */
+    for (status=0;status<256;++status) {
+        t_uart1State after;
+        hostUart1Ier=5;hostPcDr &= ~4;hostUart1Lsr=status;
+        initialState=snapshot_uart1();
+        BYTE result=uart1_keyboard_park();
+        if (status & 0x9E) {
+            CHECK(result==UART_POLL_ERROR && !hostUart1Ier && (hostPcDr&4));
+            CHECK(uart1_keyboard_owned==1 && hostPcAlt2==3);
+        } else if (!(status&0x40) || (status&1)) {
+            after=snapshot_uart1();
+            CHECK(result==UART_POLL_EMPTY && state_equal(&initialState,&after));
+        } else {
+            CHECK(result==UART_POLL_READY && uart1_keyboard_owned==UART_KEYBOARD_PARKED);
+            CHECK(hostPcDdr==255 && !hostPcAlt1 && !hostPcAlt2 && !hostUart1Ier);
+            CHECK(hostUart1Mctl==UART_MCTL_LOOP);
+            initialState=snapshot_uart1();
+            uart1_keyboard_stop();uart1_keyboard_close();close_UART1();uart1_keyboard_irq();
+            CHECK(open_UART1(&settings)==UART_ERR_FAILURE);
+            CHECK(uart1_keyboard_put(42)==UART_POLL_UNAVAILABLE);
+            after=snapshot_uart1();CHECK(state_equal(&initialState,&after));
+            hostPcDdr=0;CHECK(uart1_keyboard_unpark()==UART_POLL_UNAVAILABLE);
+            hostPcDdr=255;CHECK(uart1_keyboard_unpark()==UART_POLL_READY);
+            CHECK(uart1_keyboard_owned==1 && hostPcDdr==0xFB && hostPcAlt2==3);
+            CHECK(hostUart1Mctl==0 && hostUart1Ier==5 && !(hostPcDr&4));
+            CHECK(hostUart1Fctl==7 && serialFlags==0x31 && vector_owned);
+        }
+    }
+    uart1_keyboard_close();
+    return 0;
+}
+
 static int test_keyboard_ownership(void) {
     BYTE value = 0;
     UART settings = uart_settings();
@@ -297,6 +336,7 @@ int main(void) {
 	if (test_nonblocking_operations()) return 1;
 	if (test_cts_and_explicit_rts_ownership()) return 1;
 	if (test_keyboard_ownership()) return 1;
+	if (test_keyboard_park()) return 1;
 	puts("EMOS UART1 guard and nonblocking host checks passed");
 	return 0;
 }

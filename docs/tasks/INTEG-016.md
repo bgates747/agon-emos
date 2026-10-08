@@ -25,6 +25,14 @@ I16-02b [ ] — F02c2: bind real UART packet drain, serializer/ISR fencing,
 coordinator-owned matching admission and reset fences. Preserve queues and key
 state during normal suspension; retained RAM is not promised across a reset.
 
+I16-02b1 [x] — PORT-008 F02c2a: private real UART park/restore leaves,
+serializer/Port C reservation, complete-packet and TEMT checks, RX isolation,
+and parked-state TX/IRQ/RTS guards. Linked CPU and host tests plus the full
+firmware wrapper pass. No live caller or ExExt activation.
+
+I16-02b2 [ ] — PORT-008 F02c2b: bind the leaves to paired phase machines,
+matching wire admission, bounded recovery and real startup/reset fencing.
+
 I16-02c [ ] — F02c3: assembly payload loop and current direct-wiring adapters,
 with exact target-build and software fault checks before the hardware gate.
 
@@ -104,3 +112,34 @@ work remains untouched.
 The Author subsequently authorized committing and pushing the F02c1 checkpoint
 before the next development tranche. Bench access remains prohibited; this is
 not physical acceptance or production promotion.
+
+
+## UART parking development — 2026-10-08
+
+Private `emos_keyboard_parallel_park/unpark` reserve the existing serializer
+and Port C lock, preserving keyboard state through normal suspension. UART
+ownership value 2 keeps public access excluded while target TX/parser/IRQ
+and C RTS/timer paths avoid shared pins. TEMT and a complete packet boundary
+are mandatory; acknowledged errors remain pending for the normal fault ISR.
+Zilog PS015317-0120 page 119 documents MCTL.LOOP's external RX disconnection;
+UART interrupts disabled alone would not isolate parallel edges. Restore
+requires all local data lanes input and coordinator proof of peer release.
+
+289 linked eZ80 parking checks pass; regression comparisons pass 221,184 byte
+TX cases/image, 375 block cases, 1,302 complete IRQ cases and 8,683,703 parser
+cases. Host receiver/parallel/provenance checks and all firmware wrapper guards
+pass. Exact Port C write sequences for the two new leaves are added to the
+linked ownership inventory. The stale source-list test now includes the
+preceding handover unit. Normal byte TX adds two interpreted instructions.
+Image: 130,135 bytes, +509 over the preceding checkpoint, 937 bytes remaining.
+These are model/build checks, not target throughput or a complete Fab boot.
+
+Paired P4 adapter/build evidence and remaining gates:
+`../agon-extender/docs/tasks/PORT-008/UART-PARKING-RESULTS.md`. Existing ordinary
+UART startup still runs; neither new leaf is bound to an activation path.
+No bench operations occurred. New changes remain uncommitted for Author review.
+Unrelated `scripts/application_peer.py` is untouched.
+
+The Author approved committing and pushing the UART parking checkpoint before
+continuing with F02c2b integration. This preserves bench-free development
+evidence; it does not authorize deployment or imply production acceptance.

@@ -256,12 +256,12 @@ BYTE uart1_keyboard_open(void) {
     return UART_POLL_READY;
 }
 void uart1_keyboard_stop(void) {
-    if (!uart1_keyboard_owned) return;
+    if (!uart1_keyboard_owned || uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
     SETREG(PC_DR, PORTPIN_TWO);
     UART1_IER = 0;
 }
 void uart1_keyboard_close(void) {
-    if (!uart1_keyboard_owned) return;
+    if (!uart1_keyboard_owned || uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
     /* A hostile/raw replacement is unsupported, but never overwrite it. */
     if (!emos_keyboard_vector(2)) return;
     uart1_keyboard_stop();
@@ -273,11 +273,52 @@ void uart1_keyboard_close(void) {
     RESETREG(PC_ALT2, 0x0F);
     emos_keyboard_vector(0);
 }
+/* PORT-008 F02c2a: actual pad leaves, deliberately no live caller yet.
+ * eZ80F92 PS015317-0120 p119: MCTL.LOOP disconnects external RX and
+ * connects internal TX (already TEMT) to RX. IER=0 alone does NOT do that.
+ * Never write THR while parked, nor clear a FIFO to manufacture quiescence.
+ * The peer must already have stopped sending at a complete packet boundary;
+ * software cannot detect an in-flight start bit by checking LSR.DR. */
+static BYTE parallel_saved_ier;
+BYTE uart1_keyboard_park(void) {
+    BYTE status;
+    if (uart1_keyboard_owned != 1 || emos_key_faulted || !uart1_rts_owned ||
+        PC_DDR != 0xFB || PC_ALT1 || PC_ALT2 != 3 || UART1_MCTL)
+        return UART_POLL_UNAVAILABLE;
+    status = UART1_LSR; /* Read once: error bits are acknowledged by this read. */
+    if (status & 0x9E) {
+        uart1_keyboard_stop();
+        return UART_POLL_ERROR;
+    }
+    if (!(status & UART_LSR_TEMT) || (status & UART_LSR_DR)) return UART_POLL_EMPTY;
+    parallel_saved_ier = UART1_IER;
+    uart1_keyboard_owned = UART_KEYBOARD_PARKED;
+    UART1_IER = 0;
+    UART1_MCTL = UART_MCTL_LOOP;
+    PC_DDR = 0xFF; /* Release GPIO outputs before removing UART muxes. */
+    PC_ALT1 = 0;
+    PC_ALT2 = 0;
+    return UART_POLL_READY;
+}
+BYTE uart1_keyboard_unpark(void) {
+    if (uart1_keyboard_owned != UART_KEYBOARD_PARKED || PC_DDR != 0xFF ||
+        PC_ALT1 || PC_ALT2) return UART_POLL_UNAVAILABLE;
+    /* Restore only UART's subset. Keep RX isolated until physical UART mux
+     * is restored; advertise receive readiness last, after the IRQ is armed. */
+    SETREG(PC_DR, PORTPIN_TWO);
+    PC_ALT2 = 3;
+    RESETREG(PC_DDR, PORTPIN_TWO);
+    UART1_MCTL = 0;
+    uart1_keyboard_owned = 1;
+    UART1_IER = parallel_saved_ier;
+    RESETREG(PC_DR, PORTPIN_TWO);
+    return UART_POLL_READY;
+}
 /* Target leaf is in emos_keyboard_io.asm; retain the original C oracle. */
 #ifdef EMOS_UART_PUT_C_REFERENCE
 BYTE uart1_keyboard_put(BYTE value) {
     BYTE irq = emos_keyboard_lock(), status, result;
-    if (!uart1_keyboard_owned || emos_key_faulted) result = UART_POLL_UNAVAILABLE;
+    if (!uart1_keyboard_owned || uart1_keyboard_owned == UART_KEYBOARD_PARKED || emos_key_faulted) result = UART_POLL_UNAVAILABLE;
     else {
         status = UART1_LSR;
         if (status & (UART_LSR_OE | UART_LSR_PE | UART_LSR_FE | UART_LSR_BI | UART_LSR_ERR)) {
@@ -294,7 +335,7 @@ BYTE uart1_keyboard_put(BYTE value) {
 #ifdef EMOS_UART_IRQ_C_REFERENCE
 void uart1_keyboard_irq(void) {
     BYTE count, status;
-    if (!uart1_keyboard_owned || emos_key_faulted) return;
+    if (!uart1_keyboard_owned || uart1_keyboard_owned == UART_KEYBOARD_PARKED || emos_key_faulted) return;
     SETREG(PC_DR, PORTPIN_TWO); /* Stop peer while processing its FIFO. */
     for (count = 0; count < 16; ++count) {
         status = UART1_LSR;
@@ -314,6 +355,7 @@ void uart1_keyboard_irq(void) {
 /* RX02 completion tail: the assembly drain retains the same stop/error/cap
  * policy. Keep the profile-dependent telemetry dispatch in maintained C. */
 void uart1_keyboard_irq_done(void) {
+    if (uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
     RESETREG(PC_DR, PORTPIN_TWO);
 #ifdef EMOS_BENCH_TELEMETRY
     emos_keyboard_async_irq();
@@ -322,7 +364,7 @@ void uart1_keyboard_irq_done(void) {
 #endif
 #ifdef EMOS_BENCH_TELEMETRY
 void uart1_keyboard_tx_enable(BYTE enabled) {
-    if (!uart1_keyboard_owned || emos_key_faulted) return;
+    if (!uart1_keyboard_owned || uart1_keyboard_owned == UART_KEYBOARD_PARKED || emos_key_faulted) return;
     if (enabled) UART1_IER |= UART_IER_TRANSMITINT;
     else UART1_IER &= (BYTE)~UART_IER_TRANSMITINT;
 }

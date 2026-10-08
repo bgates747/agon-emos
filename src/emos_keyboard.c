@@ -9,10 +9,12 @@
 #include "emos_console.h"
 #include "emos_sdlink.h"
 #include "emos_telemetry.h"
+#include "emos_parallel.h"
 
 volatile BYTE emos_key_source, emos_key_faulted;
 static volatile BYTE transitioning, preparing, stop_requested, fault_requested;
 static BYTE prepared_source;
+static BYTE parallel_reserved;
 #ifdef EMOS_BENCH_TELEMETRY
 /* Core-owned packet: never retain application memory beyond a gateway call.
  * transitioning protects COMPLETE wire packets from foreground interleaving. */
@@ -86,6 +88,7 @@ void emos_keyboard_mainboard_settings(BYTE *p) {
 }
 void emos_keyboard_fault(void) {
     /* ISR only. Foreground TX errors request this through fault_requested. */
+    if (uart1_keyboard_owned == UART_KEYBOARD_PARKED) { fault_requested = 1; return; }
     uart1_keyboard_stop();
     #ifdef EMOS_BENCH_TELEMETRY
     async_abort();
@@ -98,6 +101,7 @@ void emos_keyboard_fault(void) {
     if (emos_key_source != EMOS_KEY_MAINBOARD) cleanup();
 }
 void emos_keyboard_tick(void) {
+    if (uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
     if (stop_requested) {
         #ifdef EMOS_BENCH_TELEMETRY
         async_abort();
@@ -150,7 +154,7 @@ void emos_keyboard_dispatch(void) {
 }
 #ifdef EMOS_RX_BYTE_C_REFERENCE
 void emos_keyboard_byte(BYTE value) {
-    if (emos_key_faulted || !uart1_keyboard_owned) return;
+    if (emos_key_faulted || !uart1_keyboard_owned || uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
     if (!emos_key_rx.state) {
         if (!(value & 0x80)) return;
         emos_key_rx.command = value; emos_key_rx.state = 1; emos_key_rx.partial_at = emos_keyboard_clock();
@@ -350,10 +354,41 @@ BYTE emos_keyboard_transport_claim(void) {
 }
 void emos_keyboard_transport_release(void) {
     BYTE irq = emos_keyboard_lock();
-    if (!emos_console_owned && emos_key_source == EMOS_KEY_MAINBOARD) {
+    if (!parallel_reserved && !emos_console_owned && emos_key_source == EMOS_KEY_MAINBOARD) {
         uart1_keyboard_close(); parser_reset();
     }
     emos_keyboard_unlock(irq);
+}
+/* Suspend only between complete packets. Serializer and Port C guard stay
+ * reserved until successful restore. A busy attempt changes neither lease.
+ * Error status must survive the acknowledging LSR read until the timer ISR
+ * handles it; normal suspension never synthesizes key releases. */
+BYTE emos_keyboard_parallel_park(void) {
+    BYTE irq = emos_keyboard_lock(), result = UART_POLL_UNAVAILABLE;
+    if (irq && !transitioning && !preparing && !fault_requested && !stop_requested &&
+        !emos_key_faulted && !emos_key_rx.state && uart1_keyboard_owned == 1 &&
+        emos_parallel_uart1_guard_acquire() == EMOS_PARALLEL_OK) {
+        result = uart1_keyboard_park();
+        if (result == UART_POLL_READY) parallel_reserved = transitioning = 1;
+        else {
+            emos_parallel_uart1_guard_release();
+            if (result == UART_POLL_ERROR) fault_requested = 1;
+        }
+    }
+    emos_keyboard_unlock(irq);
+    return result;
+}
+BYTE emos_keyboard_parallel_unpark(void) {
+    BYTE irq = emos_keyboard_lock(), result = UART_POLL_UNAVAILABLE;
+    if (irq && parallel_reserved) {
+        result = uart1_keyboard_unpark();
+        if (result == UART_POLL_READY) {
+            parallel_reserved = transitioning = 0;
+            emos_parallel_uart1_guard_release();
+        }
+    }
+    emos_keyboard_unlock(irq);
+    return result;
 }
 BYTE emos_keyboard_send(const BYTE *data, UINT16 length) {
     BYTE irq = emos_keyboard_lock(), ok = 1;

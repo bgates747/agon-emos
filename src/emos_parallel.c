@@ -384,8 +384,9 @@ BYTE emos_parallel_uart1_guard_acquire(void) {
 }
 
 void emos_parallel_uart1_guard_release(void) {
-	/* Only open_UART1() calls this, exactly once after a successful acquire and
-	 * after it has published serialFlags bit 4.  A byte store is indivisible on
+	/* UART open releases after publishing serialFlags bit 4; the private
+	 * handover coordinator releases only after UART restoration. Each releases
+	 * exactly once after a successful acquire.  A byte store is indivisible on
 	 * the eZ80; an interrupting epoch observes either the held lock or UART1. */
 	emosParallelWriterLock = 0;
 }

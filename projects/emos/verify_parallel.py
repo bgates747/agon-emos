@@ -505,6 +505,10 @@ def verify_linked(
         # checks the actual IRQ/stock-handler/ownership bridges.
         "_uart1_keyboard_open": [0x9E],
         "_uart1_keyboard_stop": [0x9E],
+        # PORT-008: exact pad sequences; linked CPU tests also enforce IRQ-off,
+        # serializer/Port C reservation, loopback isolation and parked guards.
+        "_uart1_keyboard_park": [0x9F, 0xA0, 0xA1],
+        "_uart1_keyboard_unpark": [0x9E, 0xA1, 0x9F, 0x9E],
         # E07's atomic TX leaf performs the same stop operation inline.
         "keyboard_put_error": [0x9E],
         "keyboard_block_error": [0x9E],
