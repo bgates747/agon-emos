@@ -1,5 +1,7 @@
 # EMOS TODO
 
+- [ ] **[INTEG-015 — Pingo completion callback compatibility](docs/tasks/INTEG-015.md)** — Bounded assembly correction builds; 796 linked CPU cases and existing keyboard checks pass. Installed ROM verified; unchanged Pingo application passes bounded completion/input check. Author acceptance and fsim visual review pending.
+
 - [ ] **[FWBUG-008 — Correct raw SD API write dispatch](docs/tasks/FWBUG-008.md)** — A10-RP04 candidate: replace the inherited API `0x73` read-driver call with the write driver, preserve wrapper ABI/status behavior, reuse `mos-tests` raw-image controls, and retain the separately authorized physical destructive-sector gate.
 
 - [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — Idle-CLI admission boundary implemented; automated checks pass, human emulator review pending.

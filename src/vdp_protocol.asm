@@ -198,6 +198,8 @@ graphics_reply:
             LD HL, _vdp_protocol_data+7
             CP (HL)
             RET NZ
+; Callback-only terminal dispatch: no keyboard effects after RET from the app.
+vdp_callback_only:
             LD HL, (_user_kbvector)
             LD DE, 0
             OR A
@@ -228,6 +230,38 @@ vdp_protocol_GP:	LD	A, (_vdp_protocol_data + 0)
 ; Received after a keypress event in the VPD
 ;
 vdp_protocol_KEY:
+            ; INTEG-015: Pingo's custom VDP carries completion as KEY/0x81.
+            ; Its app uses stock mos_setkbvector and consumes ten P3DR bytes.
+            ; EMOS key-source/valid-key filtering had hidden this callback.
+            ; Check completed length first: short packets must not expose stale
+            ; tails. Ordinary keys keep their selected-source and value guards.
+            LD HL, (_vdp_protocol_ptr)
+            LD DE, _vdp_protocol_data
+            OR A
+            SBC HL, DE
+            LD A, L
+            CP 4
+            JR Z, keyboard_mainboard_key
+            CP 10
+            RET NZ
+            ; This is a display completion, not a mainboard physical key.
+            ; Only the committed mainboard display owns UART0 completions.
+            LD A, (_emosVduBackend)
+            OR A
+            RET NZ
+            LD HL, (_vdp_protocol_data)
+            LD DE, 443350h              ; P,3,D
+            OR A
+            SBC HL, DE
+            RET NZ
+            LD A, (_vdp_protocol_data+3)
+            CP 52h                     ; R
+            RET NZ
+            ; App owns version/token/sequence. Never publish synthetic input,
+            ; even when no callback is installed or the callback edits bytes.
+            ; Revisit only with an agreed generalized completion ABI.
+            JP vdp_callback_only
+keyboard_mainboard_key:
             LD HL, _vdp_protocol_data
             PUSH HL
             CALL _emos_keyboard_mainboard

@@ -144,3 +144,17 @@ the separate resident incarnation while the linked helper uses origin-2 HELLO
 for its own P4 worker session. Manual OPEN remains Legacy-only. The helper never
 loads over the caller or accesses UART directly. This requires the paired P4 r61
 application-card composition, not the earlier RAM probe or selected production.
+
+
+## Pingo completion compatibility candidate
+
+EMOS v0.1.24 recognizes mainboard UART0 KEY records with exactly ten payload
+bytes beginning `P3DR`, while Legacy/mainboard is the committed display route.
+It invokes the registered `mos_setkbvector` callback with the unchanged payload
+in DE regardless of the selected physical keyboard source. The application owns
+version, kind, token and sequence validation. EMOS applies no keyboard effects
+to this record; without a callback it is ignored. Other extended KEY records
+remain unsupported. Ordinary mainboard KEY records require exactly four bytes
+and retain their source/value checks. This scoped compatibility correction does
+not introduce a generalized callback API; UART1 behavior is unchanged.
+Qualification is tracked in [INTEG-015](tasks/INTEG-015.md).
