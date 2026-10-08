@@ -191,6 +191,57 @@ BYTE emos_parallel_engine_write(
 	return status;
 }
 
+/* Reverse correctness reference. Retains the forward engine's ownership,
+ * reentry and timeout policy, but never calls writeData. The future binding
+ * must make Port C input before admission and stop the UART ISR's RTS writes.
+ * P4 shifts on the falling edge; sample after the rising recovery edge. This
+ * is a candidate edge contract, not hardware-qualified PARLIO timing.
+ */
+BYTE emos_parallel_engine_read(
+	t_emosParallelEngine *engine, t_emosParallelReadData readData,
+	BYTE *bytes, UINT16 length) {
+	UINT16 index;
+	BYTE status;
+	if (engine == 0 || !engine->configured)
+		return EMOS_PARALLEL_CONFIG_ERROR;
+	if (!engine->epochOpen) return EMOS_PARALLEL_NOT_OWNED;
+	if (engine->busy) return EMOS_PARALLEL_BUSY;
+	if (engine->firstFault != EMOS_PARALLEL_OK) return engine->firstFault;
+	if (readData == 0 || bytes == 0 || length == 0 ||
+		length > engine->maximumRecordBytes) return EMOS_PARALLEL_INVALID;
+	engine->busy = 1;
+	emos_parallel_idle(engine);
+	status = emos_parallel_wait_ready(engine, 0,
+		engine->admissionTimeoutTicks, EMOS_PARALLEL_ADMISSION_TIMEOUT);
+	if (status == EMOS_PARALLEL_OK) {
+		engine->ops->writeControl(engine->context, 0, 1);
+		for (index = 0; index < length; index++) {
+			BYTE value;
+			if (engine->firstFault != EMOS_PARALLEL_OK) break;
+			engine->ops->writeControl(engine->context, 0, 0);
+			if (engine->firstFault != EMOS_PARALLEL_OK) break;
+			engine->ops->writeControl(engine->context, 0, 1);
+			if (engine->firstFault != EMOS_PARALLEL_OK) break;
+			value = readData(engine->context);
+			if (engine->firstFault != EMOS_PARALLEL_OK) break;
+			bytes[index] = value;
+		}
+		status = engine->firstFault;
+		emos_parallel_idle(engine);
+		if (status == EMOS_PARALLEL_OK)
+			status = emos_parallel_wait_ready(engine, 1,
+				engine->completionTimeoutTicks,
+				EMOS_PARALLEL_COMPLETION_TIMEOUT);
+	}
+	emos_parallel_idle(engine);
+	if (status == EMOS_PARALLEL_OK) {
+		engine->recordsCompleted++;
+		engine->bytesCompleted += length;
+	} else emos_parallel_latch_fault(engine, status);
+	engine->busy = 0;
+	return status;
+}
+
 BYTE emos_parallel_engine_fault(const t_emosParallelEngine *engine) {
 	if (engine == 0 || !engine->configured)
 		return EMOS_PARALLEL_CONFIG_ERROR;

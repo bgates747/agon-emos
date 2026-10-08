@@ -28,6 +28,7 @@
 #define EMOS_PARALLEL_EPOCH_EXHAUSTED        ((BYTE)0xE8)
 
 typedef BYTE (*t_emosParallelReadReadyN)(void *context);
+typedef BYTE (*t_emosParallelReadData)(void *context);
 typedef void (*t_emosParallelWriteData)(void *context, BYTE value);
 typedef void (*t_emosParallelWriteControl)(
 	void *context, BYTE validN, BYTE clockHigh);
@@ -70,6 +71,13 @@ BYTE emos_parallel_engine_open(t_emosParallelEngine *engine);
 BYTE emos_parallel_engine_close(t_emosParallelEngine *engine);
 BYTE emos_parallel_engine_write(
 	t_emosParallelEngine *engine, const BYTE *bytes, UINT16 length);
+/* Private reverse reference loop. Caller must already own an admitted input
+ * block with UART suspended. No hardware binding/CLI activation is supplied.
+ * Exactly one nonzero block; any failure invalidates the entire destination.
+ * PORT-008 F02: first/last-byte electrical timing remains unqualified. */
+BYTE emos_parallel_engine_read(
+	t_emosParallelEngine *engine, t_emosParallelReadData readData,
+	BYTE *bytes, UINT16 length);
 BYTE emos_parallel_engine_fault(const t_emosParallelEngine *engine);
 BYTE emos_parallel_generation_next(UINT24 current, UINT24 *next);
 
