@@ -305,7 +305,7 @@ def verify_source(source: Path) -> None:
     # just to evade this ownership guard.
     poll_branch = re.search(
         r'if \(strcasecmp\(operation, "vdppoll"\) == 0\) \{(.*?)'
-        r'(?=if \(strcasecmp\(operation, "uartflow"\))', core, re.DOTALL)
+        r'(?=if \(strcasecmp\(operation, "uarttest"\))', core, re.DOTALL)
     checked_core = core
     if poll_branch:
         branch = poll_branch.group(0)

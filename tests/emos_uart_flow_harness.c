@@ -1,8 +1,24 @@
+#define _GNU_SOURCE
+#include <sys/mman.h>
+#include <string.h>
+#include "emos_uart_flow.h"
 #include <assert.h>
 #include <stdio.h>
 #include "uart.h"
-#include "emos_uart_flow.h"
-volatile BYTE serialFlags;
+#include "../projects/uartflow/src/flow.h"
+volatile BYTE serialFlags,uart1_keyboard_owned;
+static BYTE irq=1;
+BYTE emos_keyboard_lock(void){BYTE old=irq;irq=0;return old;}
+void emos_keyboard_unlock(BYTE v){irq=v;}
+UINT24 emos_read24(const BYTE *p){return p[0]|((UINT24)p[1]<<8)|((UINT24)p[2]<<16);}
+static void put24(BYTE *p,UINT24 v){p[0]=v;p[1]=v>>8;p[2]=v>>16;}
+static t_emosGatewayRequest *r=(void *)0xb0000;
+static BYTE *input=(void *)0xb0100,*output=(void *)0xb0110;
+static BYTE service(BYTE op,BYTE arg){
+ input[0]=op;input[1]=arg;
+ assert(emos_uartdiag_gateway(r)==0);assert(r->outputLength[0]==2);
+ return output[0];
+}
 static unsigned mode, phase, ticks, phase_at, sent, received, closes;
 static unsigned owns_rts, ready_calls;
 BYTE emos_uart_flow_clock(void) { if (mode != 9) ticks += 2; return (BYTE)ticks; }
@@ -44,7 +60,17 @@ BYTE uart1_try_get(BYTE *value) {
     }
     return UART_POLL_EMPTY;
 }
+BYTE flow_open(void){return service(0,0)==UART_POLL_READY;}
+BYTE flow_get(BYTE *v){BYTE s=service(1,0);if(s==UART_POLL_READY)*v=output[1];return s;}
+BYTE flow_put(BYTE v){return service(2,v);}
+BYTE flow_ready(BYTE v){return service(3,v);}
+void flow_close(void){(void)service(4,0);}
 int main(void) {
+ assert(mmap((void *)0xb0000,0x8000,PROT_READ|PROT_WRITE,
+  MAP_PRIVATE|MAP_ANONYMOUS|MAP_FIXED_NOREPLACE,-1,0)==(void *)0xb0000);
+ put24(r->input,0xb0100);put24(r->inputLength,2);
+ put24(r->output,0xb0110);put24(r->outputCapacity,2);
+
     for (mode=0; mode<15; ++mode) {
         phase=0; ticks=250; phase_at=250; sent=received=closes=ready_calls=owns_rts=0;
         serialFlags= mode == 10 ? 0x10 : 0;
@@ -55,5 +81,25 @@ int main(void) {
         assert(serialFlags == (mode == 10 ? 0x10 : 0));
     }
     puts("15 UART flow command scenarios passed");
+    mode=0;serialFlags=0;closes=0;irq=1;
+    input[0]=0;input[1]=0;
+    const UINT24 invalid[]={0,0xaffff,0xb7fff,0xb8000,0xffffff};
+    for(unsigned i=0;i<sizeof(invalid)/sizeof(invalid[0]);++i){
+      put24(r->input,invalid[i]);assert(emos_uartdiag_gateway(r)==19);
+      put24(r->input,0xb0100);put24(r->output,invalid[i]);assert(emos_uartdiag_gateway(r)==19);
+      put24(r->output,0xb0110);assert(!serialFlags && !closes);
+    }
+    put24(r->inputLength,1);assert(emos_uartdiag_gateway(r)==19);put24(r->inputLength,2);
+    put24(r->outputCapacity,3);assert(emos_uartdiag_gateway(r)==19);put24(r->outputCapacity,2);
+    input[0]=5;assert(emos_uartdiag_gateway(r)==19);input[0]=0;input[1]=1;
+    assert(emos_uartdiag_gateway(r)==19);input[1]=0;
+    irq=0;assert(emos_uartdiag_gateway(r)==31 && !irq && !serialFlags);irq=1;
+    uart1_keyboard_owned=1;assert(!flow_open() && !serialFlags);uart1_keyboard_owned=0;
+    assert(service(4,0)==UART_POLL_UNAVAILABLE && !closes);
+    assert(flow_open());assert(!flow_open() && !closes);
+    emos_uartdiag_reset();assert(closes==1 && !serialFlags && !owns_rts);
+    emos_uartdiag_reset();assert(closes==1);
+    assert(service(1,0)==UART_POLL_UNAVAILABLE);
+    puts("Diagnostic service bounds, IRQ/owner refusal and abandoned-lease cleanup passed");
     return 0;
 }

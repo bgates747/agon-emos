@@ -27,7 +27,11 @@ PREAMBLE=r'''
 #define EMOS_TEXT_LIMIT 512
 static BOOL emosBusy;
 static struct { BYTE mode; } emosModeState;
-static unsigned sdCalls, textCalls;
+static BYTE emosPolicy;
+static unsigned sdCalls, textCalls, diagCalls;
+static UINT24 emos_uartdiag_gateway(t_emosGatewayRequest *r) {
+    assert(emosBusy && r);++diagCalls;return 0;
+}
 static BYTE emos_text_valid(const BYTE *p, UINT16 n) { return n && *p=='A'; }
 static BYTE emos_text_probe(const BYTE *p, UINT16 n) {
     assert(emosBusy && n==1 && *p=='A'); ++textCalls;return 1;
@@ -69,6 +73,13 @@ int main(void) {
     emosModeState.mode=0;emosBusy=1;assert(emos_gateway(r)==31);emosBusy=0;
     emos_write24(r->input,0xB0000);assert(emos_gateway(r)==19);
     r=request(0xB0000,"edu","text-probe");assert(emos_gateway(r)==32);
+    r=request(0xB0000,"ext","uartdiag");
+    assert(emos_gateway(r)==32 && !diagCalls);
+    emosPolicy=EMOS_POLICY_MOSLET;emosModeState.mode=2;
+    assert(emos_gateway(r)==35 && !diagCalls);
+    emosModeState.mode=0;emosBusy=1;assert(emos_gateway(r)==31 && !diagCalls);emosBusy=0;
+    assert(emos_gateway(r)==0 && diagCalls==1 && !emosBusy);
+    r=request(0x40000,"ext","uartdiag");assert(emos_gateway(r)==32 && diagCalls==1);
     puts("Resident gateway validation and admission passed");
 }
 '''

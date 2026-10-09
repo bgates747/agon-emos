@@ -39,3 +39,6 @@ projects/keyboard-api/build/
 /projects/app-transfer/obj/
 /projects/sdjob/bin/
 /projects/sdjob/obj/
+
+/projects/uartflow/bin/
+/projects/uartflow/obj/

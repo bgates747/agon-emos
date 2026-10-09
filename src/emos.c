@@ -197,6 +197,17 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
      * change or application-owned transport. Reserved resident identity.
      * The request and input must be wholly in ordinary application RAM;
      * static application buffers meet this even when MOS owns the stack. */
+    /* Diagnostic MOSlet uses only a bounded resident service, never raw GPIO.
+     * Request itself must be in the current MOSlet slot, not an app's buffer. */
+    if (!strcmp(namespaceName,"ext") && !strcmp(providerName,"uartdiag")) {
+        if (!mosletRequest || emosPolicy != EMOS_POLICY_MOSLET) return EMOS_UNSAFE_CALLER;
+        if (emosModeState.mode != EMOS_MODE_LEGACY) return EMOS_UNAVAILABLE;
+        if (emosBusy) return EMOS_BUSY;
+        emosBusy=TRUE;
+        result=emos_uartdiag_gateway(request);
+        emosBusy=FALSE;
+        return result;
+    }
     if (mosletRequest && (strcmp(namespaceName,"ext") || strcmp(providerName,"sdlink")))
         return EMOS_UNSAFE_CALLER;
     if (strcmp(namespaceName, "edu") == 0 && strcmp(providerName, "text-probe") == 0) {
@@ -242,6 +253,7 @@ BYTE emos_application_enter(UINT8 *image, UINT24 address) {
 	BYTE previous = emosPolicy;
 	BYTE flags;
     if (!emos_admission_dispatching()) emos_admission_leave();
+    emos_uartdiag_reset();
     emos_sdlink_reset();
 #ifdef EMOS_BENCH_TELEMETRY
     emos_telemetry_reset();
@@ -265,6 +277,7 @@ BYTE emos_application_enter(UINT8 *image, UINT24 address) {
 
 void emos_application_leave(BYTE previousPolicy) {
     if (!emos_admission_dispatching()) emos_admission_leave();
+    emos_uartdiag_reset();
     emos_sdlink_reset();
 #ifdef EMOS_BENCH_TELEMETRY
     emos_telemetry_reset();
@@ -588,7 +601,7 @@ int emos_cmd(char *args) {
 	if (result != FR_OK) return result;
     if (!strcasecmp(operation, "keyinput")) return emos_keyinput_command(args);
     if (uart1_keyboard_owned && (!strcasecmp(operation, "vdptext") ||
-        !strcasecmp(operation, "vdppoll") || !strcasecmp(operation, "uartflow") ||
+        !strcasecmp(operation, "vdppoll") ||
         !strcasecmp(operation, "uarttest"))) {
         printf("EMOS: UART1 is owned by keyboard input\r\n");
         return EMOS_BUSY;
@@ -610,22 +623,6 @@ int emos_cmd(char *args) {
         }
         emos_print_identity();
         return emos_general_poll() ? FR_OK : FR_TIMEOUT;
-    }
-    if (strcasecmp(operation, "uartflow") == 0) {
-        if (args && *args) return FR_INVALID_PARAMETER;
-        if (emosModeState.mode != EMOS_MODE_LEGACY) {
-            printf("UART FLOW FAIL: EMOS must be in Legacy\r\n");
-            return FR_INVALID_PARAMETER;
-        }
-        emos_print_identity();
-#ifdef EMOS_BENCH_TELEMETRY
-        /* BENCH-001 composition trades this old standalone diagnostic for the
-         * resident telemetry experiment; full/default EMOS retains UARTFLOW. */
-        printf("UARTFLOW is absent from the telemetry bench build\r\n");
-        return EMOS_UNAVAILABLE;
-#else
-        return emos_uart_flow() ? FR_OK : FR_TIMEOUT;
-#endif
     }
 	if (strcasecmp(operation, "uarttest") == 0) {
         if (args && *args) return FR_INVALID_PARAMETER;

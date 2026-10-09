@@ -60,3 +60,13 @@ This does not replace or change the production `EMOS sdserve` procedure.
 The owning contract and current implementation boundary are recorded in
 [Extender admission](../../agon-extender/docs/tasks/REMOTE-005/ADMISSION-CONTRACT.md)
 and [runtime results](../../agon-extender/docs/tasks/REMOTE-005/A08-RUNTIME-RESULTS.md).
+
+## UARTFLOW diagnostic extraction (development only)
+
+`EMOS UARTFLOW` now uses `/emos/uartflow.bin` in the PORT-008 development
+candidate. Sequence, deadlines and reporting moved to the MOSlet; ownership and
+exit cleanup remain resident. Other diagnostic commands remain resident for now.
+The [UARTFLOW guide](../projects/uartflow/README.md) records build, peer and input
+requirements. The 2026-10-08 Author-authorized deployment passed full ROM/utility verification,
+real paired success and wrong-peer cleanup/input reacquisition. This remains a
+development candidate awaiting Author review, outside selected production.

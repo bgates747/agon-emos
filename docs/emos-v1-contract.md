@@ -158,3 +158,39 @@ remain unsupported. Ordinary mainboard KEY records require exactly four bytes
 and retain their source/value checks. This scoped compatibility correction does
 not introduce a generalized callback API; UART1 behavior is unchanged.
 Qualification is tracked in [INTEG-015](tasks/INTEG-015.md).
+
+## Development diagnostic service: `ext.uartdiag` v1
+
+This PORT-008 candidate service supports the foreground UARTFLOW MOSlet; it is
+not part of the selected production bundle. It uses the existing 66-byte gateway
+ABI version 1, service operation 2, namespace `ext`, provider `uartdiag`.
+EMOS requires an active MOSlet policy, its request wholly in the MOSlet slot,
+Legacy mode, enabled interrupts and no busy gateway. Ordinary application callers
+are rejected. Input and output must each be exactly two bytes wholly within
+`0xB0000..0xB7FFF`; no pointer is retained after the call.
+
+Input is `[operation, argument]`; output is `[poll_status, received_byte]`.
+
+| Operation | Argument | Resident action |
+|---|---|---|
+| 0 | 0 | Acquire UART1 at 1,152,000 baud, 8N1, CTS/RTS |
+| 1 | 0 | Try receiving one byte |
+| 2 | byte | Try transmitting one byte |
+| 3 | 0 or 1 | Stop or permit peer transmission through RTS |
+| 4 | 0 | Close this diagnostic's UART lease |
+
+Poll status is 0 empty, 1 ready, 2 receive error, 3 unavailable, or 4 CTS blocked.
+Only a ready RX has a meaningful received byte; other output values are zero.
+A valid admitted call returns gateway success and two output bytes even when a
+UART operation cannot progress. Malformed arguments return invalid parameter;
+wrong caller returns unsafe caller, wrong mode unavailable, and busy/disabled
+interrupt entry busy. Ordinary UART/keyboard/parallel ownership guards still
+apply. Double acquisition refuses without releasing the existing lease.
+
+EMOS masks interrupts around each bounded UART operation. It does not wait for
+bytes or own test deadlines. Explicit close and application/MOSlet lifecycle
+cleanup release only this diagnostic lease, with interrupts protected even on
+utility exit. No utility callback is installed. The utility owns the unchanged
+FLOW/FLOWACK algorithm and clock policy. The official MOS blocking UART receive
+API cannot implement its nonblocking silence/deadline tests; the admitted service
+reuses EMOS's existing polling leaves rather than exposing raw UART/GPIO access.

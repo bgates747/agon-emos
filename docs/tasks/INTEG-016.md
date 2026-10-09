@@ -143,3 +143,85 @@ Unrelated `scripts/application_peer.py` is untouched.
 The Author approved committing and pushing the UART parking checkpoint before
 continuing with F02c2b integration. This preserves bench-free development
 evidence; it does not authorize deployment or imply production acceptance.
+
+
+## Accepted reset policy and next admission increment
+
+The Author requires reciprocal physical release after reset in the future
+parallel-capable pair. EMOS keeps shared PC0–PC7 released if P4 is absent or
+older; mainboard MOS/keyboard remain available. No timeout reclaims UART pins.
+See Extender P08-F-D03 / ADR-0026. Current UART-only boot remains unchanged
+until candidate startup integration; no claim that this fence is live today.
+
+I16-02b2a [x] — Completed bounded first part of I16-02b2: implement the private version-2
+block-offer/ack gate with session, sequence, exact length/direction and ExExt
+checks before the existing handover sequencer. Reuse console CRC code; measure
+ROM growth against 130,135 bytes / 937 bytes free. Execute linked eZ80 checks
+and paired P4 checks. The remaining coordinator owns fresh-session negotiation,
+serializer fencing, deadlines and boot binding; native payload remains I16-02c.
+Protocol and cross-component evidence live in sibling Extender
+`docs/tasks/PORT-008/PARALLEL-ADMISSION.md`. No bench access or deployment.
+
+
+I16-02b2a result: 18,097 paired admission checks and 18,474 wrapper-linked eZ80
+checks pass, covering all legal lengths/directions, both interrupt states, exact
+acknowledgement, replay/exhaustion, ABI and memory guards. Existing console,
+parallel, linked UART parking and prepared-source tests pass. All full EMOS
+wrapper guards pass. Image 130,551 bytes (+416), 521 bytes free. The shared
+console CRC has unchanged linked instructions after resolving helper addresses.
+The P4 native build and its exact source check also pass. See sibling Extender
+`docs/tasks/PORT-008/PARALLEL-ADMISSION-RESULTS.md` for hashes and complete scope.
+
+These are private gates accepting trusted coordinator state, not a live session
+exchange or startup fence. Remaining I16-02b2 integration must reconcile ROM cost
+and bind the accepted mandatory release policy. Native payload remains I16-02c.
+No deployment/bench access; new emulator-coupled changes remain uncommitted for
+Author review. Unrelated application-peer work is preserved.
+
+
+I16-02b2b [x] — Author-authorized next bounded integration: reserve the existing
+serializer/Port C lock before a control offer, reuse bounded TX for a private
+reserved sender, retain ownership through UART restore and explicit completion.
+Reject nested sends/release/park and cancellation while physically parked.
+Measure against the preceding 130,551-byte image (521 bytes free); test real
+source and linked eZ80 code. P4 owner-core installation is owned by Extender.
+No live session exchange, mode entry, boot pin fence or payload activation yet.
+Existing uncommitted admission work remains preserved; the bench is unavailable.
+
+
+I16-02b2b result: 22 linked reservation cases and 289 linked parking cases pass;
+375 full sender and 1,302 IRQ comparisons preserve existing behavior. The actual
+keyboard C harness passes ordinary and telemetry configurations, including
+recursive callback refusals and failed/partial send handling. Full wrapper
+guards pass. EMOS is 130,791 bytes (+240), leaving 281 bytes. The ready block
+send adds 22 interpreted instructions per call; the sampled IRQ is unchanged.
+P4 installs UART from its existing console owner core; its SDK/target checks pass.
+See sibling Extender `docs/tasks/PORT-008/UART-RESERVATION-RESULTS.md`.
+
+Current private caller order is reserve before offer, private bounded sends,
+park/restore, final status or session abandonment, then explicit release. Busy
+parking and successful restore retain the guard. No release while parked or
+inside a send. Partial sends request deferred cleanup; ordinary send also
+refuses pending fault/stop rather than appending bytes in that interval.
+Remaining coordinator/boot work must reuse or replace code within ROM limits.
+No physical operations; changes remain uncommitted for review.
+
+
+I16-02b2R1 [x] — Extract UARTFLOW as a foreground EMOSlet, retaining the
+admitted `ext.uartdiag` transport and lifecycle cleanup. Complete EMOS and utility
+builds pass; the original 15 scenarios, boundary/adapter checks, 285 linked eZ80
+diagnostic cases and 22 reservation cases pass. ROM is 129,464 bytes, leaving
+1,608 free: 1,327 recovered including the new service cost. Static RAM drops by
+9 bytes. UARTTEST/VDPPOLL and text-probe are unchanged. Hardware, full-system
+utility loading and physical timing remain untested. No bench access or commit.
+Details: [extraction results](../../../agon-extender/docs/tasks/PORT-008/UARTFLOW-RESULTS.md).
+
+
+I16-02b2R1H [x] — Author released the bench for the extraction's hardware test.
+Complete ROM and utility readbacks match. Real paired FLOW/ACK stop/resume and
+blocked-return timeout/cancellation pass; Agon returns zero and saves clear
+UART/RTS ownership. Wrong-peer control returns nonzero and reacquires input and
+listener without reset. Original P4/startup restored, mainboard VDP unchanged;
+candidate EMOS remains installed. Bench released. No waveform acquisition,
+parallel activation, production promotion or commit. See sibling Extender
+[hardware report](../../../agon-extender/docs/tasks/PORT-008/UARTFLOW-HARDWARE-RESULTS.md).
