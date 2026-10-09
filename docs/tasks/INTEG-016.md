@@ -40,6 +40,12 @@ I16-02c1 [x] — Private guarded native byte leaf and RAM-only instruction
 tests pass. Full resident composition correctly refuses 265-byte ROM overflow;
 parent integration and physical qualification remain open. See dated result below.
 
+I16-02c2 [x] — Bounded ROM fit: exclude the uncalled reverse C reference from
+ordinary/native residency while preserving an explicit reference-test profile.
+Complete wrapper builds, actual native/reference instruction execution and
+scoped linked-owner negative controls pass. Native composition now fits with
+309 bytes free; live integration and physical qualification remain open.
+
 I16-03 [ ] — When separately authorized, qualify exact bytes, first/last edge,
 reset/timeout release and resumed keyboard input on hardware with Extender.
 Do not infer electrical behavior or throughput from emulation.
@@ -359,3 +365,131 @@ It is neither flashable firmware nor a MOS executable. Cross-component result:
 sibling agon-extender/docs/tasks/PORT-008/NATIVE-PAYLOAD-RESULTS.md. Changes
 remain uncommitted for Author review; unrelated scripts/application_peer.py
 is untouched.
+
+## 2026-10-09 native ROM-fit continuation
+
+The Author committed/pushed the preceding payload checkpoint and authorized
+ROM trimming. `EMOS_PARALLEL_RECEIVE_REFERENCE=1` now selects the maintained
+uncalled C reference only for tests. Full ordinary EMOS uses 130178 ROM bytes
+/894 free; the private native composition uses 130763 /309 free. Exactly 574
+bytes were recovered; static RAM remains 4058/4063 respectively. The opt-in
+reference composition remains 130752 bytes /320 free. No supported command or
+public API was removed, and the forward engine is unchanged.
+
+The first fitting native link correctly failed its required Port C inventory.
+The private profile now selects `verify_parallel_native.py`, which reuses every
+ordinary check and admits only the audited native write sites, sole guarded
+raw caller and atomic Port D helper. Ordinary profiles reject native symbols.
+Seven actual-ELF positive/refusal controls pass. Native instruction tests now
+execute both the full resident image and the retained RAM-only composition
+(124 cases each). Reference instruction tests pass 38 cases; startup/runtime
+passes 26; forward/selection host tests pass 10; paired reference/boot tests
+pass 48/718 cases. No electrical timing or throughput claim.
+
+For the receive-reference instruction test, build the explicit
+`port/parallel-reference-test.mk` composition through the normal mos-agondev
+root wrapper and supply its retained `MOS.bin`/`nm.txt` directory to
+`parallel_reverse`. Ordinary/native images deliberately lack that reference.
+For native instructions, `parallel_native` accepts a directory containing the
+full `MOS.bin`/`nm.txt`, or the separate RAM-only `payload.bin`/`nm.txt`.
+`tests/check_parallel_native_link.py --help` describes linked-image regression
+inputs; its pyelftools dependency is shared with the existing ROM accounting.
+
+Complete paired result and source/artifact hashes:
+[PORT-008 ROM fit](../../../agon-extender/docs/tasks/PORT-008/NATIVE-ROM-FIT-RESULTS.md).
+New changes remain for Author review before commit. No bench access, flashing,
+activation or promotion; unrelated scripts/application_peer.py stays untouched.
+
+
+## 2026-10-09 private block control transaction
+
+`emos_parallel_block_offer` and `emos_parallel_block_complete` reuse the existing
+console request buffer, reserved UART sender, fixed FF/16 reply ISR and bounded
+wait. ACK/result matching now includes session, sequence, length, direction,
+CRC and bounded status. A matched payload failure is captured immediately and
+rejected in foreground; uncertain delivery invalidates the session and requests
+release recovery. A recorded local handover failure is sent as failure even if
+the caller supplied success. No GPIO/native entry or public API was enabled.
+
+P4 retains one provisioned buffer/descriptor and withholds its successful
+receipt until completed UART return and matched local/peer results. Deadlines
+and cancellation revoke pending work; reset revokes unread receipts. A matched
+semantic failure after clean return keeps UART available for the failure reply.
+The physical owner still must drain that reply; timeout is never release proof.
+
+689 paired owner cases and 65 actual linked-eZ80 control cases pass, including
+actual reserved UART TX, receive framer, reply ISR and scripted handover steps.
+Ordinary complete firmware/link checks pass at 130677 ROM bytes /395 free and
+4058 static RAM bytes. This adds 499 ROM bytes to the prior ROM-fit baseline.
+The combined native image would use 131262 /190 over capacity; the unchanged
+linker refuses it and emits no oversized firmware. Another bounded ROM recovery
+is required before the live coordinator can be installed. Preserve the earlier
+fitting native image; no bench/SD/flash/production change or commit this tranche.
+
+The current paired contract/results are in sibling
+agon-extender/docs/tasks/PORT-008/BLOCK-CONTROL.md and BLOCK-CONTROL-RESULTS.md.
+Full native caller, actual UART drain/phase adapters, boot-monitor handoff and
+hardware qualification remain I16-02c/PORT-008 integration gates. Unrelated
+scripts/application_peer.py remains untouched.
+
+## 2026-10-09 diagnostic MOSlet ROM recovery
+
+Author authorized off-bench recovery while the bench remained occupied.
+UARTTEST/VDPPOLL sequences and reporting now live in projects/uartprobe;
+`EMOS UARTTEST` / `EMOS VDPPOLL` use the existing /emos loader. UARTFLOW's
+adapter is shared; ext.uartdiag adds only operation 5 for fixed 115200/no-flow
+acquisition. EMOS retains admission, nonblocking UART leaves, pin ownership,
+cleanup and resident text services. No raw utility access or new loader.
+
+Net recovery is 1938 ROM bytes, not counting previous UARTFLOW savings.
+Ordinary 128739 /2333 free; combined native 129324 /1748 free; explicit
+reference 129313 /1759 free. Static RAM remains 4058/4063/4058 respectively.
+Complete root wrappers and all mandatory guards pass. Detailed algorithm,
+actual service, linked-eZ80 and negative-control checks are recorded in sibling
+agon-extender/docs/tasks/PORT-008/DIAGNOSTIC-ROM-RECOVERY-RESULTS.md.
+
+Diagnostic extraction still requires real utility loading and paired peer
+qualification when the bench is available. Parallel activation/physical
+qualification remain I16-02c gates. No bench/SD/device-network operation,
+production selection, commit or push; emulator-coupled changes await review.
+Unrelated scripts/application_peer.py remains untouched.
+
+## 2026-10-09 native coordinator partial checkpoint — paused
+
+Author authorized PORT-008 LC02, then requested pause for a network topology
+change. Private emos_parallel_coordinator.c now binds the shared boot handover,
+reservation, parking/native/unpark and completion exchange. Native-only startup
+hooks exclude normal handover from reset monitoring. Faults fence and retain the
+reservation until reset. No API/CLI activation caller is installed.
+
+Complete ordinary128739/2333free and private130495/577free compile/link checks
+pass; native static RAM4064. Exact sole coordinator/raw-leaf caller inventories
+remain guarded. Paired coordinator execution and complete P4 builds remain
+pending; no deployment/bench/SD/network-device action, commit or push occurred.
+Sibling agon-extender/docs/tasks/PORT-008/LIVE-COORDINATOR-LC02-STATUS.md owns
+resume sequence and hashed evidence. Unrelated application_peer.py untouched.
+
+## 2026-10-09 native coordinator software integration complete
+
+Author resumed PORT-008 LC02. The private foreground coordinator, same-owner
+boot-monitor exclusion and matched completion binding pass paired host tests
+and actual linked-eZ80 checks. Review corrected the final-release failure path
+so it also invalidates/fences rather than returning partially closed. The
+private coordinator remains unregistered, with zero activation callers; no
+ExExt API/mode or automatic file transport is added.
+
+Complete maintained ordinary/private wrappers and unchanged link/ROM guards
+pass: ordinary 128739 ROM bytes used /2333 free; private 130473 /599 free,
+4064 static RAM bytes. The private coordinator adds 1149 bytes over the prior
+native-leaf composition. Both complete P4-PC/browser builds also pass. Paired
+native checks: 82 cases; P4 coordinator: 264; actual private startup/runtime:
+80; native C/assembly: 124; existing UART/control/ISR regressions, two semantic
+mutations and nine ELF controls pass. These are off-bench checks with modeled
+physical inputs; no electrical timing or throughput is claimed.
+
+Detailed evidence and portable hashes live in sibling
+[Extender results](../../../agon-extender/docs/tasks/PORT-008/LIVE-COORDINATOR-LC02-RESULTS.md).
+Pause for Author review before a separate bounded physical activation fixture.
+No bench/network-device/SD action, production change, commit or push occurred.
+All prior dirt, including unrelated scripts/application_peer.py, is preserved.
+The earlier paused checkpoint remains historical evidence.

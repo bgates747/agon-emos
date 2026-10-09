@@ -290,6 +290,10 @@ class EmosPortTests(unittest.TestCase):
             _make_variable(PORT / "assembly-profile.mk", "ASM_SOURCES_BASE")
         )
         expected.update(_make_variable(PROFILE, "ASM_SOURCES_EXTRA"))
+        # Tree translation inventories all maintained assembly, including the
+        # private native leaf. Ordinary linking excludes it; the mandatory
+        # linked profile guard independently rejects native symbols there.
+        expected.add("src/emos_parallel_native_io.asm")
         self.assertEqual(outputs, expected)
 
 

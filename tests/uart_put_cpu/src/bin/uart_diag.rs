@@ -49,6 +49,13 @@ fn main(){
  for (i,v) in b"ext".iter().enumerate(){b.poke(req+25+i as u32,*v);}
  for (i,v) in b"uartdiag".iter().enumerate(){b.poke(req+41+i as u32,*v);}
  let mut cases=0;
+ if b.sym.contains_key("_parallel_boot_grant") {
+  // Private builds require the already-qualified boot release before UART use.
+  // Check refusal first, then model that precondition; this is not a real peer.
+  for op in [0,5] {b.poke(input,op);assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),3);assert!(b.io.is_empty());cases+=1;}
+  b.poke(input,0);b.set("_parallel_boot_grant",2);b.set("_parallel_boot_state",4);b.ports[0xa2]|=0x10;
+ }
+
  for policy in 0..4 {b.set("_emosPolicy",policy);assert_eq!(b.call("_emos_gateway",&[req],true),32);assert!(b.io.is_empty());cases+=1;}
  b.set("_emosPolicy",4);
  for mode in 1..4 {b.set("_emosModeState",mode);assert_eq!(b.call("_emos_gateway",&[req],true),35);assert!(b.io.is_empty());cases+=1;}
@@ -60,7 +67,7 @@ fn main(){
   b._poke24(req+16,output);cases+=2;
  }
  b.set("_uart1_keyboard_owned",1);assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),3);assert!(b.io.is_empty());b.set("_uart1_keyboard_owned",0);cases+=1;
- b.set("_emosParallelWriterLock",1);assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),3);assert!(b.io.is_empty());b.set("_emosParallelWriterLock",0);cases+=1;
+ b.set("_emosParallelWriterLock",1);assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),3);assert_eq!(b.io,if b.sym.contains_key("_parallel_boot_grant"){vec![(false,0xa2,0x10)]}else{vec![]});b.set("_emosParallelWriterLock",0);cases+=1;
  assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),1);assert_eq!(b.get("_serialFlags")&0x30,0x30);assert_eq!(b.get("_uart1_rts_owned"),1);cases+=1;
  // Open while leased must leave all pins alone.
  assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),3);assert!(b.io.is_empty());cases+=1;
@@ -74,5 +81,24 @@ fn main(){
  // Actual lifecycle, including sdlink/admission cleanup, releases abandoned lease.
  b.call("_emos_application_leave",&[0],true);assert_eq!(b.get("_serialFlags")&0x30,0);assert_eq!(b.get("_uart1_rts_owned"),0);assert_eq!(b.get("_emosPolicy"),0);cases+=1;
  b.call("_emos_uartdiag_reset",&[],true);assert!(b.io.is_empty());cases+=1;
- println!("PASS {cases} linked diagnostic gateway cases; MOSlet/mode/IRQ/buffer guards, UART/parallel contention, every TX byte, RX/error/RTS and actual exit cleanup; IX/SP/IFF");
+ // Extracted UARTTEST uses the same admitted gateway, fixed slow/no-flow lease.
+ b.set("_emosPolicy",4);b.set("_emosModeState",0);b.set("_emosBusy",0);
+ b.poke(input,5);b.poke(input+1,0);b.ports[0xd5]=0x60;
+ assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),1);
+ assert_eq!(b.get("_serialFlags")&0x30,0x10);assert_eq!(b.get("_uart1_rts_owned"),0);
+ assert_eq!(b.ports[0xd0],10,"115200 baud divisor");assert_eq!(b.ports[0xd1],0);cases+=1;
+ for op in [0,5] {b.poke(input,op);assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),3);assert!(b.io.is_empty());cases+=1;}
+ b.poke(input,3);
+ for arg in [0,1] {b.poke(input+1,arg);assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),3);assert!(b.io.is_empty());cases+=1;}
+ b.poke(input,2);b.poke(input+1,0x55);b.ports[0x9e]|=8;
+ assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),1);assert!(b.io.contains(&(true,0xd0,0x55)));cases+=1;
+ b.poke(input,4);b.poke(input+1,0);
+ assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),1);assert_eq!(b.get("_serialFlags")&0x30,0);cases+=1;
+ b.poke(input,5);b.poke(input+1,1);assert_eq!(b.call("_emos_gateway",&[req],true),19);assert!(b.io.is_empty());cases+=1;
+ b.poke(input+1,0);assert_eq!(b.call("_emos_gateway",&[req],false),31);assert!(b.io.is_empty());cases+=1;
+ b.set("_uart1_keyboard_owned",1);assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),3);assert!(b.io.is_empty());b.set("_uart1_keyboard_owned",0);cases+=1;
+ b.set("_emosParallelWriterLock",1);assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),3);assert_eq!(b.io,if b.sym.contains_key("_parallel_boot_grant"){vec![(false,0xa2,0x10)]}else{vec![]});b.set("_emosParallelWriterLock",0);cases+=1;
+ assert_eq!(b.call("_emos_gateway",&[req],true),0);assert_eq!(b.peek(output),1);cases+=1;
+ b.call("_emos_application_leave",&[0],true);assert_eq!(b.get("_serialFlags")&0x30,0);assert_eq!(b.get("_uart1_rts_owned"),0);cases+=1;
+ println!("PASS {cases} linked diagnostic gateway cases; MOSlet/mode/IRQ/buffer guards, UART/parallel contention, every TX byte, RX/error/RTS, fixed slow/no-flow lease and actual exit cleanup; IX/SP/IFF");
 }

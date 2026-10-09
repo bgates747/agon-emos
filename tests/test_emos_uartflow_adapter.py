@@ -23,13 +23,13 @@ uint32_t emos_gateway_call(uint8_t *r){
 }
 int main(void){
  BYTE value=0;
- op=0;assert(flow_open());op=1;assert(flow_get(&value)==1 && value==0xab);
+ op=5;assert(flow_open_slow());op=0;assert(flow_open());op=1;assert(flow_get(&value)==1 && value==0xab);
  op=2;arg=255;assert(flow_put(255)==1);op=3;arg=1;assert(flow_ready(1)==1);
  op=4;arg=0;flow_close();
- op=0;result=27;assert(!flow_open());
+ op=0;result=27;assert(!flow_open());op=5;assert(!flow_open_slow());
  op=1;value=0x42;assert(flow_get(&value)==3 && value==0x42);
  result=0;bad_length=1;assert(flow_get(&value)==3 && value==0x42);
- assert(emos_uart_flow_clock()==0x78 && calls==8);
+ assert(emos_uart_flow_clock()==0x78 && calls==10);
  return 0;
 }
 '''
@@ -44,4 +44,29 @@ class AdapterTests(unittest.TestCase):
     '-fsanitize=address,undefined','-I'+str(d),'-I'+str(ROOT/'projects/uartflow/src'),
     str(ROOT/'projects/uartflow/src/gateway.c'),str(d/'test.c'),'-o',str(exe)],check=True)
    subprocess.run([str(exe)],check=True,timeout=10)
+ def test_probe_entry_arguments_version_and_return_codes(self):
+  with tempfile.TemporaryDirectory() as tmp:
+   d=Path(tmp)
+   (d/'test.c').write_text(r'''#include <assert.h>
+#include "probe.h"
+int probe_main(int,char **);
+static int calls,pass;
+int emos_uart_probe(void){++calls;return pass;}
+int emos_general_poll(void){++calls;return pass;}
+int main(void){
+ char *one[]={"probe"},*version[]={"probe","--version"},*bad[]={"probe","oops"};
+ assert(probe_main(2,version)==0 && calls==0);
+ assert(probe_main(2,bad)==19 && calls==0);
+ assert(probe_main(1,one)==15 && calls==1);
+ pass=1;assert(probe_main(1,one)==0 && calls==2);
+ return 0;
+}''')
+   for name,run in [('uarttest','emos_uart_probe'),('vdppoll','emos_general_poll')]:
+    obj=d/(name+'.o');exe=d/name
+    common=['cc','-std=c17','-Wall','-Wextra','-Werror','-fsanitize=address,undefined',
+     '-I'+str(ROOT/'projects/uartflow/src'),'-I'+str(ROOT/'projects/uartprobe/src')]
+    subprocess.run(common+['-Dmain=probe_main','-DPROBE_RUN='+run,'-DPROBE_NAME="'+name+'"',
+     '-c',str(ROOT/'projects/uartprobe/src/main.c'),'-o',str(obj)],check=True)
+    subprocess.run(common+[str(obj),str(d/'test.c'),'-o',str(exe)],check=True)
+    subprocess.run([str(exe)],check=True,timeout=10)
 if __name__=='__main__':unittest.main()

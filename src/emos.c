@@ -602,9 +602,7 @@ int emos_cmd(char *args) {
 	}
 	if (result != FR_OK) return result;
     if (!strcasecmp(operation, "keyinput")) return emos_keyinput_command(args);
-    if (uart1_keyboard_owned && (!strcasecmp(operation, "vdptext") ||
-        !strcasecmp(operation, "vdppoll") ||
-        !strcasecmp(operation, "uarttest"))) {
+    if (uart1_keyboard_owned && !strcasecmp(operation, "vdptext")) {
         printf("EMOS: UART1 is owned by keyboard input\r\n");
         return EMOS_BUSY;
     }
@@ -616,24 +614,6 @@ int emos_cmd(char *args) {
         }
         emos_print_identity();
         return emos_visible_text() ? FR_OK : FR_TIMEOUT;
-    }
-    if (strcasecmp(operation, "vdppoll") == 0) {
-        if (args && *args) return FR_INVALID_PARAMETER;
-        if (emosModeState.mode != EMOS_MODE_LEGACY) {
-            printf("VDP POLL FAIL: EMOS must be in Legacy\r\n");
-            return FR_INVALID_PARAMETER;
-        }
-        emos_print_identity();
-        return emos_general_poll() ? FR_OK : FR_TIMEOUT;
-    }
-	if (strcasecmp(operation, "uarttest") == 0) {
-        if (args && *args) return FR_INVALID_PARAMETER;
-        if (emosModeState.mode != EMOS_MODE_LEGACY) {
-            printf("UART ROUND TRIP FAIL: EMOS must be in Legacy\r\n");
-            return FR_INVALID_PARAMETER;
-        }
-        emos_print_identity();
-        return emos_uart_probe() ? FR_OK : FR_TIMEOUT;
     }
 	/* Retired names stay reserved: never reinterpret an old provider command
      * as an on-disk utility. Historical .emo fixtures are not current gates. */

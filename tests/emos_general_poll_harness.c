@@ -1,7 +1,8 @@
+#define _GNU_SOURCE
 #include <assert.h>
 #include <stdio.h>
 #include "uart.h"
-#include "emos_uart_probe.h"
+#include "probe.h"
 #include "emos_keyboard.h"
 /* These legacy one-shot tests have no resident keyboard owner. Shared-session
  * effects are exercised against the real receiver in emos_keyboard_harness.c. */
@@ -10,7 +11,7 @@ BYTE emos_keyboard_text(const BYTE *p, UINT16 n) { (void)p; (void)n; return EMOS
 
 volatile BYTE serialFlags;
 static unsigned mode,ticks,sent,received,closed,claimed,attempts;
-BYTE emos_uart_probe_clock(void) { if(mode!=8) ticks+=2; return (BYTE)ticks; }
+BYTE emos_uart_flow_clock(void) { if(mode!=8) ticks+=2; return (BYTE)ticks; }
 BYTE open_UART1(UART *s) {
  assert(s->baudRate==1152000 && s->flowControl==FCTL_HW && !s->interrupts);
  if(mode==9)return UART_ERR_FAILURE;
@@ -33,7 +34,10 @@ BYTE uart1_try_get(BYTE *b){
  if(mode==4){*b=0xA5;return UART_POLL_READY;}
  return UART_POLL_EMPTY;
 }
+#include "uartprobe_gateway_host.h"
+
 int main(void){
+ probe_init();
  for(mode=0;mode<14;++mode){
   ticks=250;sent=received=closed=claimed=attempts=0;serialFlags=mode==12?0x10:0;
   assert(emos_general_poll()==(mode==0 || mode==13));assert(closed==(mode==9||mode==12?0:1));

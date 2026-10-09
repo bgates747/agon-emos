@@ -57,6 +57,27 @@ class EmosParallelTests(unittest.TestCase):
         self.assertEqual(result.stdout, "EMOS parallel engine host checks passed\n")
         self.assertEqual(result.stderr, "")
 
+    def test_receive_reference_is_excluded_unless_explicitly_selected(self) -> None:
+        compiler, nm = shutil.which("cc"), shutil.which("nm")
+        self.assertIsNotNone(compiler, "host C compiler is required")
+        self.assertIsNotNone(nm, "host symbol reader is required")
+        with tempfile.TemporaryDirectory() as directory:
+            for flags, present in (([], False),
+                                   (["-DEMOS_PARALLEL_RECEIVE_REFERENCE=0"], False),
+                                   (["-DEMOS_PARALLEL_RECEIVE_REFERENCE=1"], True)):
+                with self.subTest(flags=flags):
+                    obj = Path(directory) / "engine.o"
+                    subprocess.run([
+                        compiler, "-std=c17", "-Wall", "-Wextra", "-Werror",
+                        "-pedantic", *flags, f"-I{HOST_INCLUDE}",
+                        f"-I{ROOT / 'src'}", "-c", str(ENGINE), "-o", str(obj),
+                    ], check=True)
+                    symbols = {line.split()[-1] for line in subprocess.check_output(
+                        [nm, "--defined-only", str(obj)], text=True).splitlines()}
+                    self.assertEqual("emos_parallel_engine_read" in symbols, present)
+                    self.assertIn("emos_parallel_engine_write", symbols)
+                    self.assertIn("emos_parallel_engine_fault", symbols)
+
     def test_exact_production_binding_executes_against_host_registers(self) -> None:
         compiler = shutil.which("cc")
         self.assertIsNotNone(compiler, "host C compiler is required")

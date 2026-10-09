@@ -35,3 +35,8 @@ no new logic-analyzer baud/edge measurement was performed.
 See [resident service contract](../../docs/emos-v1-contract.md),
 [utility dispatch](../../docs/emos-utilities.md), and
 [implementation task](../../docs/tasks/INTEG-016.md).
+
+UARTTEST/VDPPOLL now share this gateway adapter in the newer off-bench
+composition. The additive slow-open operation does not change UARTFLOW's
+fast-lease algorithm or qualification history; see
+[probe MOSlets](../uartprobe/README.md). Their hardware validation is separate.

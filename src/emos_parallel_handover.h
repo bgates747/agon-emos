@@ -81,6 +81,13 @@ void emos_parallel_session_cancel(t_emosParallelHandover *h, t_parallelSession *
  * the future admitted foreground coordinator may call this after recovery. */
 BYTE emos_parallel_session_negotiate(t_emosParallelHandover *h,
     t_parallelSession *s, const BYTE *transaction);
+/* Existing UART owner only. Caller retains the exact admitted descriptor and
+ * reservation through physical return and matched result. No payload caller,
+ * mode commitment, pad release or recovery is supplied by these functions. */
+BYTE emos_parallel_block_offer(t_emosParallelHandover *h, t_parallelSession *s,
+    BYTE mode, const BYTE *offer);
+BYTE emos_parallel_block_complete(t_emosParallelHandover *h, t_parallelSession *s,
+    const BYTE *offer, BYTE status);
 /* Boot-only pad leaves. Exclusive pre-UART fence required. No ordinary startup
  * caller yet; future candidate must gate open_UART1 and all restore writers.
  * poll returns RESTORE only after reciprocal release. uartRestored means the
@@ -96,4 +103,10 @@ void emos_parallel_boot_connect(void);
 /* Nonblocking existing keyboard tick only, after parked-owner exclusion. */
 void emos_parallel_boot_tick(void);
 BYTE emos_parallel_boot_uart_allowed(void);
+/* Private native composition only. Same owner as boot; not a public ABI. */
+t_emosParallelHandover *emos_parallel_boot_handover(void);
+BYTE emos_parallel_boot_block_begin(void);
+void emos_parallel_boot_block_end(BYTE success);
+BYTE emos_parallel_native_coordinate(t_parallelSession *s, const BYTE *offer,
+    BYTE *buffer, UINT24 capacity);
 #endif

@@ -1,7 +1,8 @@
+#define _GNU_SOURCE
 #include <assert.h>
 #include <string.h>
 #include "uart.h"
-#include "emos_uart_probe.h"
+#include "probe.h"
 #include "emos_keyboard.h"
 /* These legacy one-shot tests have no resident keyboard owner. Shared-session
  * effects are exercised against the real receiver in emos_keyboard_harness.c. */
@@ -17,7 +18,7 @@ static const char *response;
 static unsigned sent, reads, replies, opened, closed, ticks;
 static int scenario;
 
-BYTE emos_uart_probe_clock(void) {
+BYTE emos_uart_flow_clock(void) {
     if (scenario != 7 && !(scenario == 8 && sent == sizeof(expected) - 1)) ticks += 2;
     return (BYTE)ticks;
 }
@@ -55,7 +56,10 @@ BYTE uart1_try_get(BYTE *value) {
     return UART_POLL_EMPTY;
 }
 
+#include "uartprobe_gateway_host.h"
+
 int main(void) {
+    probe_init();
     for (scenario = 0; scenario <= 13; ++scenario) {
         int passed;
         serialFlags = 0;

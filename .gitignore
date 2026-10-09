@@ -44,3 +44,6 @@ projects/keyboard-api/build/
 /projects/uartflow/obj/
 
 /tests/uart_put_cpu/target/
+
+/projects/uartprobe/bin/
+/projects/uartprobe/obj/

@@ -191,6 +191,11 @@ BYTE emos_parallel_engine_write(
 	return status;
 }
 
+/* PORT-008: this unbound receive reference has no resident caller. Keep it
+ * available for explicit correctness tests without spending 574 ROM bytes
+ * in ordinary/native firmware. Shared forward helpers remain unconditional.
+ */
+#if defined(EMOS_PARALLEL_RECEIVE_REFERENCE) && EMOS_PARALLEL_RECEIVE_REFERENCE
 /* Reverse correctness reference. Retains the forward engine's ownership,
  * reentry and timeout policy, but never calls writeData. The future binding
  * must make Port C input before admission and stop the UART ISR's RTS writes.
@@ -241,6 +246,8 @@ BYTE emos_parallel_engine_read(
 	engine->busy = 0;
 	return status;
 }
+
+#endif /* EMOS_PARALLEL_RECEIVE_REFERENCE */
 
 BYTE emos_parallel_engine_fault(const t_emosParallelEngine *engine) {
 	if (engine == 0 || !engine->configured)

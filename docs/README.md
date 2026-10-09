@@ -28,8 +28,25 @@ routine readers do not need to reconstruct them from historical tasks.
 dispatch. It is not an available automatic file-transfer service or production
 release. Continue using the documented manual listener until paired qualification.
 
-PORT-008/INTEG-016 also has private unbound native parallel payload leaves.
-The `parallel-native-candidate.mk` build probe currently fails the ROM limit
-by 265 bytes; it must not be installed. The separate RAM instruction-test image
-is not firmware. Ordinary resident selection and supported operations are
-unchanged. See [INTEG-016](tasks/INTEG-016.md) for the bounded result.
+PORT-008/INTEG-016 also has a private native parallel coordinator binding the
+shared boot handover, UART reservation/parking, native assembly and matched
+completion status. The complete `parallel-native-candidate.mk` composition
+uses 130473 ROM bytes /599 free. Software/build checks pass; the coordinator
+has no activation caller or public ExExt API/mode and is not hardware-qualified.
+Ordinary EMOS uses 128739 /2333 free. UARTTEST and VDPPOLL now load from SD,
+using the existing admitted diagnostic service; resident text services remain.
+See the [probe MOSlet guide](../projects/uartprobe/README.md) and paired
+[recovery results](../../agon-extender/docs/tasks/PORT-008/DIAGNOSTIC-ROM-RECOVERY-RESULTS.md).
+Complete wrappers and mandatory link guards pass. No physical activation caller or
+hardware qualification is supplied; these private bytes have not been deployed
+or selected for production. The separate RAM instruction-test image is not
+firmware. Earlier overflowing/fitting checkpoints remain historical evidence.
+
+The maintained C reference is selected only by
+`port/parallel-reference-test.mk` (`EMOS_PARALLEL_RECEIVE_REFERENCE=1`), for
+paired host and linked eZ80 correctness tests. Select that profile through the
+configured mos-agondev repository-root `prepare-mos` and `firmware-check`
+targets, preserving all profile checks. Ordinary/native profiles exclude it.
+The native profile has a strict private owner checker; ordinary profiles reject
+its assembly leaf. Supported operations and installed firmware are unchanged.
+See [INTEG-016](tasks/INTEG-016.md) for evidence and remaining integration gates.

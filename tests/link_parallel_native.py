@@ -2,7 +2,8 @@
 """Link already-qualified native objects at RAM address 0x40000, never firmware.
 
 Run after the maintained parallel-native-candidate profile compile/link attempt.
-Its expected ROM overflow does not authorize an oversized firmware or deployment.
+An overflow never authorizes oversized firmware or deployment. The image also
+remains useful after the resident composition fits: it isolates the same leaves.
 This separate image executes only in tests/uart_put_cpu's instruction interpreter.
 """
 from pathlib import Path

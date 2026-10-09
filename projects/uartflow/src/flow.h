@@ -9,6 +9,7 @@ enum { UART_POLL_EMPTY=0, UART_POLL_READY=1, UART_POLL_ERROR=2,
 #endif
 BYTE emos_uart_flow_clock(void);
 BYTE flow_open(void);
+BYTE flow_open_slow(void);
 BYTE flow_get(BYTE *value);
 BYTE flow_put(BYTE value);
 BYTE flow_ready(BYTE value);

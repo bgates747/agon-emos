@@ -40,7 +40,9 @@ static BYTE control_send(const BYTE *p, UINT16 n) {
 static BYTE exchange(BYTE op) {
     BYTE prefix[3] = {23, 0, CONSOLE_OPCODE};
     BYTE irq, ok;
-    request[3] = op; request[13] = 0; console_seal(request);
+    request[3] = op;
+    if (request[2] != PARALLEL_WIRE_VERSION) request[13] = 0;
+    console_seal(request);
     irq = emos_keyboard_lock(); accepted = 0; waiting = op;
     emos_keyboard_unlock(irq);
     ok = control_send(prefix, 3) == EMOS_KEY_OK &&
@@ -65,13 +67,20 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
     if (command == CONSOLE_REPLY) {
         if (length != CONSOLE_SIZE || !waiting || accepted ||
             p[2] != request[2] ||
-            !(request[2] == PARALLEL_WIRE_VERSION ? parallel_session_valid(p) : console_valid(p)) ||
-            p[3] != (BYTE)(waiting | 0x80) || p[13] ||
-            memcmp(p + 4, request + 4, 4)) return;
-        if (waiting == CONSOLE_PREPARE || waiting == CONSOLE_PREPARE_KEEP) {
-            if (!(p[8] | p[9] | p[10] | p[11])) return;
-            memcpy(request + 8, p + 8, 4);
-        } else if (memcmp(p + 8, request + 8, 4)) return;
+            p[3] != (BYTE)(waiting | 0x80)) return;
+        if (request[2] == PARALLEL_WIRE_VERSION &&
+            (waiting == PARALLEL_OFFER || waiting == PARALLEL_COMPLETE)) {
+            /* Length and direction are part of identity. Capture a matched
+             * failure too: foreground must reject it, not wait for success. */
+            if (!parallel_block_matches(request,p,(BYTE)(waiting|0x80))) return;
+        } else {
+            if (!(request[2] == PARALLEL_WIRE_VERSION ? parallel_session_valid(p) : console_valid(p)) ||
+                p[13] || memcmp(p+4,request+4,4)) return;
+            if (waiting == CONSOLE_PREPARE || waiting == CONSOLE_PREPARE_KEEP) {
+                if (!(p[8] | p[9] | p[10] | p[11])) return;
+                memcpy(request+8,p+8,4);
+            } else if (memcmp(p+8,request+8,4)) return;
+        }
         /* Foreground owns session transitions. Capture exactly one complete
          * version-2 reply; late duplicates cannot replace its nonce. */
         if (request[2] == PARALLEL_WIRE_VERSION) memcpy(request,p,CONSOLE_SIZE);
@@ -214,4 +223,30 @@ BYTE emos_parallel_session_negotiate(t_emosParallelHandover *h,
         }
     } while (s->phase != PARALLEL_SESSION_ACTIVE);
     return 1;
+}
+
+/* Private foreground block transaction, not a GPIO entry or application API.
+ * The future physical coordinator retains offer until completion and owns
+ * drain/park/native/return. An ACK only starts the existing handover machine.
+ * Any uncertain wire result invalidates the session without restoring pads.
+ */
+BYTE emos_parallel_block_offer(t_emosParallelHandover *h, t_parallelSession *s,
+    BYTE mode, const BYTE *offer) {
+    if (emos_console_owned || waiting || mode != PARALLEL_EXEXT ||
+        h->phase != EPH_UART || s->phase != PARALLEL_SESSION_ACTIVE ||
+        !emos_keyboard_parallel_reserved() || !parallel_offer_valid(s->bytes,offer)) return 0;
+    memcpy(request,offer,CONSOLE_SIZE);
+    if (exchange(PARALLEL_OFFER) && emos_parallel_session_admit(h,mode,s,offer,request)) return 1;
+    emos_parallel_session_cancel(h,s); return 0;
+}
+BYTE emos_parallel_block_complete(t_emosParallelHandover *h, t_parallelSession *s,
+    const BYTE *offer, BYTE status) {
+    /* UART phase must come from reciprocal physical recovery, never from a
+     * timeout or ACK. Buffer bytes are still provisional throughout this wait. */
+    if (emos_console_owned || waiting || status>1 || h->phase!=EPH_UART ||
+        s->phase!=PARALLEL_SESSION_ACTIVE || !emos_keyboard_parallel_reserved() ||
+        memcmp(s->bytes,offer+4,6)) return 0;
+    memcpy(request,offer,CONSOLE_SIZE); request[13]=status || h->failed;
+    if (exchange(PARALLEL_COMPLETE) && !status && !h->failed && !request[13]) return 1;
+    emos_parallel_session_cancel(h,s); return 0;
 }

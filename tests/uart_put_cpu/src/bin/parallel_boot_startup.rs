@@ -168,5 +168,57 @@ fn main(){
  let mut b=Board::new(&args[1]);b.active();b.set("_parallel_boot_grant",2);
  b.set("_uart1_keyboard_owned",2);b.call("_emos_keyboard_tick",&[],false);
  assert!(b.io.is_empty());assert_eq!(b.get("_parallel_boot_grant"),2);cases+=1;
+ // LC02: execute the private ownership hooks in the real complete image.
+ // Ordinary/boot-only profiles contain none of these optional symbols.
+ if b.sym.contains_key("_emos_parallel_boot_block_begin") {
+  for iff in [false,true] {for grant in [0,1,2] {for nested in [false,true] {
+   let mut b=Board::new(&args[1]);b.active();b.set("_parallel_boot_grant",grant);
+   b.set("_parallel_boot_state",5);b.poke(b.sym["_parallel_boot_state"]+3,0);
+   b.set("_parallel_boot_block",u8::from(nested));
+   let expected=iff && grant==2 && !nested;
+   assert_eq!(b.call("_emos_parallel_boot_block_begin",&[],iff),u8::from(expected));
+   assert!(b.io.is_empty());assert_eq!(b.get("_parallel_boot_block"),u8::from(nested||expected));cases+=1;
+  }}}
+  for phase in 0..=13 {for ready in [false,true] {
+   let mut b=Board::new(&args[1]);b.active();b.set("_parallel_boot_grant",2);
+   b.set("_parallel_boot_state",phase);b.set("_parallel_boot_block",1);
+   b.ports[0xa2]=if ready {0x10}else{0};
+   assert_eq!(b.call("_emos_parallel_boot_uart_allowed",&[],true),u8::from(phase==2));
+   b.call("_emos_parallel_boot_tick",&[],false);
+   assert_eq!(b.get("_uart1_keyboard_owned"),1);assert_eq!(b.get("_emos_key_faulted"),0);
+   assert_eq!(b.get("_parallel_boot_grant"),2);assert!(b.io.is_empty());cases+=1;
+  }}
+  for success in [false,true] {for phase in [4,5,11] {for failed in [false,true] {
+   let mut b=Board::new(&args[1]);b.active();b.set("_parallel_boot_grant",2);
+   b.set("_parallel_boot_state",phase);b.poke(b.sym["_parallel_boot_state"]+3,u8::from(failed));
+   b.set("_parallel_boot_block",1);
+   b.call("_emos_parallel_boot_block_end",&[u32::from(success)],true);
+   assert_eq!(b.get("_parallel_boot_block"),0);
+   if success && phase==4 && !failed {assert!(b.io.is_empty());assert_eq!(b.get("_parallel_boot_grant"),2);}
+   else {assert_eq!(b.get("_parallel_boot_grant"),0);assert_eq!(b.ports[0x9f],255);assert_eq!(b.ports[0xd4],16);}
+   cases+=1;
+  }}}
+  // Actual foreground C, reservation, park, timer/fuse and fault fence. A
+  // deliberately absent peer stalls the entry ACK; no mocked C adapter here.
+  for moving in [false,true] {
+   const SESSION:u32=0x72000;const OFFER:u32=0x72100;const BUFFER:u32=0x73000;
+   let mut b=Board::new(&args[1]);b.active();b.moving=moving;b.ports[0xa2]=0x90;
+   b.set("_parallel_boot_grant",2);b.set("_parallel_boot_state",4);
+   b.poke(b.sym["_parallel_boot_state"]+1,1);
+   assert_eq!(b.call("_emos_keyboard_parallel_reserve",&[],true),1);
+   assert_eq!(b.call("_emos_parallel_handover_begin",&[b.sym["_parallel_boot_state"]],true),1);
+   for(i,v)in [1,2,3,4,1,0,1,2,3,4,3].iter().enumerate(){b.poke(SESSION+i as u32,*v);}
+   let mut offer=[b'E',b'X',2,2,1,2,3,4,1,0,8,0,0,0,0,0];
+   let mut crc=0xffffu16;
+   for v in &offer[..14] {crc^=(*v as u16)<<8;for _ in 0..8 {crc=if crc&0x8000!=0{(crc<<1)^0x1021}else{crc<<1};}}
+   offer[14]=crc as u8;offer[15]=(crc>>8) as u8;
+   for(i,v)in offer.iter().enumerate(){b.poke(OFFER+i as u32,*v);}
+   assert_eq!(b.call("_emos_parallel_native_coordinate",&[SESSION,OFFER,BUFFER,8],true),0);
+   assert_eq!(b.get("_parallel_boot_grant"),0);assert_eq!(b.get("_parallel_boot_block"),0);
+   assert_eq!(b.peek(SESSION+10),0);assert_eq!(b.get("_parallel_reserved"),1);
+   assert_eq!(b.ports[0x9f],255);assert_eq!(b.ports[0xa0],0);assert_eq!(b.ports[0xa1],0);
+   assert_eq!(b.ports[0xd1],0);assert_eq!(b.ports[0xd4],16);cases+=1;
+  }
+ }
  println!("PASS {cases} linked startup/runtime cases: actual coordinator, deadline/frozen-clock fuse, early open, busy claim, latched READY loss, actual ISR/parser/vector/held-key cleanup, parked exclusion and mainboard input");
 }

@@ -16,6 +16,7 @@ static BYTE call(BYTE op,BYTE arg) {
         return UART_POLL_UNAVAILABLE;
     return output[0];
 }
+BYTE flow_open_slow(void){return call(5,0)==UART_POLL_READY;}
 BYTE flow_open(void){return call(0,0)==UART_POLL_READY;}
 BYTE flow_get(BYTE *v){BYTE r=call(1,0);if(r==UART_POLL_READY)*v=output[1];return r;}
 BYTE flow_put(BYTE v){return call(2,v);}

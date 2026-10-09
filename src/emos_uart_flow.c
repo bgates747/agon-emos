@@ -2,6 +2,8 @@
  * This retained source/profile name now contains only the admitted transport
  * leaves. API 0x51 ext.uartdiag v1: input[op,arg], output[poll_status,value].
  * Ops: 0=open fixed 1152000/8N1/CTS+RTS, 1=RX, 2=TX, 3=RTS ready, 4=close.
+ * Op 5 opens fixed 115200/8N1/no-flow for the extracted UARTTEST only.
+ * active=1 owns CTS/RTS; active=2 is the slow lease and cannot change RTS.
  * Caller policy/Legacy gate belongs to emos_gateway. No caller pointer lives
  * beyond one call. Utility exit closes our lease, never somebody else's UART.
  */
@@ -25,19 +27,21 @@ UINT24 emos_uartdiag_gateway(t_emosGatewayRequest *r) {
     if(!pair_range(in)||!pair_range(out)||emos_read24(r->inputLength)!=2 ||
        emos_read24(r->outputCapacity)!=2) return FR_INVALID_PARAMETER;
     op=*(BYTE *)in;arg=*((BYTE *)in+1);
-    if(op>4 || (op!=2 && (op==3 ? arg>1 : arg!=0))) return FR_INVALID_PARAMETER;
+    if(op>5 || (op!=2 && (op==3 ? arg>1 : arg!=0))) return FR_INVALID_PARAMETER;
     irq=emos_keyboard_lock();
     if(!irq){emos_keyboard_unlock(irq);return EMOS_BUSY;}
-    if(op==0) {
+    if(op==0 || op==5) {
+        if(op==5){settings.baudRate=115200;settings.flowControl=0;}
         if(!active && !uart1_keyboard_owned && !(serialFlags&0x10) &&
            open_UART1(&settings)==UART_ERR_NONE) {
-            active=1;status=uart1_claim_rts();
+            active=op==5 ? 2 : 1;
+            status=active==2 ? UART_POLL_READY : uart1_claim_rts();
             if(status!=UART_POLL_READY)emos_uartdiag_reset();
         }
     } else if(active) {
         if(op==1)status=uart1_try_get(&value);
         else if(op==2)status=uart1_try_put(arg);
-        else if(op==3)status=uart1_receive_ready(arg);
+        else if(op==3){if(active==1)status=uart1_receive_ready(arg);}
         else {emos_uartdiag_reset();status=UART_POLL_READY;}
     }
     emos_keyboard_unlock(irq);

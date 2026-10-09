@@ -305,23 +305,21 @@ def verify_source(source: Path) -> None:
     for status in ("0xE3", "0xE4", "0xE5", "0xE6", "0xE8"):
         if status not in header:
             raise ParallelError(f"missing lifecycle status {status}")
-    # INTEG-007 admits one explicit Legacy-only UART diagnostic in Core.
-    # Keep the predecessor-poll ban everywhere else, including every parallel
-    # source and any additional call from Core. Do not rename the diagnostic
-    # just to evade this ownership guard.
-    poll_branch = re.search(
-        r'if \(strcasecmp\(operation, "vdppoll"\) == 0\) \{(.*?)'
-        r'(?=if \(strcasecmp\(operation, "uarttest"\))', core, re.DOTALL)
+    # UARTTEST/VDPPOLL now run only as MOSlets. Their transport gateway
+    # must retain utility/Legacy/busy admission. No resident poll exception.
+    diag_branch = re.search(
+        r'if \(!strcmp\(namespaceName,"ext"\) && !strcmp\(providerName,"uartdiag"\)\) \{(.*?)\n    \}',
+        core, re.DOTALL)
+    if not diag_branch or any(required not in diag_branch.group(0) for required in (
+        "!mosletRequest || emosPolicy != EMOS_POLICY_MOSLET",
+        "emosModeState.mode != EMOS_MODE_LEGACY",
+        "if (emosBusy) return EMOS_BUSY;",
+        "result=emos_uartdiag_gateway(request);")):
+        raise ParallelError("Diagnostic MOSlet gateway lost its caller/Legacy/busy guard")
     checked_core = core
-    if poll_branch:
-        branch = poll_branch.group(0)
-        call = "return emos_general_poll() ? FR_OK : FR_TIMEOUT;"
-        if branch.count(call) != 1 or "emosModeState.mode != EMOS_MODE_LEGACY" not in branch:
-            raise ParallelError("General Poll diagnostic lost its Core/Legacy guard")
-        checked_core = core[:poll_branch.start()] + branch.replace(call, "") + core[poll_branch.end():]
     text_branch = re.search(
         r'if \(strcasecmp\(operation, "vdptext"\) == 0\) \{(.*?)'
-        r'(?=if \(strcasecmp\(operation, "vdppoll"\))', checked_core, re.DOTALL)
+        r'\n    \}', checked_core, re.DOTALL)
     if text_branch:
         branch = text_branch.group(0)
         call = "return emos_visible_text() ? FR_OK : FR_TIMEOUT;"
@@ -445,7 +443,8 @@ def verify_source(source: Path) -> None:
 
 
 def verify_linked(
-    elf: Path, nm: Path, objdump: Path, *, allow_fixed_qualification: bool = False
+    elf: Path, nm: Path, objdump: Path, *, allow_fixed_qualification: bool = False,
+    allow_native_payload: bool = False
 ) -> None:
     symbols = linked_symbols(nm, elf)
     addresses = require_global_text_symbols(symbols, REQUIRED_SYMBOLS)
@@ -500,6 +499,12 @@ def verify_linked(
             + ", ".join(forbidden)
         )
 
+    # Native payload is admitted only by its explicit private-profile checker;
+    # adding that object to an ordinary/fixed profile must still fail closed.
+    if not allow_native_payload and any(name in symbols for name in (
+            "_emos_parallel_native_payload", "_emos_parallel_native_bytes")):
+        raise ParallelError("ordinary image links private native payload symbols")
+
     # INTEG-005: Core-owned RTS adds only PC_DR/PC_DDR writes. Keep the
     # whole-image owner inventory and bound each new writer to its exact
     # register sequence; real-driver host tests check PC2 masking/ownership.
@@ -525,6 +530,14 @@ def verify_linked(
         "_uart1_keyboard_irq": [0x9E],
         "_uart1_keyboard_irq_done": [0x9E],
     }
+    if allow_native_payload:
+        # Local assembly labels own later writes in the whole-image inventory.
+        # The native checker separately checks callers and the Port D helper.
+        rts_portc_writes.update({
+            "_emos_parallel_native_bytes": [0x9F],
+            "native_send": [0x9E],
+            "native_finish": [0x9F],
+        })
     observed_rts_writes = {name: [] for name in rts_portc_writes}
     allowed_portc_writers = {
         "__init",
@@ -576,7 +589,9 @@ def verify_linked(
         raise ParallelError("runtime release tick has an unreviewed caller")
     if candidate:
         start_callers = {"_init_UART1": 1, "_emos_parallel_boot_tick": 1}
-        if direct_transfer_count(whole_image, addresses["_emos_parallel_boot_start"]) != 2:
+        if allow_native_payload:
+            start_callers["_emos_parallel_boot_block_end"] = 1
+        if direct_transfer_count(whole_image, addresses["_emos_parallel_boot_start"]) != sum(start_callers.values()):
             raise ParallelError("runtime fence start has an unreviewed caller")
         for caller, count in start_callers.items():
             if direct_transfer_count(disassemble_global_extent(objdump, elf, caller),

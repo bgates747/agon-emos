@@ -23,7 +23,8 @@ static unsigned mode, phase, ticks, phase_at, sent, received, closes;
 static unsigned owns_rts, ready_calls;
 BYTE emos_uart_flow_clock(void) { if (mode != 9) ticks += 2; return (BYTE)ticks; }
 BYTE open_UART1(UART *s) {
-    assert(s->baudRate == 1152000 && s->flowControl == FCTL_HW && !s->interrupts);
+    assert(s->baudRate == (mode==16 ? 115200u : 1152000u));
+    assert(s->flowControl == (mode==16 ? 0 : FCTL_HW) && !s->interrupts);
     assert(!(serialFlags & 0x10)); serialFlags |= 0x30; return UART_ERR_NONE;
 }
 void close_UART1(void) { ++closes; serialFlags &= 0x0F; owns_rts = 0; }
@@ -91,7 +92,7 @@ int main(void) {
     }
     put24(r->inputLength,1);assert(emos_uartdiag_gateway(r)==19);put24(r->inputLength,2);
     put24(r->outputCapacity,3);assert(emos_uartdiag_gateway(r)==19);put24(r->outputCapacity,2);
-    input[0]=5;assert(emos_uartdiag_gateway(r)==19);input[0]=0;input[1]=1;
+    input[0]=6;assert(emos_uartdiag_gateway(r)==19);input[0]=0;input[1]=1;
     assert(emos_uartdiag_gateway(r)==19);input[1]=0;
     irq=0;assert(emos_uartdiag_gateway(r)==31 && !irq && !serialFlags);irq=1;
     uart1_keyboard_owned=1;assert(!flow_open() && !serialFlags);uart1_keyboard_owned=0;
@@ -100,6 +101,15 @@ int main(void) {
     emos_uartdiag_reset();assert(closes==1 && !serialFlags && !owns_rts);
     emos_uartdiag_reset();assert(closes==1);
     assert(service(1,0)==UART_POLL_UNAVAILABLE);
+    mode=16;serialFlags=0;closes=owns_rts=ready_calls=0;
+    assert(service(5,0)==UART_POLL_READY && serialFlags && !owns_rts);
+    assert(service(0,0)==UART_POLL_UNAVAILABLE && !closes && !owns_rts);
+    assert(service(5,0)==UART_POLL_UNAVAILABLE && !closes);
+    assert(service(3,1)==UART_POLL_UNAVAILABLE && !ready_calls && !owns_rts);
+    assert(service(3,0)==UART_POLL_UNAVAILABLE && !ready_calls);
+    emos_uartdiag_reset();assert(closes==1 && !serialFlags && !owns_rts);
+    input[0]=5;input[1]=1;assert(emos_uartdiag_gateway(r)==19 && closes==1);
+    puts("Slow diagnostic lease, fixed configuration, RTS refusal and exit cleanup passed");
     puts("Diagnostic service bounds, IRQ/owner refusal and abandoned-lease cleanup passed");
     return 0;
 }
