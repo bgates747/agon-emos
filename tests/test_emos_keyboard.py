@@ -16,6 +16,7 @@ class KeyboardTests(unittest.TestCase):
                             '-DMOS_DEFINES_H', '-include',str(ROOT/'tests/host/defines.h'),
                             '-I'+str(ROOT/'tests/host'), '-I'+str(ROOT/'src'),
                             str(ROOT/'src/emos_keyboard.c'),
+                            str(ROOT/'src/emos_parallel_startup_disabled.c'),
                             str(ROOT/'tests/emos_keyboard_harness.c'),
                             '-o', str(exe)], check=True)
                 subprocess.run([str(exe)], check=True, timeout=20)

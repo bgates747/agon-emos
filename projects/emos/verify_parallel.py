@@ -54,6 +54,7 @@ REQUIRED_SYMBOLS = (
     "_emos_parallel_boot_poll",
     "_emos_parallel_boot_start",
     "_emos_parallel_boot_connect",
+    "_emos_parallel_boot_tick",
     "_emos_parallel_boot_uart_allowed",
 )
 
@@ -563,10 +564,24 @@ def verify_linked(
                     raise ParallelError("boot leaf caller set changed: " + leaf)
     for caller, hook in (("_init_UART1", "_emos_parallel_boot_start"),
                          ("_emos_init", "_emos_parallel_boot_connect"),
+                         ("_emos_keyboard_tick", "_emos_parallel_boot_tick"),
                          ("_open_UART1", "_emos_parallel_boot_uart_allowed"),
                          ("_uart1_keyboard_unpark", "_emos_parallel_boot_uart_allowed")):
         if direct_transfer_count(disassemble_global_extent(objdump, elf, caller), addresses[hook]) != 1:
             raise ParallelError("mandatory startup UART hook missing: " + caller)
+    # The reset-loss hook belongs only to the existing keyboard ISR owner.
+    # An arbitrary foreground caller could run stock keyboard callbacks outside
+    # their interrupt contract. Keep both selected compositions private.
+    if direct_transfer_count(whole_image, addresses["_emos_parallel_boot_tick"]) != 1:
+        raise ParallelError("runtime release tick has an unreviewed caller")
+    if candidate:
+        start_callers = {"_init_UART1": 1, "_emos_parallel_boot_tick": 1}
+        if direct_transfer_count(whole_image, addresses["_emos_parallel_boot_start"]) != 2:
+            raise ParallelError("runtime fence start has an unreviewed caller")
+        for caller, count in start_callers.items():
+            if direct_transfer_count(disassemble_global_extent(objdump, elf, caller),
+                                     addresses["_emos_parallel_boot_start"]) != count:
+                raise ParallelError("runtime fence start caller set changed: " + caller)
     # Mandatory hook is a refusal gate, not merely an unused call. Verify
     # its zero branch skips every hardware write and reaches a return epilogue.
     for caller in ("_open_UART1", "_uart1_keyboard_unpark"):

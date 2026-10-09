@@ -93,5 +93,7 @@ BYTE emos_parallel_boot_poll(t_emosParallelHandover *h, BYTE uartRestored);
  * open path. Ordinary profile selects inert hooks; candidate selects recovery. */
 void emos_parallel_boot_start(void);
 void emos_parallel_boot_connect(void);
+/* Nonblocking existing keyboard tick only, after parked-owner exclusion. */
+void emos_parallel_boot_tick(void);
 BYTE emos_parallel_boot_uart_allowed(void);
 #endif

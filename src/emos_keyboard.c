@@ -10,6 +10,7 @@
 #include "emos_sdlink.h"
 #include "emos_telemetry.h"
 #include "emos_parallel.h"
+#include "emos_parallel_handover.h"
 
 volatile BYTE emos_key_source, emos_key_faulted;
 static volatile BYTE transitioning, preparing, stop_requested, fault_requested;
@@ -103,6 +104,7 @@ void emos_keyboard_fault(void) {
 }
 void emos_keyboard_tick(void) {
     if (uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
+    emos_parallel_boot_tick();
     if (stop_requested) {
         #ifdef EMOS_BENCH_TELEMETRY
         async_abort();

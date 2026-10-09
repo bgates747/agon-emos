@@ -1,19 +1,35 @@
 /* PORT-008 private boot-release composition, not qualified for deployment.
- * Startup-only single owner; no application, callback or ISR may invoke these
- * hooks. Never wait inside the UART/keyboard IRQ lock. No timed UART fallback.
+ * Startup/foreground owns connect; the existing keyboard ISR owns tick.
+ * Tick never waits. No application/callback may invoke these private hooks.
+ * Never wait inside the UART/keyboard IRQ lock. No timed UART fallback.
  * Existing transport claim/release owns vectors, parser and receive readiness.
  */
 #include <ez80.h>
 #include "emos_parallel_handover.h"
 #include "emos_keyboard.h"
+#include "uart.h"
 static t_emosParallelHandover parallel_boot_state;
-static BYTE parallel_boot_grant;
+/* Shared with the existing keyboard ISR; admission callers must resample. */
+static volatile BYTE parallel_boot_grant;
 void emos_parallel_boot_start(void) {
     parallel_boot_grant = 0;
     emos_parallel_boot_fence(&parallel_boot_state);
 }
 BYTE emos_parallel_boot_uart_allowed(void) {
-    return parallel_boot_grant && (parallel_boot_grant == 1 || (PD_DR & 0x10));
+    /* A later high READY cannot resurrect an observed loss. Grant 1 is the
+     * sole reciprocal restore, before the peer raises its UART acknowledgement. */
+    if (parallel_boot_grant == 2 && !(PD_DR & 0x10)) parallel_boot_grant = 0;
+    return parallel_boot_grant;
+}
+void emos_parallel_boot_tick(void) {
+    /* Caller excludes normal parallel parking. Observed reset is a fault,
+     * not a drained suspension: invalidate receive/held keys before fencing. */
+    if (uart1_keyboard_owned && !emos_parallel_boot_uart_allowed()) {
+        emos_keyboard_fault();
+        uart1_keyboard_close();
+        emos_key_source = EMOS_KEY_MAINBOARD;
+        emos_parallel_boot_start();
+    }
 }
 void emos_parallel_boot_connect(void) {
     t_emosDeadline d;

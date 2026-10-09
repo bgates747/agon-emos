@@ -70,6 +70,9 @@ fn main(){
    assert_ne!(b.call("_emos_parallel_boot_uart_allowed",&[],true),0);
    b.peer=false;b.ports[0xa2]&=!0x10;
    assert_eq!(b.call("_emos_parallel_boot_uart_allowed",&[],true),0);
+   b.ports[0xa2]|=0x10;
+   assert_eq!(b.call("_emos_parallel_boot_uart_allowed",&[],true),0,"high READY must not revive the old grant");
+   assert_eq!(b.get("_parallel_boot_grant"),0);
   }else{
    assert_eq!(b.get("_parallel_boot_grant"),0);
    assert_eq!(b.ports[0x9f],255);assert_eq!(b.ports[0xa0],0);assert_eq!(b.ports[0xa1],0);
@@ -96,5 +99,74 @@ fn main(){
  b.call("_emos_parallel_boot_start",&[],true);b.set("_transitioning",1);
  b.call("_emos_parallel_boot_connect",&[],true);
  assert_eq!(b.get("_parallel_boot_grant"),0);assert_eq!(b.ports[0x9f],255);cases+=1;
- println!("PASS {cases} linked startup cases: actual coordinator, deadline/frozen-clock fuse, early open, busy claim and mainboard input");
+ // Exercise real ISR cleanup, not substituted fault/vector callbacks.
+ for first_seen_by_open in [false,true] {for source in [0u8,1,2] {for already_faulted in [false,true] {
+  let mut b=Board::new(&args[1]);b.active();
+  b._poke24(b.sym["__2nd_jump_table"]+0x35,b.sym["_emos_keyboard_irq_entry"]);
+  b.set("_serialFlags",0x30);b.set("_parallel_boot_grant",2);
+  b.set("_parallel_boot_state",4);b.ports[0xa2]=0xdb;
+  for port in [0xa3,0xa4,0xa5] {b.ports[port]=0x4b;}
+  const PACKET:u32=0x71000;
+  // Admit two actual presses while mainboard is selected, then switch the
+  // source to model the existing remote-owned epoch. Stock keymap is exercised.
+  for key in [65u8,117] {
+   for (i,v) in [b'a',1,key,1].iter().enumerate(){b.poke(PACKET+i as u32,*v);}
+   b.call("_emos_keyboard_mainboard",&[PACKET],false);
+  }
+  assert_eq!(b.get("_keycount"),2);
+  b.set("_emos_key_source",source);
+  b.set("_emos_key_rx",4);b.poke(b.sym["_emos_key_rx"]+3,7);b.poke(b.sym["_emos_key_rx"]+4,3);
+  if already_faulted {b.set("_emos_key_faulted",1);}
+  b.ports[0xa2]&=!0x10;
+  if first_seen_by_open {
+   assert_eq!(b.call("_open_UART1",&[CFG],true),255);
+   assert!(b.io.iter().all(|(w,_,_)|!*w),"loss admission cannot write pins");
+   assert_eq!(b.get("_parallel_boot_grant"),0);
+   b.ports[0xa2]|=0x10; // bounce before the ISR owner services the loss
+  }
+  b.call("_emos_keyboard_tick",&[],false);
+  assert_eq!(b.get("_parallel_boot_grant"),0);
+  assert_eq!(b.get("_parallel_boot_state"),0);
+  assert_eq!(b.get("_emos_key_faulted"),1);
+  assert_eq!(b.get("_emos_key_source"),0);
+  assert_eq!(b.get("_uart1_keyboard_owned"),0);assert_eq!(b.get("_uart1_rts_owned"),0);
+  assert_eq!(b.get("_serialFlags")&0x30,0);
+  assert_eq!(b._peek24(b.sym["__2nd_jump_table"]+0x35),b.sym["__default_mi_handler"]);
+  assert_eq!(b.ports[0x9f],255);assert_eq!(b.ports[0xa0],0);assert_eq!(b.ports[0xa1],0);
+  assert_eq!(b.ports[0xd1],0);assert_eq!(b.ports[0xd4],16);
+  for port in [0xa2,0xa3,0xa4,0xa5] {assert_eq!(b.ports[port]&0x4f,0x4b,"preserve onboard GPIO");}
+  assert!(b.io.iter().all(|(w,p,_)|!*w || (*p!=0xd0 && !(0x99..=0x9c).contains(p))),
+    "loss cleanup must neither transmit bytes nor write SD Port B");
+  assert_eq!(b.get("_emos_key_rx"),0);assert_eq!(b.peek(b.sym["_emos_key_rx"]+3),0);
+  assert_eq!(b.peek(b.sym["_emos_key_rx"]+4),0);
+  if source!=0 {
+   assert_eq!(b.get("_keycount"),4,"both held keys must receive a real release");
+   assert!(b.mem[b.sym["_held"] as usize..b.sym["_held"] as usize+32].iter().all(|v|*v==0));
+   for key in [65u32,117] {
+    let lookup=b.sym["keyboard_lookup"]+4*(key-1);
+    assert_eq!(b.peek(b._peek24(lookup+1))&b.peek(lookup),0,"stock keymap release");
+   }
+  }
+  let count=b.get("_keycount");
+  for _ in 0..3 {b.call("_emos_keyboard_tick",&[],false);assert!(b.io.iter().all(|(w,_,_)|!*w));}
+  assert_eq!(b.get("_keycount"),count,"cleanup must not repeat");
+  b.ports[0xa2]|=0x10;
+  assert_eq!(b.call("_emos_parallel_boot_uart_allowed",&[],true),0);
+  assert_eq!(b.call("_uart1_keyboard_put",&[42],true),3);
+  assert!(b.io.is_empty(),"faulted sender cannot touch UART");
+  // The next stock mainboard key is accepted without a foreground recovery wait.
+  for (i,v) in [b'b',0,65,1].iter().enumerate(){b.poke(PACKET+i as u32,*v);}
+  b.call("_emos_keyboard_mainboard",&[PACKET],false);assert_eq!(b.get("_keycount"),count+1);
+  cases+=1;
+ }}}
+ // Grant 1 belongs to an actual reciprocal restore; peer READY is still low.
+ let mut b=Board::new(&args[1]);b.active();b.set("_parallel_boot_grant",1);
+ b.call("_emos_keyboard_tick",&[],false);assert_eq!(b.get("_uart1_keyboard_owned"),1);
+ assert_eq!(b.get("_parallel_boot_grant"),1);assert_eq!(b.get("_emos_key_faulted"),0);
+ assert!(b.io.iter().all(|(w,_,_)|!*w));cases+=1;
+ // Normal parallel parking must be excluded before the runtime poll.
+ let mut b=Board::new(&args[1]);b.active();b.set("_parallel_boot_grant",2);
+ b.set("_uart1_keyboard_owned",2);b.call("_emos_keyboard_tick",&[],false);
+ assert!(b.io.is_empty());assert_eq!(b.get("_parallel_boot_grant"),2);cases+=1;
+ println!("PASS {cases} linked startup/runtime cases: actual coordinator, deadline/frozen-clock fuse, early open, busy claim, latched READY loss, actual ISR/parser/vector/held-key cleanup, parked exclusion and mainboard input");
 }
