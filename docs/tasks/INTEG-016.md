@@ -225,3 +225,80 @@ listener without reset. Original P4/startup restored, mainboard VDP unchanged;
 candidate EMOS remains installed. Bench released. No waveform acquisition,
 parallel activation, production promotion or commit. See sibling Extender
 [hardware report](../../../agon-extender/docs/tasks/PORT-008/UARTFLOW-HARDWARE-RESULTS.md).
+
+
+I16-02b2c [x] — Author-authorized private session lifecycle increment. Reuse the
+fixed v2 carrier and console CRC/prepare/challenge/commit idiom, mirrored in P4.
+EMOS requires UART-recovered handover state and its actual foreground serializer
+reservation; only confirmed active capability can use the new admission wrapper.
+Cancellation invalidates capability/sequence and requests release without dropping
+the reservation or claiming pad cleanup. These functions have no live parser or
+startup caller; fresh identities, stale-byte quarantine, deadlines and physical
+boot fence remain I16-02b2 integration.
+
+Full wrapper/link guards, 1,149 paired owner checks, 1,334 linked eZ80 session
+checks, prior reservation/parking and affected host regressions pass. Image is
+130,212 bytes (+748 versus UARTFLOW), leaving 860 free; static RAM remains 4,058.
+Both P4-PC target build and source closure checks pass. No hardware/SD operations
+or commit. [Results](../../../agon-extender/docs/tasks/PORT-008/PARALLEL-SESSION-RESULTS.md)
+retain exact evidence and limitations. Unrelated application-peer work remains
+untouched. Stop for Author review before live coordinator binding.
+
+
+I16-02b2d [x] — Author-authorized control-owner binding. Reuse the console
+request buffer, actual reserved sender, fixed FF/16 ISR dispatcher and bounded
+wait for foreground prepare/commit. Reject borrowing an existing ExCom lease's
+identity; capture only one matching reply. Failure invalidates capability and
+requests release without dropping the reservation or restoring pads. No live
+startup/mode caller or physical boot-release/payload activation.
+
+218 paired control cases and 10 complete-image eZ80 control cases pass, with
+prior session/ownership and console regressions. Both target wrappers and P4
+source verification pass. EMOS is 130,480 ROM bytes (+268), leaving 592 free;
+static RAM remains 4,058. No bench operation or commit.
+[Results](../../../agon-extender/docs/tasks/PORT-008/PARALLEL-CONTROL-RESULTS.md)
+retain exact evidence. Mandatory early boot pad fencing, fresh identities and
+stale-wire quarantine, drains, block deadlines/status and payload binding remain.
+
+I16-02b2e [x] — Author released the bench and authorized the next bench-free
+boot-release increment. Add private physical boot leaves using the existing
+Port D atomic helpers and handover state; verify actual linked port writes,
+paired SDK/register behavior and complete guarded builds. No startup activation
+or hardware operation. Extender PORT-008/BOOT-RELEASE.md owns the cross-owner
+contract; actual earliest-writer gating, deadlines, identity/quarantine and
+physical one-board-reset qualification remain parent integration gates.
+
+I16-02b2e result: 695 paired physical boot-adapter cases and 126 complete-image
+eZ80 boot cases pass, along with existing control/session/reservation/parking
+regressions, six profile checks and both complete guarded target builds. EMOS
+adds 238 bytes to 130,718 ROM bytes, leaving 354; static RAM stays 4,058. The
+new linked guard permits only the boot leaf's exact Port C sequence and refuses
+unreviewed direct startup calls. An injected-call negative control is rejected.
+No ordinary boot binding, bench operation, production change or commit. Actual
+F92 defaults confirm init_UART1 leaves pins input; open_UART1 is the first mux
+enable to gate. Cross-owner results: Extender PORT-008/BOOT-RELEASE-RESULTS.md.
+
+I16-02b2f [x] — Author-approved candidate startup binding, off-bench only.
+Select inert hooks for ordinary UART-only startup and a separate private boot
+coordinator for the candidate. Reuse existing keyboard deadline and transport
+claim/release, gate actual open/restore mux writers and preserve mainboard MOS
+on timeout. Run complete guarded builds and account for the 354-byte entry
+headroom before P4 integration. Stop if it does not fit; no relaxed ROM guard
+or additional extraction. Cross-owner contract: PORT-008/BOOT-STARTUP.md.
+
+Startup binding results: complete guarded EMOS candidate fits at 130,949 ROM
+bytes, 123 free; ordinary inert-hook composition is 130,747, 325 free. Actual
+startup coordinator/claim/deadline/gates pass 12 linked instruction cases;
+706 paired P4-adapter/coordinator cases and both target compositions pass.
+The linked guard checks zero admission skips hardware writes and rejects removed
+result tests. Prior UART/control/boot and sender regressions pass. No firmware
+diagnostic, deployment, production change or automatic commit. Runtime reset,
+fresh identity/quarantine and payload binding remain open. Cross-owner evidence:
+Extender PORT-008/BOOT-STARTUP-RESULTS.md and BOOT-STARTUP-RESULT.json.
+
+The Author subsequently authorized logically grouped commits and publication.
+EMOS implementation/tests are preserved in `4af0792`; the owning task record
+is committed separately. Original Extender evidence retains its pre-commit
+identities and as-captured state. This is an off-bench source checkpoint, not
+hardware acceptance or production promotion. Unrelated application-peer work
+is excluded.
