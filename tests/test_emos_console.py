@@ -14,5 +14,6 @@ class ConsoleTests(unittest.TestCase):
                             '-Wno-endif-labels', '-fsanitize=address,undefined',
                             '-I'+str(ROOT/'tests/host'), '-I'+str(ROOT/'src'),
                             str(ROOT/'src/emos_console.c'),
+                            str(ROOT/'src/emos_parallel_handover.c'),
                             str(ROOT/'tests/emos_console_harness.c'), '-o', str(exe)], check=True)
             subprocess.run([str(exe)], check=True, timeout=20)

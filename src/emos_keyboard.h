@@ -19,6 +19,12 @@ BYTE emos_keyboard_select(BYTE source);
 BYTE emos_keyboard_transport_claim(void);
 /* Private handover leaves, not an ExExt command/API. Caller owns admission,
  * peer quiescence, handover signals, deadline and recovery (PORT-008). */
+/* Reserve before the offer. Successful unpark keeps this reservation; release
+ * only after the coordinator's status/recovery decision, with UART restored.
+ * Private send reuses ordinary bounded TX and rejects recursive callbacks. */
+BYTE emos_keyboard_parallel_reserve(void);
+BYTE emos_keyboard_parallel_send(const BYTE *data, UINT16 length);
+BYTE emos_keyboard_parallel_release(void);
 BYTE emos_keyboard_parallel_park(void);
 BYTE emos_keyboard_parallel_unpark(void);
 void emos_keyboard_transport_release(void);

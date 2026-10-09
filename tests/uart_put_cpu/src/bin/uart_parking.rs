@@ -42,13 +42,13 @@ impl Board {
 fn main(){
  let args:Vec<_>=env::args().collect();assert_eq!(args.len(),2);let mut b=Board::new(&args[1]);let mut cases=0;
  for status in 0..=255u8 {
-  b.active();b.ports[0xd5]=status;let r=b.call("_emos_keyboard_parallel_park",&[],true);
+  b.active();assert_eq!(b.call("_emos_keyboard_parallel_reserve",&[],true),1);assert!(b.io.is_empty());b.ports[0xd5]=status;let r=b.call("_emos_keyboard_parallel_park",&[],true);
   assert_eq!(b.io.iter().filter(|(w,p,_)|!*w && *p==0xd5).count(),1);
   if status&0x9e!=0 {
-   assert_eq!(r,2);assert_eq!(b.get("_fault_requested"),1);assert_eq!(b.get("_emosParallelWriterLock"),0);
+   assert_eq!(r,2);assert_eq!(b.get("_fault_requested"),1);assert_eq!(b.get("_emosParallelWriterLock"),1);
    assert_eq!(b.get("_uart1_keyboard_owned"),1);assert_eq!(b.ports[0xd1],0);
   } else if status&0x40==0 || status&1!=0 {
-   assert_eq!(r,0);assert_eq!(b.get("_emosParallelWriterLock"),0);assert_eq!(b.ports[0xa1],3);
+   assert_eq!(r,0);assert_eq!(b.get("_emosParallelWriterLock"),1);assert_eq!(b.ports[0xa1],3);
   } else {
    assert_eq!(r,1);assert_eq!(b.get("_uart1_keyboard_owned"),2);assert_eq!(b.get("_emosParallelWriterLock"),1);
    assert_eq!(b.get("_transitioning"),1);assert_eq!(b.ports[0xd4],0x10);
@@ -66,19 +66,19 @@ fn main(){
    b.ports[0x9f]=0;assert_eq!(b.call("_emos_keyboard_parallel_unpark",&[],true),3);
    assert_eq!(b.get("_emosParallelWriterLock"),1);assert!(!b.io.iter().any(|(w,_,_)|*w));
    b.ports[0x9f]=255;assert_eq!(b.call("_emos_keyboard_parallel_unpark",&[],true),1);
-   assert_eq!(b.get("_uart1_keyboard_owned"),1);assert_eq!(b.get("_emosParallelWriterLock"),0);
-   assert_eq!(b.get("_transitioning"),0);assert_eq!(b.ports[0xd4],0);assert_eq!(b.ports[0xd1],5);
+   assert_eq!(b.get("_uart1_keyboard_owned"),1);assert_eq!(b.get("_emosParallelWriterLock"),1);
+   assert_eq!(b.get("_transitioning"),1);assert_eq!(b.ports[0xd4],0);assert_eq!(b.ports[0xd1],5);
    assert_eq!(b.ports[0x9f],0xfb);assert_eq!(b.ports[0xa1],3);assert_eq!(b.ports[0xd2],7);
    assert_eq!(b.io.iter().filter(|(w,p,_)|*w && *p==0xd2).count(),0);cases+=3;
-  }cases+=1;
+  }assert_eq!(b.call("_emos_keyboard_parallel_release",&[],true),1);assert_eq!(b.get("_emosParallelWriterLock"),0);assert_eq!(b.get("_transitioning"),0);cases+=1;
  }
  for name in ["_transitioning","_preparing","_fault_requested","_stop_requested","_emos_key_faulted","_emos_key_rx","_emosParallelWriterLock","_emosParallelPinsOwned"]{
-  b.active();b.set(name,1);assert_eq!(b.call("_emos_keyboard_parallel_park",&[],true),3);assert!(b.io.is_empty());cases+=1;
+  b.active();b.set(name,1);assert_eq!(b.call("_emos_keyboard_parallel_reserve",&[],true),3);assert!(b.io.is_empty());cases+=1;
  }
- b.active();assert_eq!(b.call("_emos_keyboard_parallel_park",&[],false),3);assert!(b.io.is_empty());cases+=1;
+ b.active();assert_eq!(b.call("_emos_keyboard_parallel_reserve",&[],false),3);assert!(b.io.is_empty());cases+=1;
  for reg in [0x9f,0xa0,0xa1,0xd4] {
-  b.active();b.ports[reg]^=0x80;assert_eq!(b.call("_emos_keyboard_parallel_park",&[],true),3);
-  assert!(!b.io.iter().any(|(w,_,_)|*w));assert_eq!(b.get("_emosParallelWriterLock"),0);cases+=1;
+  b.active();assert_eq!(b.call("_emos_keyboard_parallel_reserve",&[],true),1);b.ports[reg]^=0x80;assert_eq!(b.call("_emos_keyboard_parallel_park",&[],true),3);
+  assert!(!b.io.iter().any(|(w,_,_)|*w));assert_eq!(b.get("_emosParallelWriterLock"),1);assert_eq!(b.call("_emos_keyboard_parallel_release",&[],true),1);cases+=1;
  }
  println!("PASS {cases} linked eZ80 UART parking cases; LSR, packet/serializer fences, late IRQ/TX, IFF, IX/SP, exact release/restore writes");
 }

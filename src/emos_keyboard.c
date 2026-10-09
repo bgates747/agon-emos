@@ -14,7 +14,8 @@
 volatile BYTE emos_key_source, emos_key_faulted;
 static volatile BYTE transitioning, preparing, stop_requested, fault_requested;
 static BYTE prepared_source;
-static BYTE parallel_reserved;
+/* 0 free, 1 coordinator reservation, 2 bounded private control send. */
+static volatile BYTE parallel_reserved;
 #ifdef EMOS_BENCH_TELEMETRY
 /* Core-owned packet: never retain application memory beyond a gateway call.
  * transitioning protects COMPLETE wire packets from foreground interleaving. */
@@ -359,50 +360,83 @@ void emos_keyboard_transport_release(void) {
     }
     emos_keyboard_unlock(irq);
 }
-/* Suspend only between complete packets. Serializer and Port C guard stay
- * reserved until successful restore. A busy attempt changes neither lease.
- * Error status must survive the acknowledging LSR read until the timer ISR
- * handles it; normal suspension never synthesizes key releases. */
-BYTE emos_keyboard_parallel_park(void) {
+/* Reserve BEFORE the offer, retaining the existing serializer and Port C
+ * guard across drain, park, restore and completion/status. No live caller yet.
+ * Only parallel_send can emit while held; ordinary writers remain excluded.
+ * A busy park attempt must NOT silently drop this transaction reservation. */
+BYTE emos_keyboard_parallel_reserve(void) {
     BYTE irq = emos_keyboard_lock(), result = UART_POLL_UNAVAILABLE;
     if (irq && !transitioning && !preparing && !fault_requested && !stop_requested &&
         !emos_key_faulted && !emos_key_rx.state && uart1_keyboard_owned == 1 &&
         emos_parallel_uart1_guard_acquire() == EMOS_PARALLEL_OK) {
+        parallel_reserved = transitioning = 1;
+        result = UART_POLL_READY;
+    }
+    emos_keyboard_unlock(irq);
+    return result;
+}
+BYTE emos_keyboard_parallel_park(void) {
+    BYTE irq = emos_keyboard_lock(), result = UART_POLL_UNAVAILABLE;
+    if (irq && parallel_reserved == 1 && !fault_requested && !stop_requested &&
+        !emos_key_faulted && !emos_key_rx.state) {
         result = uart1_keyboard_park();
-        if (result == UART_POLL_READY) parallel_reserved = transitioning = 1;
-        else {
-            emos_parallel_uart1_guard_release();
-            if (result == UART_POLL_ERROR) fault_requested = 1;
-        }
+        if (result == UART_POLL_ERROR) fault_requested = 1;
     }
     emos_keyboard_unlock(irq);
     return result;
 }
 BYTE emos_keyboard_parallel_unpark(void) {
     BYTE irq = emos_keyboard_lock(), result = UART_POLL_UNAVAILABLE;
-    if (irq && parallel_reserved) {
-        result = uart1_keyboard_unpark();
-        if (result == UART_POLL_READY) {
-            parallel_reserved = transitioning = 0;
-            emos_parallel_uart1_guard_release();
-        }
+    if (irq && parallel_reserved == 1) result = uart1_keyboard_unpark();
+    /* Keep ordinary TX fenced until the coordinator validates the result or
+     * abandons the session after successful physical UART recovery. */
+    emos_keyboard_unlock(irq);
+    return result;
+}
+BYTE emos_keyboard_parallel_release(void) {
+    BYTE irq = emos_keyboard_lock(), result = UART_POLL_UNAVAILABLE;
+    /* Cannot cancel ownership while parked or from a reentrant control send.
+     * A failed exchange with UART still active may release the reservation;
+     * the caller must invalidate its session, never replay uncertain payload. */
+    if (irq && parallel_reserved == 1 && uart1_keyboard_owned == 1) {
+        parallel_reserved = transitioning = 0;
+        emos_parallel_uart1_guard_release();
+        result = UART_POLL_READY;
     }
     emos_keyboard_unlock(irq);
     return result;
 }
-BYTE emos_keyboard_send(const BYTE *data, UINT16 length) {
-    BYTE irq = emos_keyboard_lock(), ok = 1;
+static BYTE send_reserved(const BYTE *data, UINT16 length) {
+    BYTE ok;
     Deadline d;
-    if (!irq || transitioning || preparing || emos_key_faulted || !uart1_keyboard_owned) {
+    deadline_start(&d);
+    ok = transmit_block(data, length, &d);
+    if (!ok) fault_requested = 1; /* Partial packets cannot be safely replayed. */
+    return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
+}
+BYTE emos_keyboard_parallel_send(const BYTE *data, UINT16 length) {
+    BYTE irq = emos_keyboard_lock(), result;
+    if (!irq || parallel_reserved != 1 || uart1_keyboard_owned != 1 ||
+        fault_requested || stop_requested || emos_key_faulted) {
+        emos_keyboard_unlock(irq); return EMOS_KEY_BUSY;
+    }
+    parallel_reserved = 2; /* callbacks cannot send/release/park recursively */
+    emos_keyboard_unlock(irq);
+    result = send_reserved(data, length);
+    parallel_reserved = 1;
+    return result;
+}
+BYTE emos_keyboard_send(const BYTE *data, UINT16 length) {
+    BYTE irq = emos_keyboard_lock(), result;
+    if (!irq || transitioning || preparing || fault_requested || stop_requested ||
+        emos_key_faulted || !uart1_keyboard_owned) {
         emos_keyboard_unlock(irq); return EMOS_KEY_BUSY;
     }
     transitioning = 1;
     emos_keyboard_unlock(irq);
-    deadline_start(&d);
-    ok = transmit_block(data, length, &d);
-    if (!ok) fault_requested = 1; /* Partial packets cannot be safely replayed. */
+    result = send_reserved(data, length);
     transitioning = 0;
-    return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
+    return result;
 }
 
 

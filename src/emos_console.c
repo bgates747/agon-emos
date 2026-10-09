@@ -6,6 +6,8 @@
 #include <string.h>
 #include "emos_console.h"
 #include "emos_console_wire.h"
+#include "emos_parallel_wire.h"
+#include "emos_parallel_handover.h"
 #include "emos_keyboard.h"
 #include "uart.h"
 
@@ -141,4 +143,22 @@ void emos_console_notice(BYTE exclusive) {
         emos_mainboard_put(23); emos_mainboard_put(0); emos_mainboard_put(0x86);
         emos_mainboard_put(23); emos_mainboard_put(0); emos_mainboard_put(0x82);
     }
+}
+
+/* Keep the private admission gate in this unit to reuse the console CRC code
+ * rather than link a second copy into scarce ROM. No live caller yet: c2b
+ * owns serializer fencing/session negotiation; c3 owns native payload binding.
+ * Call under the existing coordinator reservation, not from the UART ISR.
+ */
+BYTE emos_parallel_handover_admit(t_emosParallelHandover *h, BYTE mode,
+    BYTE *session, const BYTE *offer, const BYTE *ack) {
+    unsigned short crc;
+    if (mode != PARALLEL_EXEXT || h->phase != EPH_UART ||
+        !parallel_offer_valid(session, offer) || ack[3] != PARALLEL_ACK ||
+        memcmp(offer, ack, 3) || memcmp(offer + 4, ack + 4, 10)) return 0;
+    crc = console_crc(ack);
+    if (ack[14] != (BYTE)crc || ack[15] != (BYTE)(crc >> 8)) return 0;
+    if (!emos_parallel_handover_begin(h)) return 0;
+    session[4] = offer[8]; session[5] = offer[9];
+    return 1;
 }

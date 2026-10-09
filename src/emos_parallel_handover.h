@@ -58,4 +58,12 @@ void emos_parallel_handover_cancel(t_emosParallelHandover *h);
  */
 BYTE emos_parallel_handover_begin(t_emosParallelHandover *h);
 BYTE emos_parallel_handover_step(t_emosParallelHandover *h, BYTE completed);
+/* Private F02c2b1 gate, not a live admission/boot binding. Caller owns the six
+ * session bytes and retains the offer until matching completion. Nonzero
+ * session identity must come from a fresh coordinator capability exchange;
+ * reset/cancel/uncertain delivery invalidates it. Requires committed ExExt.
+ * ACK means entry may begin, never that UART is already quiet or payload done.
+ */
+BYTE emos_parallel_handover_admit(t_emosParallelHandover *h, BYTE mode,
+    BYTE *session, const BYTE *offer, const BYTE *ack);
 #endif
