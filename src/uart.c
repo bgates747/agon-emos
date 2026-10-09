@@ -28,6 +28,7 @@
 #include <gpio.h>
 
 #include "emos_parallel.h"
+#include "emos_parallel_handover.h"
 #include "uart.h"
 #include "emos_keyboard.h"
 
@@ -59,6 +60,7 @@ void init_UART1() {
 //	#endif
 	PC_ALT1 = PORTC_ALT1VAL_DEF;
 	PC_ALT2 = PORTC_ALT2VAL_DEF;
+	emos_parallel_boot_start(); /* candidate fences before the first UART1 open */
 	return ;
 }
 
@@ -122,7 +124,7 @@ BYTE open_UART1(UART * pUART) {
 	/* EMOS and UART1 share Port C.  Reserve the production lifecycle lock
 	 * before the first flag, mux, or UART mutation; a committed parallel epoch
 	 * is indefinite, so contention is rejected rather than spun on. */
-	if (uart1_keyboard_owned) return UART_ERR_FAILURE;
+	if (!emos_parallel_boot_uart_allowed() || uart1_keyboard_owned) return UART_ERR_FAILURE;
 	if (emos_parallel_uart1_guard_acquire() != EMOS_PARALLEL_OK)
 		return UART_ERR_FAILURE;
 
@@ -301,7 +303,7 @@ BYTE uart1_keyboard_park(void) {
     return UART_POLL_READY;
 }
 BYTE uart1_keyboard_unpark(void) {
-    if (uart1_keyboard_owned != UART_KEYBOARD_PARKED || PC_DDR != 0xFF ||
+    if (!emos_parallel_boot_uart_allowed() || uart1_keyboard_owned != UART_KEYBOARD_PARKED || PC_DDR != 0xFF ||
         PC_ALT1 || PC_ALT2) return UART_POLL_UNAVAILABLE;
     /* Restore only UART's subset. Keep RX isolated until physical UART mux
      * is restored; advertise receive readiness last, after the IRQ is armed. */

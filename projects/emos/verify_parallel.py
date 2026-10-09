@@ -50,6 +50,11 @@ REQUIRED_SYMBOLS = (
     "_emos_parallel_io_try_reserve_portc",
     "_emos_parallel_io_read_clock",
     "_emos_parallel_io_commit_epoch",
+    "_emos_parallel_boot_fence",
+    "_emos_parallel_boot_poll",
+    "_emos_parallel_boot_start",
+    "_emos_parallel_boot_connect",
+    "_emos_parallel_boot_uart_allowed",
 )
 
 FORBIDDEN_NORMAL_SYMBOLS = (
@@ -498,6 +503,9 @@ def verify_linked(
     # whole-image owner inventory and bound each new writer to its exact
     # register sequence; real-driver host tests check PC2 masking/ownership.
     rts_portc_writes = {
+        # PORT-008 boot-only leaf; exact writer inventory remains enforced.
+        # Additional linked CPU checks verify latch/output/IRQ ordering.
+        "_emos_parallel_boot_fence": [0x9F, 0xA0, 0xA1],
         "_uart1_claim_rts": [0x9E, 0x9F],
         "_uart1_receive_ready": [0x9E],
         "_close_UART1": [0x9E, 0x9F],
@@ -538,6 +546,54 @@ def verify_linked(
         text=True,
         stdout=subprocess.PIPE,
     ).stdout.lower()
+    # PORT-008 startup binding: only the selected coordinator may invoke
+    # boot pad leaves. Ordinary hooks are inert. No unrelated caller is allowed.
+    candidate = "_parallel_boot_grant" in symbols
+    leaf_callers = {
+        "_emos_parallel_boot_fence": {"_emos_parallel_boot_start": 1, "_emos_parallel_boot_connect": 1},
+        "_emos_parallel_boot_poll": {"_emos_parallel_boot_connect": 1},
+    }
+    for leaf, callers in leaf_callers.items():
+        expected = sum(callers.values()) if candidate else 0
+        if direct_transfer_count(whole_image, addresses[leaf]) != expected:
+            raise ParallelError("boot leaf has an unreviewed live caller: " + leaf)
+        if candidate:
+            for caller, count in callers.items():
+                if direct_transfer_count(disassemble_global_extent(objdump, elf, caller), addresses[leaf]) != count:
+                    raise ParallelError("boot leaf caller set changed: " + leaf)
+    for caller, hook in (("_init_UART1", "_emos_parallel_boot_start"),
+                         ("_emos_init", "_emos_parallel_boot_connect"),
+                         ("_open_UART1", "_emos_parallel_boot_uart_allowed"),
+                         ("_uart1_keyboard_unpark", "_emos_parallel_boot_uart_allowed")):
+        if direct_transfer_count(disassemble_global_extent(objdump, elf, caller), addresses[hook]) != 1:
+            raise ParallelError("mandatory startup UART hook missing: " + caller)
+    # Mandatory hook is a refusal gate, not merely an unused call. Verify
+    # its zero branch skips every hardware write and reaches a return epilogue.
+    for caller in ("_open_UART1", "_uart1_keyboard_unpark"):
+        rows = instructions(disassemble_global_extent(objdump, elf, caller))
+        calls = direct_transfer_indexes(disassemble_global_extent(objdump, elf, caller),
+                                         addresses["_emos_parallel_boot_uart_allowed"], mnemonics=("call",))
+        if len(calls) != 1:
+            raise ParallelError("startup refusal gate missing: " + caller)
+        i = calls[0] + 1
+        if caller == "_uart1_keyboard_unpark" and rows[i][1:] == ("ld", "l,0x03"):
+            i += 1
+        if rows[i][1:] != ("or", "a,a"):
+            raise ParallelError("startup admission return is not tested: " + caller)
+        branch = rows[i + 1]
+        target = re.fullmatch(r"z,0x([0-9a-f]+)", branch[2])
+        if branch[1] not in ("jp", "jr") or target is None:
+            raise ParallelError("startup zero admission does not refuse: " + caller)
+        address = int(target.group(1), 16)
+        if branch[1] == "jr": address |= branch[0] & ~0xffff
+        indexes = [j for j, row in enumerate(rows) if row[0] == address]
+        writes = [j for j, row in enumerate(rows) if row[1] == "out0"]
+        if len(indexes) != 1 or not writes or indexes[0] <= max(writes) or i >= min(writes):
+            raise ParallelError("startup refusal fails to skip hardware writes: " + caller)
+        expected = ([("ld", "a,0xff"), ("pop", "hl"), ("pop", "ix"), ("ret", "")]
+                    if caller == "_open_UART1" else [("ld", "a,l"), ("ret", "")])
+        if [row[1:] for row in rows[indexes[0]:]] != expected:
+            raise ParallelError("startup refusal epilogue changed: " + caller)
     observed_portc_writers: set[str] = set()
     for line in whole_image.splitlines():
         output = re.match(
@@ -817,32 +873,52 @@ def verify_linked(
     d_result = open_uart1_rows[test_index][1:] == ("ld", "d,0xff")
     if d_result:
         test_index += 1
-    status_test = open_uart1_rows[test_index]
-    rejection = open_uart1_rows[test_index + 1]
-    rejection_target = re.fullmatch(r"nz,0x([0-9a-f]+)", rejection[2])
-    if status_test[1:] != ("or", "a,a") or rejection[1] not in ("jp", "jr"):
-        raise ParallelError("linked UART1 acquire result is not tested immediately")
-    if rejection_target is None:
-        raise ParallelError("linked UART1 acquire failure does not branch on nonzero")
-    target_address = int(rejection_target.group(1), 16)
-    target_indexes = [
-        index
-        for index, (address, _, _) in enumerate(open_uart1_rows)
-        if address == target_address
-    ]
-    if len(target_indexes) != 1 or target_indexes[0] <= release_index:
-        raise ParallelError("linked UART1 rejection does not bypass mutation/release")
-    target_index = target_indexes[0]
-    expected_failure = ("ld", "a,d") if d_result else ("ld", "a,0xff")
-    expected_success = ("ld", "d,0x00") if d_result else ("xor", "a,a")
-    if open_uart1_rows[target_index][1:] != expected_failure:
-        raise ParallelError("linked UART1 rejection does not return UART_ERR_FAILURE")
-    if release_index + 1 >= len(open_uart1_rows) or open_uart1_rows[
-        release_index + 1
-    ][1:] != expected_success:
-        raise ParallelError("linked UART1 success does not return UART_ERR_NONE")
-    if d_result and target_index != release_index + 2:
-        raise ParallelError("shared UART1 result does not immediately follow success")
+    # With the boot admission hook, AgonDev preloads A=0xff after OR.
+    # LD preserves flags; the failure branch then jumps directly to POP/RET.
+    # Admit only this exact shape, and retain the original shape below.
+    a_result = (open_uart1_rows[test_index][1:] == ("or", "a,a")
+                and open_uart1_rows[test_index + 1][1:] == ("ld", "a,0xff"))
+    if a_result:
+        rejection = open_uart1_rows[test_index + 2]
+        target = re.fullmatch(r"nz,0x([0-9a-f]+)", rejection[2])
+        if rejection[1] != "jp" or target is None:
+            raise ParallelError("UART1 preloaded failure must branch on acquire flags")
+        target_address = int(target.group(1), 16)
+        indexes = [i for i, row in enumerate(open_uart1_rows) if row[0] == target_address]
+        if len(indexes) != 1 or indexes[0] <= release_index:
+            raise ParallelError("UART1 preloaded failure does not bypass mutation")
+        if [row[1:] for row in open_uart1_rows[indexes[0]:]] != [
+                ("pop", "hl"), ("pop", "ix"), ("ret", "")]:
+            raise ParallelError("UART1 preloaded failure epilogue modifies result")
+        if open_uart1_rows[release_index + 1][1:] != ("xor", "a,a"):
+            raise ParallelError("UART1 success must clear the return value")
+    else:
+        status_test = open_uart1_rows[test_index]
+        rejection = open_uart1_rows[test_index + 1]
+        rejection_target = re.fullmatch(r"nz,0x([0-9a-f]+)", rejection[2])
+        if status_test[1:] != ("or", "a,a") or rejection[1] not in ("jp", "jr"):
+            raise ParallelError("linked UART1 acquire result is not tested immediately")
+        if rejection_target is None:
+            raise ParallelError("linked UART1 acquire failure does not branch on nonzero")
+        target_address = int(rejection_target.group(1), 16)
+        target_indexes = [
+            index
+            for index, (address, _, _) in enumerate(open_uart1_rows)
+            if address == target_address
+        ]
+        if len(target_indexes) != 1 or target_indexes[0] <= release_index:
+            raise ParallelError("linked UART1 rejection does not bypass mutation/release")
+        target_index = target_indexes[0]
+        expected_failure = ("ld", "a,d") if d_result else ("ld", "a,0xff")
+        expected_success = ("ld", "d,0x00") if d_result else ("xor", "a,a")
+        if open_uart1_rows[target_index][1:] != expected_failure:
+            raise ParallelError("linked UART1 rejection does not return UART_ERR_FAILURE")
+        if release_index + 1 >= len(open_uart1_rows) or open_uart1_rows[
+            release_index + 1
+        ][1:] != expected_success:
+            raise ParallelError("linked UART1 success does not return UART_ERR_NONE")
+        if d_result and target_index != release_index + 2:
+            raise ParallelError("shared UART1 result does not immediately follow success")
     main_rows = instructions(body("_main"))
     init_calls = direct_transfer_indexes(
         body("_main"), addresses["_init_UART1"], mnemonics=("call",)

@@ -286,6 +286,7 @@ int main(void) {
     assert(emos_keyboard_parallel_reserve()==UART_POLL_UNAVAILABLE && !guard_held);
     frame((BYTE[]){22,1},2); before=event_count;
     assert(emos_keyboard_parallel_reserve()==UART_POLL_READY && guard_held);
+    assert(emos_keyboard_parallel_reserved());
     assert(emos_keyboard_parallel_reserve()==UART_POLL_UNAVAILABLE);
     reenter_private=1;
     assert(emos_keyboard_parallel_send((BYTE *)"offer",5)==EMOS_KEY_OK);
@@ -295,12 +296,14 @@ int main(void) {
     assert(emos_keyboard_parallel_park()==UART_POLL_EMPTY && guard_held);
     assert(emos_keyboard_send((BYTE *)"!",1)==EMOS_KEY_BUSY);
     assert(emos_keyboard_parallel_release()==UART_POLL_READY && !guard_held);
+    assert(!emos_keyboard_parallel_reserved());
     assert(emos_keyboard_send((BYTE *)"!",1)==EMOS_KEY_OK);
     park_result=UART_POLL_READY;
     irq_enabled=0;
     assert(emos_keyboard_parallel_reserve()==UART_POLL_UNAVAILABLE && !irq_enabled && !guard_held);
     irq_enabled=1;
     assert(emos_keyboard_parallel_reserve()==UART_POLL_READY && guard_held);
+    assert(emos_keyboard_parallel_reserved());
     assert(emos_keyboard_parallel_park()==UART_POLL_READY && guard_held);
     assert(emos_keyboard_parallel_send((BYTE *)"!",1)==EMOS_KEY_BUSY);
     assert(emos_keyboard_parallel_release()==UART_POLL_UNAVAILABLE && guard_held);
@@ -319,6 +322,7 @@ int main(void) {
     assert(emos_keyboard_parallel_send((BYTE *)"status",6)==EMOS_KEY_OK);
     assert(tx_count==12 && !memcmp(tx,"offer!status",12));
     assert(emos_keyboard_parallel_release()==UART_POLL_READY && !guard_held);
+    assert(!emos_keyboard_parallel_reserved());
     tick();assert(event_count==before && !emos_key_faulted);
     key('a',0,22,0);assert(event_count==before+1);
     key('a',0,22,1);before=event_count;
@@ -340,6 +344,7 @@ int main(void) {
     assert(emos_keyboard_parallel_send((BYTE *)"retry",5)==EMOS_KEY_BUSY);
     assert(emos_keyboard_parallel_park()==UART_POLL_UNAVAILABLE);
     assert(emos_keyboard_parallel_release()==UART_POLL_READY && !guard_held);
+    assert(!emos_keyboard_parallel_reserved());
     assert(emos_keyboard_send((BYTE *)"retry",5)==EMOS_KEY_BUSY);
     tick();assert(emos_key_faulted);
     reply=1;frozen_clock=0;
@@ -348,6 +353,7 @@ int main(void) {
     assert(emos_keyboard_parallel_reserve()==UART_POLL_READY);
     assert(emos_keyboard_parallel_park()==UART_POLL_ERROR && guard_held);
     assert(emos_keyboard_parallel_release()==UART_POLL_READY && !guard_held);
+    assert(!emos_keyboard_parallel_reserved());
     assert(emos_keyboard_send((BYTE *)"retry",5)==EMOS_KEY_BUSY);
     tick();assert(emos_key_faulted);
     puts("resident keyboard parser, admission, ownership and IRQ cleanup scenarios passed");

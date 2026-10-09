@@ -7,6 +7,9 @@
 #ifndef EMOS_PARALLEL_HANDOVER_H
 #define EMOS_PARALLEL_HANDOVER_H
 #include <defines.h>
+#include "control_crc.h"
+#include "emos_parallel_wire.h"
+#include "emos_parallel_session.h"
 
 #define EPH_READY_HIGH 1
 #define EPH_QUIET 2       /* fenced TX queue + shift register empty, RX boundary */
@@ -66,4 +69,29 @@ BYTE emos_parallel_handover_step(t_emosParallelHandover *h, BYTE completed);
  */
 BYTE emos_parallel_handover_admit(t_emosParallelHandover *h, BYTE mode,
     BYTE *session, const BYTE *offer, const BYTE *ack);
+/* Caller supplies fresh transaction IDs after actual release recovery. */
+BYTE emos_parallel_session_start(t_emosParallelHandover *h, t_parallelSession *s,
+    const BYTE *transaction, BYTE *request);
+BYTE emos_parallel_session_accept(t_emosParallelHandover *h, t_parallelSession *s,
+    const BYTE *reply, BYTE *commit);
+BYTE emos_parallel_session_admit(t_emosParallelHandover *h, BYTE mode,
+    t_parallelSession *s, const BYTE *offer, const BYTE *ack);
+void emos_parallel_session_cancel(t_emosParallelHandover *h, t_parallelSession *s);
+/* Reuses the resident console buffer, ISR dispatcher and bounded wait. Only
+ * the future admitted foreground coordinator may call this after recovery. */
+BYTE emos_parallel_session_negotiate(t_emosParallelHandover *h,
+    t_parallelSession *s, const BYTE *transaction);
+/* Boot-only pad leaves. Exclusive pre-UART fence required. No ordinary startup
+ * caller yet; future candidate must gate open_UART1 and all restore writers.
+ * poll returns RESTORE only after reciprocal release. uartRestored means the
+ * coordinator has actually completed that authorized operation. On RELEASE,
+ * fence again before polling; never infer ownership from a deadline.
+ */
+void emos_parallel_boot_fence(t_emosParallelHandover *h);
+BYTE emos_parallel_boot_poll(t_emosParallelHandover *h, BYTE uartRestored);
+/* Product-profile selected startup hooks. No waiting in UART's IRQ-locked
+ * open path. Ordinary profile selects inert hooks; candidate selects recovery. */
+void emos_parallel_boot_start(void);
+void emos_parallel_boot_connect(void);
+BYTE emos_parallel_boot_uart_allowed(void);
 #endif

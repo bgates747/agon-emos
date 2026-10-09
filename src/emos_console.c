@@ -32,14 +32,19 @@ static BYTE wait_reply(volatile BYTE *flag) {
     }
     return *flag && !emos_key_faulted;
 }
+/* Version 2 uses the already reserved serializer; never bypass its owner. */
+static BYTE control_send(const BYTE *p, UINT16 n) {
+    return request[2] == PARALLEL_WIRE_VERSION ?
+        emos_keyboard_parallel_send(p,n) : emos_keyboard_send(p,n);
+}
 static BYTE exchange(BYTE op) {
     BYTE prefix[3] = {23, 0, CONSOLE_OPCODE};
     BYTE irq, ok;
     request[3] = op; request[13] = 0; console_seal(request);
     irq = emos_keyboard_lock(); accepted = 0; waiting = op;
     emos_keyboard_unlock(irq);
-    ok = emos_keyboard_send(prefix, 3) == EMOS_KEY_OK &&
-         emos_keyboard_send(request, sizeof(request)) == EMOS_KEY_OK && wait_reply(&accepted);
+    ok = control_send(prefix, 3) == EMOS_KEY_OK &&
+         control_send(request, sizeof(request)) == EMOS_KEY_OK && wait_reply(&accepted);
     irq = emos_keyboard_lock(); waiting = 0; emos_keyboard_unlock(irq);
     return ok;
 }
@@ -58,13 +63,18 @@ static void effect(BYTE command, BYTE *p, BYTE length) {
 void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
     static const BYTE lengths[10] = {1,4,2,1,4,2,8,6,5,10};
     if (command == CONSOLE_REPLY) {
-        if (length != CONSOLE_SIZE || !waiting || !console_valid(p) ||
+        if (length != CONSOLE_SIZE || !waiting || accepted ||
+            p[2] != request[2] ||
+            !(request[2] == PARALLEL_WIRE_VERSION ? parallel_session_valid(p) : console_valid(p)) ||
             p[3] != (BYTE)(waiting | 0x80) || p[13] ||
             memcmp(p + 4, request + 4, 4)) return;
         if (waiting == CONSOLE_PREPARE || waiting == CONSOLE_PREPARE_KEEP) {
             if (!(p[8] | p[9] | p[10] | p[11])) return;
             memcpy(request + 8, p + 8, 4);
         } else if (memcmp(p + 8, request + 8, 4)) return;
+        /* Foreground owns session transitions. Capture exactly one complete
+         * version-2 reply; late duplicates cannot replace its nonce. */
+        if (request[2] == PARALLEL_WIRE_VERSION) memcpy(request,p,CONSOLE_SIZE);
         accepted = 1;
         return;
     }
@@ -160,5 +170,48 @@ BYTE emos_parallel_handover_admit(t_emosParallelHandover *h, BYTE mode,
     if (ack[14] != (BYTE)crc || ack[15] != (BYTE)(crc >> 8)) return 0;
     if (!emos_parallel_handover_begin(h)) return 0;
     session[4] = offer[8]; session[5] = offer[9];
+    return 1;
+}
+
+/* Private c2b session owner: parser binding below, no startup call. Keep beside the
+ * existing admission leaf to reuse its CRC and tiny lifecycle helpers.
+ * The UART reservation is checked, not accepted as caller-supplied evidence.
+ */
+BYTE emos_parallel_session_start(t_emosParallelHandover *h, t_parallelSession *s,
+    const BYTE *transaction, BYTE *request) {
+    return h->phase == EPH_UART && emos_keyboard_parallel_reserved() &&
+        parallel_session_begin(s, transaction, request);
+}
+BYTE emos_parallel_session_accept(t_emosParallelHandover *h, t_parallelSession *s,
+    const BYTE *reply, BYTE *commit) {
+    if (h->phase != EPH_UART || !emos_keyboard_parallel_reserved()) return 0;
+    return parallel_session_accept(s, reply, commit);
+}
+BYTE emos_parallel_session_admit(t_emosParallelHandover *h, BYTE mode,
+    t_parallelSession *s, const BYTE *offer, const BYTE *ack) {
+    return s->phase == PARALLEL_SESSION_ACTIVE && emos_keyboard_parallel_reserved() &&
+        emos_parallel_handover_admit(h, mode, s->bytes, offer, ack);
+}
+void emos_parallel_session_cancel(t_emosParallelHandover *h, t_parallelSession *s) {
+    parallel_session_invalidate(s); emos_parallel_handover_cancel(h);
+}
+
+/* Private foreground entry; the physical coordinator is still unbound.
+ * Borrow the existing console request buffer only while its UART serializer
+ * is reserved. On uncertain delivery retain that reservation and request
+ * release recovery; neither a timeout nor this function can restore pins.
+ */
+BYTE emos_parallel_session_negotiate(t_emosParallelHandover *h,
+    t_parallelSession *s, const BYTE *transaction) {
+    /* An existing ExCom lease still needs its own request identity for LEAVE.
+     * The coordinator must close it before borrowing this buffer. */
+    if (emos_console_owned || waiting ||
+        !emos_parallel_session_start(h,s,transaction,request)) return 0;
+    do {
+        BYTE op = request[3];
+        if (!exchange(op) || !emos_parallel_session_accept(h,s,request,request)) {
+            emos_parallel_session_cancel(h,s); return 0;
+        }
+    } while (s->phase != PARALLEL_SESSION_ACTIVE);
     return 1;
 }

@@ -23,6 +23,7 @@ BYTE emos_keyboard_transport_claim(void);
  * only after the coordinator's status/recovery decision, with UART restored.
  * Private send reuses ordinary bounded TX and rejects recursive callbacks. */
 BYTE emos_keyboard_parallel_reserve(void);
+BYTE emos_keyboard_parallel_reserved(void);
 BYTE emos_keyboard_parallel_send(const BYTE *data, UINT16 length);
 BYTE emos_keyboard_parallel_release(void);
 BYTE emos_keyboard_parallel_park(void);
@@ -39,6 +40,11 @@ void emos_keyboard_fault(void);
 void emos_keyboard_tick(void);
 void emos_keyboard_mainboard(BYTE *payload);
 void emos_keyboard_mainboard_settings(BYTE *payload);
+
+/* Private reusable foreground deadline. Same fields/clock/fuse as UART TX;
+ * startup release reuses it instead of adding a second timing policy. */
+typedef struct { BYTE last; UINT16 elapsed; UINT24 budget; } t_emosDeadline;
+BYTE emos_keyboard_deadline_step(t_emosDeadline *d);
 
 /* Target boundary. IRQ callers have all registers saved and interrupts off.
  * The foreground never invokes effects/cleanup: the stock callback is an ISR. */

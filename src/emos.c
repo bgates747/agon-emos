@@ -11,6 +11,7 @@
 #include "emos.h"
 #include "emos_uart_probe.h"
 #include "emos_keyboard.h"
+#include "emos_parallel_handover.h"
 #include "emos_sdlink.h"
 #include "emos_admission.h"
 #include "emos_telemetry.h"
@@ -156,6 +157,7 @@ void emos_init(void) {
 	/* main calls this after onboard VDP startup and SD mount. Expose the same
 	 * product/build identity as EMOS STATUS without requiring a boot script. */
 	emos_print_identity();
+	emos_parallel_boot_connect(); /* foreground, onboard clock/IRQ already ready */
 }
 
 static BOOL emos_range_overlaps_module(UINT24 address, UINT24 length) {

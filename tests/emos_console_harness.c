@@ -11,6 +11,11 @@ BYTE vdp_protocol_data[16];
 static BYTE irq=1, tick, suppress, wrong_nonce, wrong_crc, frozen, claimed, old_peer;
 static BYTE tx[128], mode[8], cursor[2];
 static unsigned tx_count, effects, release_count, fresh_initializations, kept_initializations, mainboard_writes;
+/* Dormant parallel-session owners have no live reservation in this console test. */
+BYTE emos_keyboard_parallel_reserved(void) { return 0; }
+BYTE emos_keyboard_parallel_send(const BYTE *p, UINT16 n) {
+    (void)p; (void)n; assert(!"parallel send must not serve version 1"); return EMOS_KEY_BUSY;
+}
 BYTE emos_keyboard_clock(void) { if (!frozen) tick+=2; return tick; }
 BYTE emos_keyboard_lock(void) { BYTE old=irq;irq=0;return old; }
 void emos_keyboard_unlock(BYTE enabled) { irq=enabled; }

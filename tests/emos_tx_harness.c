@@ -4,6 +4,11 @@
 #include <string.h>
 #include "emos_keyboard.h"
 #include "uart.h"
+/* The sender suite never enters private parallel ownership. Fail if it does. */
+BYTE emos_parallel_uart1_guard_acquire(void) { assert(0); return 1; }
+void emos_parallel_uart1_guard_release(void) { assert(0); }
+BYTE uart1_keyboard_park(void) { assert(0); return UART_POLL_UNAVAILABLE; }
+BYTE uart1_keyboard_unpark(void) { assert(0); return UART_POLL_UNAVAILABLE; }
 volatile BYTE uart1_keyboard_owned, emos_console_owned;
 static BYTE irq_enabled=1, in_irq, frozen_clock, clock_byte;
 static BYTE reply, pending_reply, tx_blocked, rx_stopped;

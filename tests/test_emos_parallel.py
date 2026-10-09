@@ -114,6 +114,7 @@ class EmosParallelTests(unittest.TestCase):
                     f"-I{HOST_INCLUDE}",
                     f"-I{ROOT / 'src'}",
                     str(UART),
+                    str(ROOT / "src/emos_parallel_startup_disabled.c"),
                     str(UART_GUARD_HARNESS),
                     "-o",
                     str(executable),

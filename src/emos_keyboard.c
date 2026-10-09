@@ -180,11 +180,11 @@ void emos_keyboard_byte(BYTE value) {
 
 /* INTEG-014 E05: 262144 fits native 24 bits. Preserve the exact poll
  * limit without pulling 32-bit arithmetic helpers into every byte attempt. */
-typedef struct { BYTE last; UINT16 elapsed; UINT24 budget; } Deadline;
+typedef t_emosDeadline Deadline;
 static void deadline_start(Deadline *d) {
     d->last = emos_keyboard_clock(); d->elapsed = 0; d->budget = (UINT24)262144;
 }
-static BYTE deadline_step(Deadline *d) {
+BYTE emos_keyboard_deadline_step(Deadline *d) {
     BYTE now = emos_keyboard_clock(), delta = (BYTE)(now - d->last);
     /* Most attempts share a clock tick: avoid rewriting unchanged fields. */
     if (delta) {
@@ -203,7 +203,7 @@ static BYTE transmit_block(const BYTE *data, UINT16 length, Deadline *d) {
          * even if an interrupt changes the caller's source buffer. */
         value = *data++;
         do {
-            if (emos_key_faulted || !deadline_step(d)) return 0;
+            if (emos_key_faulted || !emos_keyboard_deadline_step(d)) return 0;
             result = uart1_keyboard_put(value);
             if (result == UART_POLL_ERROR) { fault_requested = 1; return 0; }
             if (result == UART_POLL_UNAVAILABLE) return 0;
@@ -253,7 +253,7 @@ BYTE emos_keyboard_select(BYTE source) {
     if (source == EMOS_KEY_MAINBOARD) {
         emos_keyboard_mainboard_layout(layout);
         stop_requested = 1;
-        while (stop_requested && deadline_step(&d)) { }
+        while (stop_requested && emos_keyboard_deadline_step(&d)) { }
         irq = emos_keyboard_lock();
         if (stop_requested) { stop_requested = 0; result = EMOS_KEY_TIMEOUT; }
         else if (!emos_console_owned) uart1_keyboard_close();
@@ -272,7 +272,7 @@ BYTE emos_keyboard_select(BYTE source) {
         if (result == EMOS_KEY_OK &&
             (!setting(layout, &d) || !transmit(23, &d) || !transmit(0, &d) ||
              !transmit(0x80, &d) || !transmit(token, &d))) result = EMOS_KEY_TIMEOUT;
-        while (result == EMOS_KEY_OK && preparing && !emos_key_faulted && deadline_step(&d)) { }
+        while (result == EMOS_KEY_OK && preparing && !emos_key_faulted && emos_keyboard_deadline_step(&d)) { }
         irq = emos_keyboard_lock();
         if (result == EMOS_KEY_OK && (preparing || emos_key_faulted)) result = EMOS_KEY_TIMEOUT;
         if (result != EMOS_KEY_OK) {
@@ -302,7 +302,7 @@ BYTE emos_keyboard_layout(BYTE value) {
              * a non-stock packet. It is not firmware/provider authentication. */
             text_pending = 1; ++token;
             ok = transmit(23,&d) && transmit(0,&d) && transmit(0x80,&d) && transmit(token,&d);
-            while (ok && text_pending && !emos_key_faulted && deadline_step(&d)) { }
+            while (ok && text_pending && !emos_key_faulted && emos_keyboard_deadline_step(&d)) { }
             if (text_pending || emos_key_faulted) ok = 0;
             text_pending = 0;
         }
@@ -333,7 +333,7 @@ BYTE emos_keyboard_text(const BYTE *text, UINT16 length) {
     /* Retained drawing flush, followed by an ordered stock General Poll. */
     if (ok) ok = transmit(23,&d) && transmit(0,&d) && transmit(0xCA,&d) &&
                  transmit(23,&d) && transmit(0,&d) && transmit(0x80,&d) && transmit(token,&d);
-    while (ok && text_pending && !emos_key_faulted && deadline_step(&d)) { }
+    while (ok && text_pending && !emos_key_faulted && emos_keyboard_deadline_step(&d)) { }
     irq = emos_keyboard_lock();
     if (!ok || text_pending || emos_key_faulted) { ok = 0; fault_requested = 1; }
     text_pending = transitioning = 0;
@@ -374,6 +374,16 @@ BYTE emos_keyboard_parallel_reserve(void) {
     }
     emos_keyboard_unlock(irq);
     return result;
+}
+/* Only the foreground reservation owner may advance private session state.
+ * Interrupt-disabled/reentrant/private-send/parked/faulted callers are refused.
+ * This query grants no pad or UART operation on its own. */
+BYTE emos_keyboard_parallel_reserved(void) {
+    BYTE irq = emos_keyboard_lock();
+    BYTE ready = irq && parallel_reserved == 1 && transitioning &&
+        uart1_keyboard_owned == 1 && !fault_requested && !stop_requested && !emos_key_faulted;
+    emos_keyboard_unlock(irq);
+    return ready;
 }
 BYTE emos_keyboard_parallel_park(void) {
     BYTE irq = emos_keyboard_lock(), result = UART_POLL_UNAVAILABLE;
