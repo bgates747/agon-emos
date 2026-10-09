@@ -27,3 +27,9 @@ routine readers do not need to reconstruct them from historical tasks.
 [REMOTE-005](tasks/REMOTE-005.md) adds private idle-CLI admission and finite utility
 dispatch. It is not an available automatic file-transfer service or production
 release. Continue using the documented manual listener until paired qualification.
+
+PORT-008/INTEG-016 also has private unbound native parallel payload leaves.
+The `parallel-native-candidate.mk` build probe currently fails the ROM limit
+by 265 bytes; it must not be installed. The separate RAM instruction-test image
+is not firmware. Ordinary resident selection and supported operations are
+unchanged. See [INTEG-016](tasks/INTEG-016.md) for the bounded result.

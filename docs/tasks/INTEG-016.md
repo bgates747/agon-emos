@@ -36,6 +36,10 @@ matching wire admission, bounded recovery and real startup/reset fencing.
 I16-02c [ ] — F02c3: assembly payload loop and current direct-wiring adapters,
 with exact target-build and software fault checks before the hardware gate.
 
+I16-02c1 [x] — Private guarded native byte leaf and RAM-only instruction
+tests pass. Full resident composition correctly refuses 265-byte ROM overflow;
+parent integration and physical qualification remain open. See dated result below.
+
 I16-03 [ ] — When separately authorized, qualify exact bytes, first/last edge,
 reset/timeout release and resumed keyboard input on hardware with Extender.
 Do not infer electrical behavior or throughput from emulation.
@@ -322,3 +326,36 @@ change or commit. Fresh identity/quarantine, full runtime reset detection,
 foreground reconnect and ExCom route recovery remain parent integration work.
 [Results](../../../agon-extender/docs/tasks/PORT-008/RUNTIME-RELEASE-RESULTS.md)
 and its machine-readable result preserve identities. Pause for Author review.
+
+## 2026-10-09 native payload leaf
+
+Private `src/emos_parallel_native.c` and `emos_parallel_native_io.asm` now
+provide the guarded byte loop, selected only by
+`port/parallel-native-candidate.mk`. The parent I16-02c remains open: no live
+coordinator calls this leaf, and full ROM integration was refused as required.
+The C guard adds 210 bytes and assembly 146; the composition would use 131337
+ROM bytes, 265 beyond capacity. No oversized firmware was emitted or flashed.
+The ordinary profile and installed firmware are unchanged.
+
+124 actual compiled C/assembly instruction cases pass in a RAM-only image:
+both directions, exact bytes/edges, bounds, IFF policy, unrelated Port D ISR
+changes, READY loss, ownership/GPIO refusal, IX/SP and raw assembly IY.
+The caller keeps received bytes provisional until matched UART completion;
+this leaf does not replace the full admission/drain/deadline/status owner.
+Physical first/last byte and contention tests remain outstanding.
+
+Reproduce after the maintained private-profile compile/link attempt:
+
+```sh
+python3 tests/link_parallel_native.py --build-root MOS_PORT_BUILD_DIRECTORY \
+  --toolchain AGONDEV_TOOLCHAIN_DIRECTORY --output FRESH_RAM_TEST_DIRECTORY
+CARGO_TARGET_DIR=/tmp/emos-parallel-cpu cargo run --offline --release \
+  --manifest-path tests/uart_put_cpu/Cargo.toml --bin parallel_native \
+  -- FRESH_RAM_TEST_DIRECTORY
+```
+
+The generated payload loads at 0x40000 only in the instruction interpreter.
+It is neither flashable firmware nor a MOS executable. Cross-component result:
+sibling agon-extender/docs/tasks/PORT-008/NATIVE-PAYLOAD-RESULTS.md. Changes
+remain uncommitted for Author review; unrelated scripts/application_peer.py
+is untouched.
