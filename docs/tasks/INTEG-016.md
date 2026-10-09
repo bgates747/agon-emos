@@ -302,3 +302,23 @@ is committed separately. Original Extender evidence retains its pre-commit
 identities and as-captured state. This is an off-bench source checkpoint, not
 hardware acceptance or production promotion. Unrelated application-peer work
 is excluded.
+
+
+I16-02b2g [x] — Author-approved off-bench observed-release invalidation. Private
+candidate admission latches loss of P4 READY; the existing keyboard tick, after
+normal parked-owner exclusion, uses existing fault/vector cleanup and fences
+the shared pins. No ISR wait, automatic reconnect or committed-route change.
+Compile/account first against 123 ROM bytes free; stop on overflow before
+further extraction or P4 work. Contract and linked-test gate:
+[PORT-008 runtime release](../../../agon-extender/docs/tasks/PORT-008/RUNTIME-RELEASE.md).
+
+Observed-loss results: 26 actual linked startup/runtime cases and four guard
+negative controls pass; the prior candidate fails the READY-bounce regression
+control. Existing keyboard/console/parallel/profile and linked parking/control/
+boot-leaf checks pass. Final guarded candidate is 130,981 ROM bytes (+32),
+91 free, static RAM unchanged at 4,063. Ordinary inert hooks use 130,752 ROM
+bytes, 320 free. No P4 change, hardware operation, automatic recovery, production
+change or commit. Fresh identity/quarantine, full runtime reset detection,
+foreground reconnect and ExCom route recovery remain parent integration work.
+[Results](../../../agon-extender/docs/tasks/PORT-008/RUNTIME-RELEASE-RESULTS.md)
+and its machine-readable result preserve identities. Pause for Author review.
