@@ -11,6 +11,7 @@
 #include "emos_keyboard.h"
 #include "uart.h"
 #include "ff.h"
+#include <string.h>
 static BYTE active;
 static BYTE pair_range(UINT24 p) {
     return p >= EMOS_MODULE_BASE && p <= EMOS_MODULE_BASE+EMOS_MODULE_SIZE-2;
@@ -24,6 +25,20 @@ UINT24 emos_uartdiag_gateway(t_emosGatewayRequest *r) {
     UINT24 in=emos_read24(r->input),out=emos_read24(r->output);
     BYTE op,arg,status=UART_POLL_UNAVAILABLE,value=0,irq;
     UART settings={1152000,8,1,0,FCTL_HW,0};
+#if defined(EMOS_PARALLEL_PROBE) && EMOS_PARALLEL_PROBE
+    /* Private qualification only; ordinary uartdiag v1 still ends at op5.
+     * Validate all bounds BEFORE reservation, including arithmetic wrap. */
+    if(pair_range(in) && emos_read24(r->inputLength)==2 && *(BYTE *)in==6) {
+        UINT24 n=emos_read24(r->outputCapacity);
+        extern BYTE emos_parallel_probe(BYTE *, UINT16, BYTE);
+        if(n<=16 || n>4112 || out<EMOS_MODULE_BASE ||
+           out>EMOS_MODULE_BASE+EMOS_MODULE_SIZE-n || *((BYTE *)in+1)>1)
+            return FR_INVALID_PARAMETER;
+        if(!emos_parallel_probe((BYTE *)out,(UINT16)(n-16),*((BYTE *)in+1)))
+            return EMOS_UNAVAILABLE;
+        memcpy(r->outputLength,r->outputCapacity,3);return FR_OK;
+    }
+#endif
     if(!pair_range(in)||!pair_range(out)||emos_read24(r->inputLength)!=2 ||
        emos_read24(r->outputCapacity)!=2) return FR_INVALID_PARAMETER;
     op=*(BYTE *)in;arg=*((BYTE *)in+1);

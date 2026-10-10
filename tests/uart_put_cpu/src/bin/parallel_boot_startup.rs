@@ -220,5 +220,29 @@ fn main(){
    assert_eq!(b.ports[0xd1],0);assert_eq!(b.ports[0xd4],16);cases+=1;
   }
  }
+ // LC03-A private diagnostic: actual complete-ROM refusal and absent control
+ // reply paths, including real clock/frozen-clock deadline and physical fence.
+ if b.sym.contains_key("_emos_parallel_probe") {
+  const OUTPUT:u32=0xb1000;
+  for refusal in 0..4 {
+   let mut b=Board::new(&args[1]);b.active();b.ports[0xa2]=0x90;
+   b.set("_parallel_boot_grant",2);b.set("_parallel_boot_state",4);
+   if refusal==0 {b.set("_emos_console_owned",1);}
+   if refusal==1 {b.set("_parallel_boot_state",5);}
+   if refusal==2 {b.set("_parallel_reserved",1);b.set("_transitioning",1);}
+   assert_eq!(b.call("_emos_parallel_probe",&[OUTPUT,8,0],refusal!=3),0);
+   assert!(b.io.iter().all(|(write,_,_)|!*write));cases+=1;
+  }
+  for moving in [false,true] {
+   let mut b=Board::new(&args[1]);b.active();b.moving=moving;b.ports[0xa2]=0x90;
+   b.set("_parallel_boot_grant",2);b.set("_parallel_boot_state",4);
+   b.poke(b.sym["_parallel_boot_state"]+3,1); // boot's historical failed payload bit
+   assert_eq!(b.call("_emos_parallel_probe",&[OUTPUT,8,0],true),0);
+   assert!(b.io.iter().any(|(w,a,_)|*w && *a==0xd0),"must reach real control TX after clean boot");
+   assert_eq!(b.get("_parallel_reserved"),1);assert_eq!(b.get("_parallel_boot_grant"),0);
+   assert_eq!(b.ports[0x9f],255);assert_eq!(b.ports[0xa0],0);assert_eq!(b.ports[0xa1],0);
+   assert_eq!(b.ports[0xd1],0);assert_eq!(b.ports[0xd4],16);cases+=1;
+  }
+ }
  println!("PASS {cases} linked startup/runtime cases: actual coordinator, deadline/frozen-clock fuse, early open, busy claim, latched READY loss, actual ISR/parser/vector/held-key cleanup, parked exclusion and mainboard input");
 }

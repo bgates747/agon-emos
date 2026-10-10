@@ -250,3 +250,33 @@ BYTE emos_parallel_block_complete(t_emosParallelHandover *h, t_parallelSession *
     if (exchange(PARALLEL_COMPLETE) && !status && !h->failed && !request[13]) return 1;
     emos_parallel_session_cancel(h,s); return 0;
 }
+
+#if defined(EMOS_PARALLEL_PROBE) && EMOS_PARALLEL_PROBE
+/* PORT-008 LC03-A: fixed private MOSlet composition only. Gateway validates
+ * the complete MOSlet output span, direction and length before this call.
+ * Keep negotiation/admission/physical ownership in EMOS; MOSlet has no private
+ * symbol addresses or GPIO authority. Descriptor precedes provisional data.
+ * An admitted failure retains the normal fault fence/reservation until reset.
+ */
+BYTE emos_parallel_probe(BYTE *out, UINT16 length, BYTE reverse) {
+    static t_parallelSession session;
+    static BYTE transaction[4];
+    t_emosParallelHandover *h = emos_parallel_boot_handover();
+    BYTE i;
+    if (emos_console_owned || h->phase!=EPH_UART || !emos_parallel_boot_uart_allowed() ||
+        emos_keyboard_parallel_reserve() != UART_POLL_READY) return 0;
+    for (i=0; i<4; ++i) if (++transaction[i]) break;
+    if (!emos_parallel_session_negotiate(h,&session,transaction)) goto failed;
+    memset(out,0,16); memcpy(out,"EX\x02\x02",4);
+    memcpy(out+4,session.bytes,4); out[8]=1;
+    out[10]=(BYTE)length;out[11]=(BYTE)(length>>8);out[12]=reverse;
+    console_seal(out);
+    if (emos_parallel_block_offer(h,&session,PARALLEL_EXEXT,out) &&
+        emos_parallel_native_coordinate(&session,out,out+16,length)) return 1;
+ failed:
+    /* Even an uncertain PREPARE/OFFER must enter the real release fence; a
+     * logical session cancellation alone does not disconnect UART outputs. */
+    emos_parallel_boot_block_end(0);
+    return 0;
+}
+#endif

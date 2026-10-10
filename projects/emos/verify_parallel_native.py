@@ -17,7 +17,7 @@ from verify_parallel import (
     verify_linked, verify_source,
 )
 
-def verify_native(source, elf, nm, objdump):
+def verify_native(source, elf, nm, objdump, *, qualification=False):
     verify_source(source)
     verify_linked(elf, nm, objdump, allow_native_payload=True)
     symbols = linked_symbols(nm, elf)
@@ -30,8 +30,19 @@ def verify_native(source, elf, nm, objdump):
     guard = disassemble_global_extent(objdump, elf, "_emos_parallel_native_payload")
     raw = disassemble_global_extent(objdump, elf, "_emos_parallel_native_bytes")
     coordinator = disassemble_global_extent(objdump, elf, "_emos_parallel_native_coordinate")
-    if direct_transfer_count(whole, addresses["_emos_parallel_native_coordinate"]) != 0:
+    count = direct_transfer_count(whole, addresses["_emos_parallel_native_coordinate"])
+    if count != (1 if qualification else 0):
         raise ParallelError("private coordinator acquired an unreviewed activation caller")
+    if qualification:
+        q = require_global_text_symbols(symbols, ("_emos_parallel_probe", "_emos_uartdiag_gateway"))
+        probe = disassemble_global_extent(objdump, elf, "_emos_parallel_probe")
+        gateway = disassemble_global_extent(objdump, elf, "_emos_uartdiag_gateway")
+        if (direct_transfer_count(probe, addresses["_emos_parallel_native_coordinate"]) != 1 or
+            direct_transfer_count(whole,q["_emos_parallel_probe"]) != 1 or
+            direct_transfer_count(gateway,q["_emos_parallel_probe"]) != 1):
+            raise ParallelError("qualification activation escaped its sole MOSlet gateway owner")
+    elif "_emos_parallel_probe" in symbols:
+        raise ParallelError("unactivated native profile links qualification service")
     native_address = addresses["_emos_parallel_native_payload"]
     if direct_transfer_count(whole, native_address) != 1 or direct_transfer_count(coordinator, native_address) != 1:
         raise ParallelError("native guard is not called solely by the coordinator")
@@ -41,7 +52,8 @@ def verify_native(source, elf, nm, objdump):
     control = symbols.get("native_control", [])
     if len(control) != 1 or control[0][1] != "t":
         raise ParallelError("native Port D helper must remain local text")
-    if direct_transfer_count(whole, control[0][0]) != 7 or direct_transfer_count(raw, control[0][0]) != 7:
+    # Two static call sites each clock the forward preamble and inactive tail.
+    if direct_transfer_count(whole, control[0][0]) != 11 or direct_transfer_count(raw, control[0][0]) != 11:
         raise ParallelError("native Port D helper caller inventory changed")
     helper = disassemble_global_extent(objdump, elf, "native_control")
     verify_iff_helper("native_control", helper, 6)

@@ -50,3 +50,16 @@ targets, preserving all profile checks. Ordinary/native profiles exclude it.
 The native profile has a strict private owner checker; ordinary profiles reject
 its assembly leaf. Supported operations and installed firmware are unchanged.
 See [INTEG-016](tasks/INTEG-016.md) for evidence and remaining integration gates.
+
+
+The next private qualification composition, `port/parallel-probe-candidate.mk`,
+adds a sole admitted diagnostic MOSlet caller. Full builds and modeled/linked
+checks pass at 130984 ROM bytes /88 free; unactivated native and ordinary sizes
+above are unchanged. [parprobe](../projects/parprobe/README.md) owns patterns,
+checks and durable reporting for twenty two-way blocks, while EMOS retains
+negotiation, reservation and physical coordination. This service is absent from
+ordinary firmware, has not been installed, and adds no formal ExExt mode/API or
+SD transport. The matching P4 compile image has no installable identity.
+[Current paired results](../../agon-extender/docs/tasks/PORT-008/LIVE-QUALIFICATION-RESULTS.md)
+own the review boundary before physical installation; previous unactivated
+checkpoint statements describe LC02, not this private caller.

@@ -47,3 +47,6 @@ projects/keyboard-api/build/
 
 /projects/uartprobe/bin/
 /projects/uartprobe/obj/
+
+/projects/parprobe/bin/
+/projects/parprobe/obj/

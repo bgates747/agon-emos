@@ -5,7 +5,7 @@ use std::{collections::HashMap,env,fs,path::Path};
 const RAM_BASE:usize=0x40000;const SP:u32=0xaff00;const EXIT:u32=0xa0000;
 const H:u32=0x70000;const BUFFER:u32=0x71000;
 struct Board{mem:Vec<u8>,sym:HashMap<String,u32>,ports:[u8;256],iff:bool,
- reverse:bool,n:usize,falls:usize,rises:usize,reads:usize,tx:Vec<u8>,writes:usize,
+ reverse:bool,n:usize,falls:usize,rises:usize,pre_falls:usize,pre_rises:usize,idle_falls:usize,idle_rises:usize,reads:usize,tx:Vec<u8>,writes:usize,
  began:bool,ended:bool,lose_after:Option<usize>,nonowned:u8}
 fn pixel(i:usize)->u8{((i*73)^(i>>8)^17) as u8}
 impl Machine for Board{
@@ -36,6 +36,23 @@ impl Machine for Board{
    }
    if v&0x80==0&&old&0x20==0&&v&0x20!=0{self.rises+=1;}
    if old&0x80==0&&v&0x80!=0{self.ended=true;assert_eq!(self.ports[0x9f],255);}
+   if v&0x80!=0&&(old^v)&0x20!=0{
+    assert_eq!(self.ports[0x9f],255,"inactive clocks must keep Port C released");
+    if !self.began{
+     assert!(!self.reverse,"reverse preclock would consume P4 TX payload");
+     assert_eq!(self.falls,0);assert_eq!(self.rises,0);assert_eq!(self.reads,0);assert!(self.tx.is_empty());
+     if v&0x20==0{
+      self.pre_falls+=1;assert_eq!(self.pre_falls,self.pre_rises+1);
+      assert!(self.pre_falls<=16,"unbounded forward CLOCK preamble");
+     }else{self.pre_rises+=1;assert_eq!(self.pre_falls,self.pre_rises);}
+    }else{
+     assert!(self.ended,"inactive CLOCK before VALID release");
+     if v&0x20==0{
+      self.idle_falls+=1;assert_eq!(self.idle_falls,self.idle_rises+1);
+      assert!(self.idle_falls<=16,"unbounded inactive CLOCK tail");
+     }else{self.idle_rises+=1;assert_eq!(self.idle_falls,self.idle_rises);}
+    }
+   }
   }else if a==0x9e{
    assert!(!self.reverse&&self.ports[0x9f]==0);
    assert!(self.ports[0xa2]&0x20!=0,"data changed while clock low");
@@ -51,7 +68,7 @@ impl Board{
   let (file,base)=if p.join("MOS.bin").exists(){("MOS.bin",0)}else{("payload.bin",RAM_BASE)};
   let bytes=fs::read(p.join(file)).unwrap();
   let mut b=Self{mem:vec![0xa5;0x100000],sym:fs::read_to_string(p.join("nm.txt")).unwrap().lines().filter_map(|l|{let v:Vec<_>=l.split_whitespace().collect();if v.len()!=3{None}else{Some((v[2].into(),u32::from_str_radix(v[0],16).unwrap()))}}).collect(),
-   ports:[0;256],iff:false,reverse,n,falls:0,rises:0,reads:0,tx:vec![],writes:0,began:false,ended:false,lose_after:None,nonowned:0x4b};
+   ports:[0;256],iff:false,reverse,n,falls:0,rises:0,pre_falls:0,pre_rises:0,idle_falls:0,idle_rises:0,reads:0,tx:vec![],writes:0,began:false,ended:false,lose_after:None,nonowned:0x4b};
   b.mem[base..base+bytes.len()].copy_from_slice(&bytes);
   b.mem[H as usize..H as usize+4].copy_from_slice(&[11,1,1,0]);
   for i in 0..n{if !reverse{b.poke(BUFFER+i as u32,pixel(i));}}
@@ -63,6 +80,7 @@ impl Board{
   let mut c=Cpu::new_ez80();c.state.reg.adl=true;c.state.reg.madl=true;
   c.state.reg.iff1=iff;c.state.reg.iff2=iff;c.state.reg.pc=self.sym[name];
   c.state.reg.set24(Reg16::SP,SP);c.state.reg.set24(Reg16::IX,0x123456);c.state.reg.set24(Reg16::IY,0x654321);
+  c.state.reg.set24(Reg16::BC,0x234567);c.state.reg.set24(Reg16::DE,0x345678);c.state.reg.set24(Reg16::HL,0x456789);
   self._poke24(SP,EXIT);for(i,a)in args.iter().enumerate(){self._poke24(SP+3+i as u32*3,*a);}
   let mut steps=0;let mut masked=0;
   while c.state.reg.pc!=EXIT{
@@ -78,7 +96,10 @@ impl Board{
    assert!(steps<2_000_000,"unbounded native payload");
   }
   assert_eq!(c.state.reg.get24(Reg16::SP),SP+3);assert_eq!(c.state.reg.get24(Reg16::IX),0x123456);
-  if name=="_emos_parallel_native_bytes"{assert_eq!(c.state.reg.get24(Reg16::IY),0x654321);}assert_eq!(c.state.reg.iff1,iff);assert_eq!(c.state.reg.iff2,iff);
+  if name=="_emos_parallel_native_bytes"{
+   assert_eq!(c.state.reg.get24(Reg16::IY),0x654321);
+   assert_eq!(c.state.reg.get24(Reg16::BC),0x234567);assert_eq!(c.state.reg.get24(Reg16::DE),0x345678);assert_eq!(c.state.reg.get24(Reg16::HL),0x456789);
+  }assert_eq!(c.state.reg.iff1,iff);assert_eq!(c.state.reg.iff2,iff);
   c.state.reg.a()
  }
  fn args(&self)->[u32;6]{[H,1,u32::from(self.reverse),BUFFER,self.n as u32,0]}
@@ -88,6 +109,9 @@ fn main(){let a:Vec<_>=env::args().collect();assert_eq!(a.len(),2,"full firmware
   for n in [1,2,3,7,255,256,257,1024,4095,4096]{
    let mut b=Board::new(&a[1],n,reverse);assert_eq!(b.run(iff,&b.args()),0);
    assert!(b.began&&b.ended);assert_eq!(b.falls,n);assert_eq!(b.rises,n);
+   assert_eq!(b.pre_falls,if reverse{0}else{16});assert_eq!(b.pre_rises,b.pre_falls);
+   assert_eq!(b.idle_falls,16);assert_eq!(b.idle_rises,16);
+   assert_eq!(b.pre_falls+b.idle_falls,if reverse{16}else{32});
    if reverse{assert_eq!(b.reads,n);for i in 0..n{assert_eq!(b.peek(BUFFER+i as u32),pixel(i));}}
    else{assert_eq!(b.tx,(0..n).map(pixel).collect::<Vec<_>>());}
    assert_eq!(b.peek(BUFFER-1),0xa5);assert_eq!(b.peek(BUFFER+n as u32),0xa5);
@@ -95,9 +119,9 @@ fn main(){let a:Vec<_>=env::args().collect();assert_eq!(a.len(),2,"full firmware
   }
   let mut raw=Board::new(&a[1],8,reverse);
   assert_eq!(raw.execute("_emos_parallel_native_bytes",iff,&[BUFFER,8,u32::from(reverse)]),0);
-  assert_eq!(raw.falls,8);cases+=1;
+  assert_eq!(raw.falls,8);assert_eq!(raw.pre_falls,if reverse{0}else{16});assert_eq!(raw.pre_rises,raw.pre_falls);assert_eq!(raw.idle_falls,16);assert_eq!(raw.idle_rises,16);cases+=1;
   let mut b=Board::new(&a[1],8,reverse);b.lose_after=Some(3);assert_eq!(b.run(iff,&b.args()),0xe5);
-  assert_eq!(b.falls,3);assert_eq!(b.rises,3);assert!(b.ended);assert_eq!(b.peek(H+3),1);assert_eq!(b.ports[0x9f],255);cases+=1;
+  assert_eq!(b.falls,3);assert_eq!(b.rises,3);assert_eq!(b.pre_falls,if reverse{0}else{16});assert_eq!(b.pre_rises,b.pre_falls);assert_eq!(b.idle_falls,16);assert_eq!(b.idle_rises,16);assert!(b.ended);assert_eq!(b.peek(H+3),1);assert_eq!(b.ports[0x9f],255);cases+=1;
   for (index,value) in [(0,0),(3,0),(4,0),(4,4097),(2,2)]{
    let mut b=Board::new(&a[1],8,reverse);let mut args=b.args();args[index]=value;
    assert_eq!(b.run(iff,&args),0xe0);assert_eq!(b.writes,0);cases+=1;
@@ -113,5 +137,5 @@ fn main(){let a:Vec<_>=env::args().collect();assert_eq!(a.len(),2,"full firmware
   let mut b=Board::new(&a[1],8,reverse);let mut args=b.args();args[1]=0;
   assert_eq!(b.run(iff,&args),0xe1);assert_eq!(b.writes,0);cases+=1;
  }}
- println!("PASS {cases} linked native eZ80 cases: actual C guard/assembly, both directions, bytes/edges, bounds, READY loss, Port D ISR interleavings, IX/SP/IFF and raw-loop IY; no bench timing");
+ println!("PASS {cases} linked native eZ80 cases: actual C guard/assembly, both directions, bytes/edges, forward-only16-clock preamble and16-clock tail, bounds, READY loss, Port D ISR interleavings, IX/SP/IFF and raw BC/DE/HL/IY; no bench timing");
 }

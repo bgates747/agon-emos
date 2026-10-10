@@ -493,3 +493,77 @@ Pause for Author review before a separate bounded physical activation fixture.
 No bench/network-device/SD action, production change, commit or push occurred.
 All prior dirt, including unrelated scripts/application_peer.py, is preserved.
 The earlier paused checkpoint remains historical evidence.
+
+
+## 2026-10-09 private qualification caller — software checks complete
+
+Author authorized PORT-008 LC03-A after prior dirt was committed/pushed. The
+private `parallel-probe-candidate.mk` profile adds operation6 to the existing
+Legacy/MOSlet/busy-admitted diagnostic gateway, validating the complete MOSlet
+span before acquisition. Resident EMOS retains fresh negotiation identity,
+reservation, native coordination and failure fencing. All patterns, CRC and
+file reporting live in the [parprobe MOSlet](../../projects/parprobe/README.md),
+not ROM. Ordinary builds exclude the service. Boot readiness checks the actual
+boot release grant rather than a deliberately retained historical failure bit;
+uncertain control delivery enters the real failed-block fence until reset.
+
+Full wrappers and unchanged ROM/link/ownership checks pass: probe130984/88free,
+static RAM4079; native130473/599free; ordinary128739/2333free. The SD MOSlet is
+10750 bytes. Twenty modeled two-way blocks, corruption/refusal/lost replies,
+35 gateway bounds cases, 11 MOSlet invocation/report cases, 86 linked boot/runtime
+cases and existing linked native/control/UART checks pass. Actual ELF profile
+controls verify the sole private gateway/service/coordinator call chain.
+The complete paired P4 browser-output compile image also passes, with a
+nondeployable sentinel identity. These are software/build checks with modeled
+physical inputs, not electrical or throughput qualification.
+
+[Contract](../../../agon-extender/docs/tasks/PORT-008/LIVE-QUALIFICATION.md) and
+[results](../../../agon-extender/docs/tasks/PORT-008/LIVE-QUALIFICATION-RESULTS.md)
+record exact artifacts and the LC03-B installation boundary. No firmware flash,
+SD deployment, reset, device-network operation, ExExt API/mode or production
+change. Prior EMOS checkpoint was pushed as8f06429; this emulator-coupled
+implementation remains uncommitted pending Author review. Unrelated
+scripts/application_peer.py remains untouched.
+
+## 2026-10-10 UTC — private physical clock-tail repair
+
+Author authorized a bounded one-hour PORT-008 repair. The private native
+assembly now supplies sixteen inactive CLOCK cycles after data-pin release and
+VALID deassertion. This tests hardware level-delimiter EOF flushing; sixteen
+is empirical, not a documented minimum. Exact payload length, registers/status
+and IFF remain preserved;124 linked native instruction cases and full wrapper
+guards pass. Probe image131001bytes,71free, build
+`agon-emos-v0.1.24-b2026-10-10-00-55-33Z`, SHA256
+`5f258aec58475f779f267bd7e7c33f8d9abcec3081be160497bde15a6423eaa8`.
+Complete installed128KiB ROM readback matches. Ordinary profile was not rebuilt
+or qualified by this increment; no mainboard VDP or production change.
+[Paired physical repair findings and final result](../../../agon-extender/docs/tasks/PORT-008/LIVE-QUALIFICATION-BLOCK-R03.md)
+own the endpoint proof, boot-race correction and remaining F03 limits.
+Emulator-coupled changes remain uncommitted pending Author validation.
+
+## 2026-10-10 UTC — forward preclock and physical partial success
+
+The second authorized repair hour adds sixteen inactive CLOCK pulses before
+forward Port C output/VALID assertion. Reverse receives no preamble because P4
+TX is not VALID-gated. Full wrapper guards and 124 linked native instruction
+cases pass. Installed private probe `agon-emos-v0.1.24-b2026-10-10-01-48-39Z`
+is 131,017 bytes / 55 free; complete 128 KiB ROM readback matches image SHA256
+`55aafe657987754bd6dcda0d2747d145702da9d995e90d9409e8509ccd41c343`.
+
+With P4 r10 fixed-count RX and PCNT proof, two independent fresh-session runs
+pass forward one/two-byte blocks, then reject 255 bytes: actual DMA length 255,
+qualified CLOCK count 256, VALID count 4 or 10. The cause is unresolved; no
+extra physical transition is proved without an independent trace. Both failures
+were separately recovered, original startup verified and keyboard restored.
+Full suite, reverse and F03 remain unqualified.
+
+A separate warm-reset ambiguity was reproduced. A boot-announcement compile
+candidate fits at 131,035 bytes / 37 free, but a stronger reset-at-ACK regression
+failed its paired protocol. It was never installed. Only those new boot edits
+were preserved as experimental evidence and restored; the existing 736 paired
+boot-adapter cases pass. Do not install that rejected ROM.
+
+[Current paired results and handback](../../../agon-extender/docs/tasks/PORT-008/LIVE-QUALIFICATION-BLOCK-R04.md)
+own exact artifacts and remaining checks. Mainboard Pingo VDP and production
+are unchanged. Emulator-coupled work remains uncommitted pending Author validation;
+unrelated application_peer changes are untouched.

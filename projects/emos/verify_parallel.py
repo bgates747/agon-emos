@@ -532,9 +532,10 @@ def verify_linked(
     }
     if allow_native_payload:
         # Local assembly labels own later writes in the whole-image inventory.
+        # The forward preamble label now owns the unchanged subsequent DDR write.
         # The native checker separately checks callers and the Port D helper.
         rts_portc_writes.update({
-            "_emos_parallel_native_bytes": [0x9F],
+            "native_start_clocks": [0x9F],
             "native_send": [0x9E],
             "native_finish": [0x9F],
         })
