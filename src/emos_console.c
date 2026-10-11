@@ -1,7 +1,8 @@
 /* INTEG-010: idle-CLI ExCom adapter, not application-state migration.
  * UART1 assembly stays private. All reply effects run in the existing ISR,
  * or under an interrupt lock when the coordinator publishes staged state.
- * Control is a framed CRC-checked exchange, never a General Poll activation.
+ * Ordinary version1 console controls retain their CRC; parallel format3 has
+ * none (PORT-008 CRC-REMOVAL-R01). Neither uses General Poll for activation.
  */
 #include <string.h>
 #include "emos_console.h"
@@ -29,7 +30,7 @@ static volatile BYTE waiting, accepted, staging, seen, poll_done;
 static BYTE staged_mode[8], staged_cursor[2], poll_token;
 static BYTE lease;
 #if defined(EMOS_EXEXT_STREAM)
-/* Version-2 transactions borrow request, never the live version-1 lease. */
+/* Parallel transactions borrow request, never the live version1 lease. */
 static BYTE lease_nonce[4];
 static void restore_console_request(void) {
     memset(request,0,sizeof(request));
@@ -49,7 +50,7 @@ static BYTE wait_reply(volatile BYTE *flag) {
     }
     return *flag && !emos_key_faulted;
 }
-/* Version 2 uses the already reserved serializer; never bypass its owner. */
+/* Parallel controls use the reserved serializer; never bypass its owner. */
 static BYTE control_send(const BYTE *p, UINT16 n) {
     return request[2] == PARALLEL_WIRE_VERSION ?
         emos_keyboard_parallel_send(p,n) : emos_keyboard_send(p,n);
@@ -59,7 +60,8 @@ static BYTE exchange(BYTE op) {
     BYTE irq, ok;
     request[3] = op;
     if (request[2] != PARALLEL_WIRE_VERSION) request[13] = 0;
-    console_seal(request);
+    if (request[2] == PARALLEL_WIRE_VERSION) parallel_control_pad(request);
+    else console_seal(request);
     irq = emos_keyboard_lock(); accepted = 0; waiting = op;
     emos_keyboard_unlock(irq);
     ok = control_send(prefix, 3) == EMOS_KEY_OK &&
@@ -90,8 +92,7 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
             (waiting == PARALLEL_STREAM_START || waiting == PARALLEL_STREAM_POLL ||
              waiting == PARALLEL_STREAM_STOP)) {
             if (memcmp(p,request,3) || memcmp(p+4,request+4,6) || p[12] || p[13] ||
-                p[11]>16 || (p[11]==16 && p[10]) ||
-                p[14]!=(BYTE)console_crc(p) || p[15]!=(BYTE)(console_crc(p)>>8)) return;
+                p[11]>16 || (p[11]==16 && p[10])) return;
         } else
 #endif
         if (request[2] == PARALLEL_WIRE_VERSION &&
@@ -108,7 +109,7 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
             } else if (memcmp(p+8,request+8,4)) return;
         }
         /* Foreground owns session transitions. Capture exactly one complete
-         * version-2 reply; late duplicates cannot replace its nonce. */
+         * parallel reply; late duplicates cannot replace its nonce. */
         if (request[2] == PARALLEL_WIRE_VERSION) memcpy(request,p,CONSOLE_SIZE);
         accepted = 1;
         return;
@@ -197,26 +198,21 @@ void emos_console_notice(BYTE exclusive) {
     }
 }
 
-/* Keep the private admission gate in this unit to reuse the console CRC code
- * rather than link a second copy into scarce ROM. No live caller yet: c2b
- * owns serializer fencing/session negotiation; c3 owns native payload binding.
- * Call under the existing coordinator reservation, not from the UART ISR.
+/* Parallel admission is CRC-free (PORT-008 CRC-REMOVAL-R01). Retain the
+ * semantic/ownership gates and actual handover; former CRC slots are ignored.
+ * This is a coordinator-reserved foreground call, not a UART ISR GPIO entry.
  */
 BYTE emos_parallel_handover_admit(t_emosParallelHandover *h, BYTE mode,
     BYTE *session, const BYTE *offer, const BYTE *ack) {
-    unsigned short crc;
     if (mode != PARALLEL_EXEXT || h->phase != EPH_UART ||
         !parallel_offer_valid(session, offer) || ack[3] != PARALLEL_ACK ||
         memcmp(offer, ack, 3) || memcmp(offer + 4, ack + 4, 10)) return 0;
-    crc = console_crc(ack);
-    if (ack[14] != (BYTE)crc || ack[15] != (BYTE)(crc >> 8)) return 0;
     if (!emos_parallel_handover_begin(h)) return 0;
     session[4] = offer[8]; session[5] = offer[9];
     return 1;
 }
 
-/* Private c2b session owner: parser binding below, no startup call. Keep beside the
- * existing admission leaf to reuse its CRC and tiny lifecycle helpers.
+/* Private session owner shares the console request/reply buffer, not its CRC.
  * The UART reservation is checked, not accepted as caller-supplied evidence.
  */
 BYTE emos_parallel_session_start(t_emosParallelHandover *h, t_parallelSession *s,
@@ -289,7 +285,8 @@ BYTE emos_parallel_block_complete(t_emosParallelHandover *h, t_parallelSession *
 BYTE emos_parallel_stream_control(t_parallelSession *s, BYTE op, UINT16 *pending) {
     if (!emos_exext_owned || waiting || s->phase!=PARALLEL_SESSION_ACTIVE ||
         !emos_keyboard_parallel_reserved()) return 0;
-    memset(request,0,sizeof(request));memcpy(request,"EX\x02",3);
+    memset(request,0,sizeof(request));memcpy(request,"EX",2);
+    request[2]=PARALLEL_WIRE_VERSION;
     memcpy(request+4,s->bytes,6);
     if (!exchange(op)) return 0;
     *pending=(UINT16)request[10] | ((UINT16)request[11]<<8);
@@ -313,10 +310,11 @@ BYTE emos_parallel_probe(BYTE *out, UINT16 length, BYTE reverse) {
         emos_keyboard_parallel_reserve() != UART_POLL_READY) return 0;
     for (i=0; i<4; ++i) if (++transaction[i]) break;
     if (!emos_parallel_session_negotiate(h,&session,transaction)) goto failed;
-    memset(out,0,16); memcpy(out,"EX\x02\x02",4);
+    memset(out,0,16); memcpy(out,"EX",2);
+    out[2]=PARALLEL_WIRE_VERSION;out[3]=PARALLEL_OFFER;
     memcpy(out+4,session.bytes,4); out[8]=1;
     out[10]=(BYTE)length;out[11]=(BYTE)(length>>8);out[12]=reverse;
-    console_seal(out);
+    parallel_control_pad(out);
     if (emos_parallel_block_offer(h,&session,PARALLEL_EXEXT,out) &&
         emos_parallel_native_coordinate(&session,out,out+16,length)) return 1;
  failed:

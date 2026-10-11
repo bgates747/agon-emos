@@ -67,11 +67,12 @@ static BYTE transfer(BYTE *p, UINT16 length, BYTE reverse) {
         }
         next=1;
     }
-    memset(offer,0,sizeof(offer)); memcpy(offer,"EX\x02\x02",4);
+    memset(offer,0,sizeof(offer)); memcpy(offer,"EX",2);
+    offer[2]=PARALLEL_WIRE_VERSION;offer[3]=PARALLEL_OFFER;
     memcpy(offer+4,stream_session.bytes,4);
     offer[8]=(BYTE)next; offer[9]=(BYTE)(next>>8);
     offer[10]=(BYTE)length; offer[11]=(BYTE)(length>>8); offer[12]=reverse;
-    console_seal(offer);
+    parallel_control_pad(offer);
     PHASE(offer_begin);
     if (emos_parallel_block_offer(h,&stream_session,PARALLEL_EXEXT,offer) &&
         emos_parallel_native_coordinate(&stream_session,offer,p,length)) return 1;

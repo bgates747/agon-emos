@@ -1,5 +1,9 @@
 # Private two-way parallel qualification MOSlet
 
+Revision r02 follows CRC-free parallel wire3 (CRC-REMOVAL-R01); r01
+remains historical wire2 evidence. Descriptor padding is ignored; the payload
+CRC below is independent qualification evidence, not transport admission.
+
 PORT-008 LC03-A only; requires the exact paired probe firmware. Ordinary
 EMOS refuses operation6. No public API or formal ExExt support is added.
 The MOSlet asks EMOS to negotiate/admit one bounded block; EMOS owns all pins,

@@ -10,4 +10,4 @@ $(LINKBINARY): $(OBJDIR)/emos_gateway.o
 $(OBJDIR)/emos_gateway.o: ../uartflow/src/emos_gateway.asm
 	@mkdir -p $(dir $@)
 	$(ASM) $(ASMFLAGS) $< -o $@
-$(OBJDIR)/main.o: src/pattern.h
+$(OBJDIR)/main.o: src/pattern.h ../../src/emos_parallel_wire.h

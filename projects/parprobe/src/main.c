@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "pattern.h"
+#include "../../../src/emos_parallel_wire.h"
 extern uint24_t emos_gateway_call(uint8_t *request);
 static uint8_t request[66],input[2],storage[4114];
 static void put24(uint8_t *p,uint24_t n){p[0]=n;p[1]=n>>8;p[2]=n>>16;}
@@ -24,7 +25,7 @@ int main(int argc,char **argv){
     uint32_t started=getsysvar_time();unsigned row=0,passed=0;
     FILE *f;
     if(argc==2 && !strcmp(argv[1],"--version")) {
-        puts("parprobe r01: private native two-way EMOSlet; not ordinary uartdiag");return 0;
+        puts("parprobe r02: private native two-way EMOSlet; not ordinary uartdiag");return 0;
     }
     if(argc!=2 || strncmp(argv[1],"/agents/extender/results/",25))return 19;
     f=fopen(argv[1],"r");if(f){fclose(f);puts("Result already exists");return 19;}
@@ -42,7 +43,7 @@ int main(int argc,char **argv){
         guards=storage[0]==0xA5 && storage[n+17]==0x5A;
         pattern=guards && !status && request[22]==(uint8_t)(n+16) &&
             request[23]==(uint8_t)((n+16)>>8) && !request[24] &&
-            !memcmp(out,"EX\x02\x02",4) && out[8]==1 && !out[9] &&
+            out[0]=='E' && out[1]=='X' && out[2]==PARALLEL_WIRE_VERSION && out[3]==PARALLEL_OFFER && out[8]==1 && !out[9] &&
             out[10]==(uint8_t)n && out[11]==(uint8_t)(n>>8) && out[12]==reverse && !out[13];
         if(pattern){
             if(reverse)seed=parallel_probe_seed(out);

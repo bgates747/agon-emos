@@ -36,6 +36,11 @@ admission; it is not accepted for ordinary use. The bench rollback restores the
 preceding verified UART pair; the experimental source remains available only
 through explicit matched candidate builds. See the [paired work contract](../../agon-extender/docs/tasks/PORT-008/EXEXT-STREAM-R01.md)
 and [wire/scheduling contract](../../agon-extender/docs/protocols/exext-stream.md).
+The [CRC-removal cut](../../agon-extender/docs/tasks/PORT-008/CRC-REMOVAL-R01-RESULTS.md)
+now compiles CRC-free parallel wire3 on both processors and passes offline
+paired/linked checks. Former CRC slots are zero padding ignored on receipt;
+version1 console activation retains CRC. This is uninstalled exploratory source,
+not a new physical performance pass. ExExt EMOS fits at 130,598 bytes/474 free.
 Legacy/ExCom and selected production are unchanged. The following older candidate
 sizes and activation statements describe their named profiles, not this build.
 

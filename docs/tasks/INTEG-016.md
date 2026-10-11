@@ -629,7 +629,7 @@ from accepted P4 event counters. Original startup restored after recovery.
 
 ## Ordinary stream EX05 byte batching — 2026-10-11
 
-Linked baseline measurement is165000instructions for1000single-byte C route
+Linked baseline measurement is165000instructions for 1,000single-byte C route
 calls versus1145instructions for one counted1000byte call, excluding physical
 transfer. Optimize only the RAM append: retain the existing interrupt lock,
 mode/owner refusal, full-block coordinator and public ABI. The final boundary
@@ -791,3 +791,16 @@ ignored on receipt. Format2 must not admit. Ordinary version1 console activation
 SD contracts, electrical handover and storage lifetime remain unchanged. Compile
 through full profile/link/ROM guards and execute existing paired/linked tests.
 No bench deployment, production promotion or broad-goal resumption.
+
+### Paired CRC removal complete — 2026-10-11
+
+[Results](../../../agon-extender/docs/tasks/PORT-008/CRC-REMOVAL-R01-RESULTS.md)
+record CRC-free format3 in all parallel controls, unchanged version1 activation,
+mirrored headers, private parprobe r02 descriptor compatibility and unchanged
+electrical/coordinator storage lifetime. ExExt/ordinary wrapper builds pass all
+profile guards at 130,598 / 128,695 bytes. ExExt reclaims 370 bytes,474 free. Linked
+admission 18,234 / session 950 / control 157 cases plus output/VBlank checks pass;
+START/POLL/STOP and ignored padding are exercised on the actual new ELF. Host
+console/queue checks and private MOSlet target/host checks pass. These are dirty
+exploratory builds, uninstalled; no speed/production claim. Next proposed cut
+removes software COMPLETE/ACK after actual physical return. Broad goal paused.

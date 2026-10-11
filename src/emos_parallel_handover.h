@@ -7,7 +7,6 @@
 #ifndef EMOS_PARALLEL_HANDOVER_H
 #define EMOS_PARALLEL_HANDOVER_H
 #include <defines.h>
-#include "control_crc.h"
 #include "emos_parallel_wire.h"
 #include "emos_parallel_session.h"
 

@@ -28,8 +28,8 @@ BYTE emos_keyboard_parallel_reserved(void) {
 }
 BYTE emos_keyboard_parallel_send(const BYTE *p, UINT16 n) {
 #if defined(EMOS_EXEXT_STREAM)
-    if(n==16){BYTE r[16];memcpy(r,p,16);assert(p[2]==2);r[3]|=0x80;
-      r[10]=0x34;r[11]=1;console_seal(r);emos_console_packet(CONSOLE_REPLY,r,16);}
+    if(n==16){BYTE r[16];memcpy(r,p,16);assert(p[2]==PARALLEL_WIRE_VERSION && !p[14] && !p[15]);r[3]|=0x80;
+      r[10]=0x34;r[11]=1;r[14]=0xa5;r[15]=0x5a;emos_console_packet(CONSOLE_REPLY,r,16);}
     return EMOS_KEY_OK;
 #else
     (void)p; (void)n; assert(!"parallel send must not serve version 1"); return EMOS_KEY_BUSY;
@@ -90,7 +90,7 @@ int main(void) {
         for(unsigned i=0;i<16;++i)assert(vdp_protocol_data[i]==0xA5);
         assert(!emos_console_write_byte('a'));
 #if defined(EMOS_EXEXT_STREAM)
-        /* Version-2 requests borrow scratch; LEAVE must still use the original
+        /* Parallel requests borrow scratch; LEAVE must still use the original
          * transaction/challenge. Selected-route effects also work in ExExt. */
         t_parallelSession session={.bytes={1,2,3,4,5,6},.phase=PARALLEL_SESSION_ACTIVE};
         UINT16 pending=0;emos_exext_owned=1;reserve=1;
