@@ -735,3 +735,23 @@ to the exact-bound MOSlet RAM recorder only during samples. Ordinary profiles
 preprocess all probes out. No transport, scheduling, GPIO ownership, P4 parser,
 mainboard VDP or product behavior change; byte integrity and exact restoration
 remain required. Stop if fit demands removal of product functionality.
+
+### Phase attribution completed; no-CRC requirement — 2026-10-11
+
+The diagnostic profile compiles at 131,063 bytes (9 free), 95 bytes above its
+ordinary control; no product behavior removed. Original object relocations and
+final CALL checks bind sixteen probes to the exact MOSlet RAM recorder. Linked
+register/stack/IFF, disabled/overflow, ABI/native and real VBlank tests pass.
+Extender's [physical phase results](../../../agon-extender/docs/tasks/PORT-008/PHASE-TIMING-R01-RESULTS.md)
+retain 24 selected samples and full 196,608-byte proof. Offer/construction/completion
+dominates; post-full-block offer latency adds ~33–35 ms, cause not fully isolated.
+Exact old EMOS/full 128 KiB ROM and P4 partner/startup/input restore and verify;
+bench released.
+
+Author requires **no CRC in ExExt**, including its control exchanges, and rejects
+accelerating the existing routine. Ordinary stock MOS/VDP UART does not impose
+these CRCs; the project added them. Extender's PORT-008 P08-P05/D01/D02 and
+ADR-0026 own the paired removal/format contract. Keep required electrical
+ownership/handshakes and host byte-proof qualification; no alternative per-block
+checksum. No CRC-free EMOS image has been implemented or deployed. Both timing
+profiles remain diagnostic-only source; production unchanged.
