@@ -29,8 +29,12 @@ EMOS batches existing application VDU and services actual return packets on the
 real VBlank handler, retaining bundled return bytes across ticks so each keyboard
 event gives the foreground a chance to observe stock MOS's latest-event latch.
 The obsolete indefinite forward epoch is excluded only in
-this explicit composition. Software and full-ROM checks pass; physical operation
-and performance remain unqualified. See the [paired work contract](../../agon-extender/docs/tasks/PORT-008/EXEXT-STREAM-R01.md)
+this explicit composition. Software/full-ROM checks and bounded physical
+CLI, reply, cached-input and finite-game checks pass. However, the 2026-10-11
+experiment shows a major gameplay-performance regression and unreliable reset
+admission; it is not accepted for ordinary use. The bench rollback restores the
+preceding verified UART pair; the experimental source remains available only
+through explicit matched candidate builds. See the [paired work contract](../../agon-extender/docs/tasks/PORT-008/EXEXT-STREAM-R01.md)
 and [wire/scheduling contract](../../agon-extender/docs/protocols/exext-stream.md).
 Legacy/ExCom and selected production are unchanged. The following older candidate
 sizes and activation statements describe their named profiles, not this build.
