@@ -675,3 +675,24 @@ all edges, READY checks and cleanup. The actual-ELF inventory checks both exact
 helpers, and negative controls mutate each helper's DI. CPU tests retain both
 directions, 1..4096 lengths, READY loss, ISR GPIO changes and register/IFF checks.
 Instruction counts are CPU work only, not measured physical throughput.
+
+
+## Matched stream timing composition — 2026-10-11, offline only
+
+The Author-approved Extender `docs/tasks/PORT-008/STREAM-TIMING-R01.md` owns the
+bounded comparison. Private `port/exext-stream-timing.mk` composes existing ExExt
+with one final-forward-byte PRT observation, guarded UART TEMT/error observation
+and an existing-owner zero-length residual drain. The native body is shared;
+normal builds assemble probes out. No public MOS ABI, diagnostic CLI, application
+GPIO bypass or EDP changes. Timing hooks are temporary, for removal from any
+later production selection after investigation; the MOSlet retains payloads,
+timer control and durable result formatting.
+
+Timing build `agon-emos-v0.1.24-b2026-10-11-19-00-57Z`, source d7f25d8, fits at
+131048bytes/24free. Normal control19:11:39Z/source5922583 uses130968/104free,
+byte-identical to the preceding stream-r11 except identity. Added ROM cost80bytes.
+All mandatory build/link checks, actual linked parallel/output/VBlank controls,
+9216UART observer states and both normal/timing host-owner variants pass.
+These are modeled correctness, not physical throughput results. No emulator
+profile or hardware changed. Author/fsim bench reservation remains in force;
+retain the verified UART rollback installation pending bench release.
