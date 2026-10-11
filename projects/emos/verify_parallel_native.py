@@ -52,8 +52,8 @@ def verify_native(source, elf, nm, objdump, *, qualification=False, stream=False
     control = symbols.get("native_control", [])
     if len(control) != 1 or control[0][1] != "t":
         raise ParallelError("native Port D helper must remain local text")
-    # Two static call sites each clock the forward preamble and inactive tail.
-    if direct_transfer_count(whole, control[0][0]) != 11 or direct_transfer_count(raw, control[0][0]) != 11:
+    # Three level changes plus four paired pulse sites: preamble, TX, RX, tail.
+    if direct_transfer_count(whole, control[0][0]) != 3 or direct_transfer_count(raw, control[0][0]) != 3:
         raise ParallelError("native Port D helper caller inventory changed")
     helper = disassemble_global_extent(objdump, elf, "native_control")
     verify_iff_helper("native_control", helper, 6)
@@ -63,8 +63,23 @@ def verify_native(source, elf, nm, objdump, *, qualification=False, stream=False
                 ("out0", "(0xa2),a"), ("pop", "af")]
     if helper_ops[:8] != expected or len(helper_ops) != 11 or helper_ops[-1] != ("ret", ""):
         raise ParallelError("native Port D masked RMW instruction sequence changed")
+    pulse = symbols.get("native_pulse", [])
+    if len(pulse) != 1 or pulse[0][1] != "t":
+        raise ParallelError("native pulse helper must remain local text")
+    if direct_transfer_count(whole,pulse[0][0]) != 4 or direct_transfer_count(raw,pulse[0][0]) != 4:
+        raise ParallelError("native pulse helper caller inventory changed")
+    pulse_body = disassemble_global_extent(objdump,elf,"native_pulse")
+    following = re.search(r"(?m)^\s*[0-9a-f]+\s+<native_control>:$",pulse_body)
+    if not following:
+        raise ParallelError("native pulse/control helper boundary changed")
+    pulse_body = pulse_body[:following.start()]
+    verify_iff_helper("native_pulse",pulse_body,8)
+    pulse_ops = [row[1:] for row in instructions(pulse_body)]
+    pulse_expected = expected[:7]+[("or","a,0x20"),("out0","(0xa2),a"),("pop","af")]
+    if pulse_ops[:10] != pulse_expected or len(pulse_ops) != 13 or pulse_ops[-1] != ("ret",""):
+        raise ParallelError("native pulse masked RMW instruction sequence changed")
     raw_ops = [row[1:] for row in instructions(raw)]
-    if raw_ops.count(("out0", "(0xa2),a")) != 1 or raw_ops.count(("in0", "a,(0x9e)")) != 1:
+    if raw_ops.count(("out0", "(0xa2),a")) != 3 or raw_ops.count(("in0", "a,(0x9e)")) != 1:
         raise ParallelError("native control-write/data-read inventory changed")
     body = (source / "src/emos_parallel_native.c").read_text()
     # This source fingerprint supplements, rather than replaces, execution of

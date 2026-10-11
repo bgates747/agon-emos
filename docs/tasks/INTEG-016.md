@@ -664,3 +664,14 @@ packets, then resume at an eligible VBlank. Do not alter upstream SD timeouts.
 Host actual-owner and actual linked ISR controls must establish deferred/resumed
 service and ABI preservation; repeat the frozen Nurples workload physically
 before attributing the fault to this scheduling interaction.
+
+
+### ExExt byte-kernel pulse pairing (2026-10-11)
+
+After the SD guard passes frozen Nurples, ExExt still spends most application
+pacing intervals inside synchronous physical service. Pair falling/rising CLOCK
+writes under one short IFF-preserving helper; retain current unowned Port D bits,
+all edges, READY checks and cleanup. The actual-ELF inventory checks both exact
+helpers, and negative controls mutate each helper's DI. CPU tests retain both
+directions, 1..4096 lengths, READY loss, ISR GPIO changes and register/IFF checks.
+Instruction counts are CPU work only, not measured physical throughput.

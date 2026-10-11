@@ -23,10 +23,11 @@ def main():
     p.add_argument('--ordinary', type=Path, required=True)
     p.add_argument('--source', type=Path, required=True)
     p.add_argument('--toolchain', type=Path, required=True)
+    p.add_argument('--stream', action='store_true')
     a = p.parse_args()
     tools = a.toolchain / 'bin'
     def check(elf, native, expected, reason):
-        checker = 'verify_parallel_native.py' if native else 'verify_parallel.py'
+        checker = ('verify_exext.py' if a.stream else 'verify_parallel_native.py') if native else 'verify_parallel.py'
         r = subprocess.run([
             sys.executable, str(ROOT / 'projects/emos' / checker),
             '--source', str(a.source), '--elf', str(elf),
@@ -53,6 +54,12 @@ def main():
         di = symbols['native_control'] + delta + 3  # LD A,I; PUSH AF; DI
         assert original[di] == 0xf3
         damaged = bytearray(original); damaged[di] = 0
+        target.write_bytes(damaged)
+        check(target, True, False, 'exact IFF2 save/DI/restore sequence')
+
+        pulse_di = symbols['native_pulse'] + delta + 3
+        assert original[pulse_di] == 0xf3
+        damaged = bytearray(original); damaged[pulse_di] = 0
         target.write_bytes(damaged)
         check(target, True, False, 'exact IFF2 save/DI/restore sequence')
 
@@ -83,7 +90,7 @@ def main():
         damaged[offset + 1:offset + 4] = (symbols['_emos_parallel_native_payload'] + 1).to_bytes(3, 'little')
         target.write_bytes(damaged)
         check(target, True, False, 'native guard is not called solely by the coordinator')
-    print('PASS 9 actual-ELF profile/negative-control cases; no hardware claims')
+    print('PASS 10 actual-ELF profile/negative-control cases; no hardware claims')
 
 def elf_offset(path, name):
     with path.open('rb') as f:

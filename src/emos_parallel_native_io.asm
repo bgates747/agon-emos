@@ -39,9 +39,7 @@ _emos_parallel_native_bytes:
             LD B, 16
 native_start_clocks:
             LD C, 090h
-            CALL native_control
-            LD C, 0B0h
-            CALL native_control
+            CALL native_pulse
             DJNZ native_start_clocks
             XOR A, A
             OUT0 (PC_DDR), A
@@ -54,9 +52,7 @@ native_send:
             LD A, (HL)
             OUT0 (PC_DR), A
             LD C, 010h
-            CALL native_control
-            LD C, 030h
-            CALL native_control
+            CALL native_pulse
             INC HL
             DEC DE
             LD A, D
@@ -71,9 +67,7 @@ native_receive:
             BIT 4, A
             JR NZ, native_fault
             LD C, 010h
-            CALL native_control
-            LD C, 030h
-            CALL native_control
+            CALL native_pulse
             IN0 A, (PC_DR)
             LD (HL), A
             INC HL
@@ -99,9 +93,7 @@ native_finish:
             LD E, 16
 native_end_clocks:
             LD C, 090h
-            CALL native_control
-            LD C, 0B0h
-            CALL native_control
+            CALL native_pulse
             DEC E
             JR NZ, native_end_clocks
             LD A, B
@@ -110,6 +102,25 @@ native_end_clocks:
             POP BC
             LD SP, IY
             POP IY
+            RET
+; EX-C14: falling/rising CLOCK is one short atomic RMW, preserving the
+; latest ISR-owned Port D bits. C supplies VALID/low CLOCK; the second write
+; changes only CLOCK. Save/restore IFF once per pulse, never per whole block.
+; Eight instructions from DI through POP AF (two more than native_control).
+native_pulse:
+            LD A, I
+            PUSH AF
+            DI
+            IN0 A, (PD_DR)
+            AND 04Fh
+            OR A, C
+            OUT0 (PD_DR), A
+            OR A, 020h
+            OUT0 (PD_DR), A
+            POP AF
+            JP PO, native_pulse_iff_off
+            EI
+native_pulse_iff_off:
             RET
 native_control:
             LD A, I

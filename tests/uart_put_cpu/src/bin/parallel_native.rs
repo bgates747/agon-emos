@@ -6,7 +6,7 @@ const RAM_BASE:usize=0x40000;const SP:u32=0xaff00;const EXIT:u32=0xa0000;
 const H:u32=0x70000;const BUFFER:u32=0x71000;
 struct Board{mem:Vec<u8>,sym:HashMap<String,u32>,ports:[u8;256],iff:bool,
  reverse:bool,n:usize,falls:usize,rises:usize,pre_falls:usize,pre_rises:usize,idle_falls:usize,idle_rises:usize,reads:usize,tx:Vec<u8>,writes:usize,
- began:bool,ended:bool,lose_after:Option<usize>,nonowned:u8}
+ began:bool,ended:bool,lose_after:Option<usize>,nonowned:u8,instructions:usize}
 fn pixel(i:usize)->u8{((i*73)^(i>>8)^17) as u8}
 impl Machine for Board{
  fn peek(&self,a:u32)->u8{self.mem[a as usize]}
@@ -68,7 +68,7 @@ impl Board{
   let (file,base)=if p.join("MOS.bin").exists(){("MOS.bin",0)}else{("payload.bin",RAM_BASE)};
   let bytes=fs::read(p.join(file)).unwrap();
   let mut b=Self{mem:vec![0xa5;0x100000],sym:fs::read_to_string(p.join("nm.txt")).unwrap().lines().filter_map(|l|{let v:Vec<_>=l.split_whitespace().collect();if v.len()!=3{None}else{Some((v[2].into(),u32::from_str_radix(v[0],16).unwrap()))}}).collect(),
-   ports:[0;256],iff:false,reverse,n,falls:0,rises:0,pre_falls:0,pre_rises:0,idle_falls:0,idle_rises:0,reads:0,tx:vec![],writes:0,began:false,ended:false,lose_after:None,nonowned:0x4b};
+   ports:[0;256],iff:false,reverse,n,falls:0,rises:0,pre_falls:0,pre_rises:0,idle_falls:0,idle_rises:0,reads:0,tx:vec![],writes:0,began:false,ended:false,lose_after:None,nonowned:0x4b,instructions:0};
   b.mem[base..base+bytes.len()].copy_from_slice(&bytes);
   b.mem[H as usize..H as usize+4].copy_from_slice(&[11,1,1,0]);
   for i in 0..n{if !reverse{b.poke(BUFFER+i as u32,pixel(i));}}
@@ -91,7 +91,7 @@ impl Board{
     self.nonowned=(steps as u8)&0x4f;self.ports[0xa2]=(self.ports[0xa2]&0xb0)|self.nonowned;
    }
    c.execute_instruction(self);steps+=1;
-   if iff&&!c.state.reg.iff1{masked+=1;assert!(masked<=8,"whole-block interrupt mask");}else{masked=0;}
+   if iff&&!c.state.reg.iff1{masked+=1;assert!(masked<=10,"whole-block interrupt mask");}else{masked=0;}
    if !iff{assert!(!c.state.reg.iff1&&!c.state.reg.iff2);}
    assert!(steps<2_000_000,"unbounded native payload");
   }
@@ -100,6 +100,7 @@ impl Board{
    assert_eq!(c.state.reg.get24(Reg16::IY),0x654321);
    assert_eq!(c.state.reg.get24(Reg16::BC),0x234567);assert_eq!(c.state.reg.get24(Reg16::DE),0x345678);assert_eq!(c.state.reg.get24(Reg16::HL),0x456789);
   }assert_eq!(c.state.reg.iff1,iff);assert_eq!(c.state.reg.iff2,iff);
+  self.instructions=steps;
   c.state.reg.a()
  }
  fn args(&self)->[u32;6]{[H,1,u32::from(self.reverse),BUFFER,self.n as u32,0]}
@@ -108,6 +109,7 @@ fn main(){let a:Vec<_>=env::args().collect();assert_eq!(a.len(),2,"full firmware
  for iff in [false,true]{for reverse in [false,true]{
   for n in [1,2,3,7,255,256,257,1024,4095,4096]{
    let mut b=Board::new(&a[1],n,reverse);assert_eq!(b.run(iff,&b.args()),0);
+   if n==4096 {println!("MEASURE linked-byte-kernel iff={} reverse={} bytes={} instructions={}",iff,reverse,n,b.instructions);}
    assert!(b.began&&b.ended);assert_eq!(b.falls,n);assert_eq!(b.rises,n);
    assert_eq!(b.pre_falls,if reverse{0}else{16});assert_eq!(b.pre_rises,b.pre_falls);
    assert_eq!(b.idle_falls,16);assert_eq!(b.idle_rises,16);
