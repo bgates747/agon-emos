@@ -58,6 +58,20 @@ int main(void){
  for(i=0;i<sizeof(data);++i)data[i]=(BYTE)(i*73u);
  assert(emos_exext_start());assert(emos_exext_owned&&!emos_exext_busy);
  emosVduBackend=2;
+#ifdef EMOS_STREAM_TIMING
+ /* Explicit drain uses the ordinary owner, including refusal semantics.
+  * Empty drains emit no block; a residual drain neither loses nor replays data. */
+ assert(emos_parallel_route_write_stream(data,0)==0);assert(!blocks);
+ assert(emos_parallel_route_write_stream(data,17)==0);assert(!blocks);
+ irq=0;assert(emos_parallel_route_write_stream(data,0)==EMOS_PARALLEL_BUSY);irq=1;
+ assert(!blocks&&!sent_n);
+ emos_exext_busy=1;assert(emos_parallel_route_write_stream(data,0)==EMOS_PARALLEL_BUSY);emos_exext_busy=0;
+ emosVduBackend=1;assert(emos_parallel_route_write_stream(data,0)==EMOS_PARALLEL_BUSY);emosVduBackend=2;
+ assert(emos_parallel_route_write_stream(data,0)==0);
+ assert(blocks==1&&sent_n==17&&!memcmp(sent,data,17));
+ assert(emos_parallel_route_write_stream(data,0)==0);assert(blocks==1&&sent_n==17);
+ blocks=sent_n=0;
+#endif
  assert(emos_parallel_route_write_stream(data,4095)==0);assert(!blocks&&!sent_n);
  assert(emos_parallel_route_write_byte(data[4095])==0);assert(blocks==1&&sent_n==4096&&!memcmp(sent,data,4096));
  assert(emos_parallel_route_write_stream(data,7)==0);assert(blocks==1);

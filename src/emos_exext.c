@@ -29,6 +29,11 @@ static UINT16 read_at;
 static volatile BYTE need_more;
 static volatile BYTE portc_reserved;
 volatile BYTE emos_exext_owned, emos_exext_busy;
+#ifdef EMOS_STREAM_TIMING
+/* Private timing composition only. Raw single-pass PRT1 countdown at the
+ * final forward clock boundary; fixture owns timer control/results. */
+volatile UINT16 emos_stream_timing_last_raw;
+#endif
 
 /* Native boot owns initial pad release. This profile has no indefinite/raw
  * epoch entry; UART open and the block coordinator share this atomic guard. */
@@ -143,6 +148,13 @@ BYTE emos_parallel_route_write_stream(const BYTE *p, UINT16 n) {
         emos_keyboard_unlock(irq); return EMOS_PARALLEL_BUSY;
     }
     emos_exext_busy=1; emos_keyboard_unlock(irq);
+#ifdef EMOS_STREAM_TIMING
+    /* PORT-008 STREAM-TIMING-R01: zero-length private invocation explicitly
+     * drains a partial batch through this SAME guarded foreground owner.
+     * Normal compositions retain their existing zero-length behavior. No
+     * new app GPIO/transport API; fixture binds the exact verified ELF. */
+    if (!n) ok=flush();
+#endif
     while(n && ok) {
         UINT16 part=sizeof(outgoing)-queued;
         if(part>n)part=n;
