@@ -755,3 +755,15 @@ ADR-0026 own the paired removal/format contract. Keep required electrical
 ownership/handshakes and host byte-proof qualification; no alternative per-block
 checksum. No CRC-free EMOS image has been implemented or deployed. Both timing
 profiles remain diagnostic-only source; production unchanged.
+
+### Stock behavior; transport-only first pass — 2026-10-11
+
+Author clarifies that EMOS/P4 must preserve stock MOS/VDP behavior above the
+byte-transport boundary. Change the physical transport and only the link
+operations it requires; retain stock ordered streams, parsers, replies, keyboard
+publication, callbacks, sysvars and interrupt semantics. Physical timing may
+differ. Existing offers/ACKs, completion exchanges, return polls, sessions and
+buffering must justify physical-link necessity rather than inheriting authority
+from the experimental implementation. No CRC or substitute checksum. Extender's
+PORT-008 P08-P05/D02/D03 and ADR-0026 own the narrowed contract. No source or
+deployed behavior changes in this clarification; broader goal remains paused.
