@@ -815,3 +815,32 @@ Matched experimental format4 rejects formats2/3. Preserve ordinary version1,
 callbacks/ISR/ABI, batching and current scheduling. Full ordinary/ExExt wrapper
 builds and host/linked tests only; no flashing, device/SD access or production
 change. Broad goal paused. Commit/push contract before implementation.
+
+
+### Software completion removal complete, offline only — 2026-10-11
+
+[Paired results](../../../agon-extender/docs/tasks/PORT-008/COMPLETION-REMOVAL-R01-RESULTS.md)
+close the bounded contract. The owner contract was frozen/pushed as 273e48a
+before code. EMOS deletes its COMPLETE/ACK request/reply function and retires a
+block only after native success, cleanup, actual reciprocal UART return and
+reservation release. P4 stages completion before final READY-high and retains
+storage until consumption. No CRC/checksum/retry. Matched format4 rejects 2/3.
+Other control/session/batching/scheduling behavior remains for later review.
+
+Full ordinary/ExExt wrapper builds pass all profile-owned guards at 128,482 /
+130,334 bytes, respectively. Compared with CRC-free same-profile baselines,
+ordinary reclaims 213 bytes and ExExt 264, leaving 2,590 /738 free. ExExt build
+agon-emos-v0.1.24-b2026-10-11-22-37-47Z MOS.bin SHA256
+`e2410607a33ee73f9140b0e7fc734cdf861f0d791f5a299d3b14e56f48b292ff`;
+ordinary agon-emos-v0.1.24-b2026-10-11-22-39-58Z SHA256
+`1f68a335d4082b57da83de33d846dac3f085dfba55e06d1ee9835cf26a2428ca`.
+Thirty host test invocations, exact linked admission 18,234 / session 950 /
+control 135, output and real VBlank/ABI checks pass; no COMPLETE symbol/request
+remains. Private parprobe target compiles. Full P4-PC HDMI build also passes.
+
+Exact exploratory dirty-source snapshots, images, ELF/maps and logs are retained
+with Extender's local evidence index. No installation, hardware access, SD/startup
+change, speedup claim, production promotion or broad-goal resumption. Fsim owns
+the bench. Old diagnostic completion probes no longer have callsites; later phase
+fixtures require new exact ELF/ROM binding. Stop for discussion before another
+control/scheduling cut or matched-pair hardware comparison.

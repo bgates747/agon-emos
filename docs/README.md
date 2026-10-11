@@ -36,13 +36,17 @@ admission; it is not accepted for ordinary use. The bench rollback restores the
 preceding verified UART pair; the experimental source remains available only
 through explicit matched candidate builds. See the [paired work contract](../../agon-extender/docs/tasks/PORT-008/EXEXT-STREAM-R01.md)
 and [wire/scheduling contract](../../agon-extender/docs/protocols/exext-stream.md).
-The [CRC-removal cut](../../agon-extender/docs/tasks/PORT-008/CRC-REMOVAL-R01-RESULTS.md)
-now compiles CRC-free parallel wire3 on both processors and passes offline
-paired/linked checks. Former CRC slots are zero padding ignored on receipt;
-version1 console activation retains CRC. This is uninstalled exploratory source,
-not a new physical performance pass. ExExt EMOS fits at 130,598 bytes/474 free.
-Legacy/ExCom and selected production are unchanged. The following older candidate
-sizes and activation statements describe their named profiles, not this build.
+The [completion-removal cut](../../agon-extender/docs/tasks/PORT-008/COMPLETION-REMOVAL-R01-RESULTS.md)
+now compiles CRC-free format4 on both processors, with no software COMPLETE/ACK.
+Native completion, DMA cleanup and reciprocal UART return establish completion;
+P4 retains completed storage until its consumer takes it. Formats2/3 cannot admit.
+Former CRC slots remain ignored zero padding; version1 activation retains CRC.
+Full builds and offline owner/linked checks pass. ExExt EMOS fits at 130,334
+bytes/738 free (another 264 bytes reclaimed); ordinary 128,482 bytes/2,590 free.
+These exploratory builds are uninstalled, without a physical performance pass.
+No hardware changes while fsim uses the bench. Legacy/ExCom and selected
+production are unchanged. Following older sizes/activation statements describe
+their named checkpoints, not this build.
 
 ## Development candidate
 

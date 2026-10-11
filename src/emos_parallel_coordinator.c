@@ -1,7 +1,7 @@
-/* PORT-008 LC02: private synchronous foreground physical owner.
+/* PORT-008 LC02: synchronous admitted physical owner.
  * Entry is AFTER exact block ACK under the existing serializer reservation.
- * Future qualification owns capability negotiation and formal mode admission;
- * no API/CLI call or arbitrary application GPIO bypass is supplied here.
+ * EMOS owns capability/mode admission; no arbitrary application GPIO bypass
+ * is supplied here.
  * Ordinary input is retained through normal parking. Uncertain/faulted work
  * revokes admission and holds the physical fence/reservation until reset.
  */
@@ -69,11 +69,12 @@ BYTE emos_parallel_native_coordinate(t_parallelSession *s, const BYTE *offer,
         emos_parallel_io_write_control((h->validN ? 0x80 : 0) |
             (h->clockHigh ? 0x20 : 0));
         if (action == EPH_LIVE) {
-            PHASE(completion_begin);
-            if (!restored || !emos_parallel_block_complete(h,s,offer,0)) break;
-            PHASE(completion_end);
+            /* COMPLETION-REMOVAL-R01: native success, pad release, our UART
+             * restore and fresh peer READY-high already establish completion.
+             * No second serial COMPLETE/ACK or remote status wait. */
+            if (!restored) break;
             emos_parallel_boot_block_end(1);
-            /* A late owner fault can still refuse release after matched status.
+            /* A late owner fault can still refuse release after physical return.
              * Route that failure through the same physical fence below. */
             if (emos_keyboard_parallel_release() == UART_POLL_READY) return 1;
             break;

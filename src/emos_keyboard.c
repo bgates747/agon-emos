@@ -22,7 +22,7 @@ static BYTE prepared_source;
 static volatile BYTE parallel_reserved;
 #ifdef EMOS_BENCH_TELEMETRY
 /* Core-owned packet: never retain application memory beyond a gateway call.
- * transitioning protects COMPLETE wire packets from foreground interleaving. */
+ * transitioning protects complete wire packets from foreground interleaving. */
 static BYTE async_data[144], async_at;
 static volatile BYTE async_length, async_position;
 static void async_abort(void) {
@@ -369,7 +369,7 @@ void emos_keyboard_transport_release(void) {
     emos_keyboard_unlock(irq);
 }
 /* Reserve BEFORE the offer, retaining the existing serializer and Port C
- * guard across drain, park, restore and completion/status. No live caller yet.
+ * guard across drain, park and physical return.
  * Only parallel_send can emit while held; ordinary writers remain excluded.
  * A busy park attempt must NOT silently drop this transaction reservation. */
 BYTE emos_keyboard_parallel_reserve(void) {
@@ -406,7 +406,7 @@ BYTE emos_keyboard_parallel_park(void) {
 BYTE emos_keyboard_parallel_unpark(void) {
     BYTE irq = emos_keyboard_lock(), result = UART_POLL_UNAVAILABLE;
     if (irq && parallel_reserved == 1) result = uart1_keyboard_unpark();
-    /* Keep ordinary TX fenced until the coordinator validates the result or
+    /* Keep ordinary TX fenced until the coordinator completes physical return or
      * abandons the session after successful physical UART recovery. */
     emos_keyboard_unlock(irq);
     return result;

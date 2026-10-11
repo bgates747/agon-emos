@@ -61,7 +61,7 @@ void emos_parallel_handover_cancel(t_emosParallelHandover *h);
 BYTE emos_parallel_handover_begin(t_emosParallelHandover *h);
 BYTE emos_parallel_handover_step(t_emosParallelHandover *h, BYTE completed);
 /* Private F02c2b1 gate, not a live admission/boot binding. Caller owns the six
- * session bytes and retains the offer until matching completion. Nonzero
+ * session bytes and retains the offer through physical completion. Nonzero
  * session identity must come from a fresh coordinator capability exchange;
  * reset/cancel/uncertain delivery invalidates it. Requires committed ExExt.
  * ACK means entry may begin, never that UART is already quiet or payload done.
@@ -81,12 +81,10 @@ void emos_parallel_session_cancel(t_emosParallelHandover *h, t_parallelSession *
 BYTE emos_parallel_session_negotiate(t_emosParallelHandover *h,
     t_parallelSession *s, const BYTE *transaction);
 /* Existing UART owner only. Caller retains the exact admitted descriptor and
- * reservation through physical return and matched result. No payload caller,
+ * reservation through physical return. No payload caller,
  * mode commitment, pad release or recovery is supplied by these functions. */
 BYTE emos_parallel_block_offer(t_emosParallelHandover *h, t_parallelSession *s,
     BYTE mode, const BYTE *offer);
-BYTE emos_parallel_block_complete(t_emosParallelHandover *h, t_parallelSession *s,
-    const BYTE *offer, BYTE status);
 /* Boot-only pad leaves. Exclusive pre-UART fence required. No ordinary startup
  * caller yet; future candidate must gate open_UART1 and all restore writers.
  * poll returns RESTORE only after reciprocal release. uartRestored means the

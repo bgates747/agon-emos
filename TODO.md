@@ -1,6 +1,6 @@
 # EMOS TODO
 
-- [ ] **[INTEG-016 — Bidirectional ExExt parallel transport](docs/tasks/INTEG-016.md)** — Paired CRC removal complete offline. Next authorized cut removes software COMPLETE/ACK after native/reciprocal UART return; full builds and host/linked checks only while fsim uses the bench. Remaining control/scheduling and physical qualification gated; production unchanged.
+- [ ] **[INTEG-016 — Bidirectional ExExt parallel transport](docs/tasks/INTEG-016.md)** — Paired CRC and software COMPLETE/ACK removal complete offline: format4, actual native/cleanup/reciprocal UART return; full builds and host/linked checks pass, ExExt 130,334 bytes/738 free. No hardware access while fsim uses the bench. Remaining control/scheduling and physical qualification gated; production unchanged.
 
 - [ ] **[INTEG-015 — Pingo completion callback compatibility](docs/tasks/INTEG-015.md)** — Bounded assembly correction builds; 796 linked CPU cases and existing keyboard checks pass. Installed ROM verified; unchanged Pingo application passes bounded completion/input check. Author acceptance and fsim visual review pending.
 

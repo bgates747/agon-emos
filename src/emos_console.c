@@ -1,7 +1,7 @@
 /* INTEG-010: idle-CLI ExCom adapter, not application-state migration.
  * UART1 assembly stays private. All reply effects run in the existing ISR,
  * or under an interrupt lock when the coordinator publishes staged state.
- * Ordinary version1 console controls retain their CRC; parallel format3 has
+ * Ordinary version1 console controls retain their CRC; parallel format4 has
  * none (PORT-008 CRC-REMOVAL-R01). Neither uses General Poll for activation.
  */
 #include <string.h>
@@ -95,10 +95,9 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
                 p[11]>16 || (p[11]==16 && p[10])) return;
         } else
 #endif
-        if (request[2] == PARALLEL_WIRE_VERSION &&
-            (waiting == PARALLEL_OFFER || waiting == PARALLEL_COMPLETE)) {
-            /* Length and direction are part of identity. Capture a matched
-             * failure too: foreground must reject it, not wait for success. */
+        if (request[2] == PARALLEL_WIRE_VERSION && waiting == PARALLEL_OFFER) {
+            /* Length and direction are admission identity. Completion uses
+             * the physical return handshake, without a later wire receipt. */
             if (!parallel_block_matches(request,p,(BYTE)(waiting|0x80))) return;
         } else {
             if (!(request[2] == PARALLEL_WIRE_VERSION ? parallel_session_valid(p) : console_valid(p)) ||
@@ -234,7 +233,7 @@ void emos_parallel_session_cancel(t_emosParallelHandover *h, t_parallelSession *
     parallel_session_invalidate(s); emos_parallel_handover_cancel(h);
 }
 
-/* Private foreground entry; the physical coordinator is still unbound.
+/* Private foreground entry owned by the physical coordinator.
  * Borrow the existing console request buffer only while its UART serializer
  * is reserved. On uncertain delivery retain that reservation and request
  * release recovery; neither a timeout nor this function can restore pins.
@@ -255,7 +254,7 @@ BYTE emos_parallel_session_negotiate(t_emosParallelHandover *h,
 }
 
 /* Private foreground block transaction, not a GPIO entry or application API.
- * The future physical coordinator retains offer until completion and owns
+ * The physical coordinator retains the offer through completion and owns
  * drain/park/native/return. An ACK only starts the existing handover machine.
  * Any uncertain wire result invalidates the session without restoring pads.
  */
@@ -268,18 +267,6 @@ BYTE emos_parallel_block_offer(t_emosParallelHandover *h, t_parallelSession *s,
     if (exchange(PARALLEL_OFFER) && emos_parallel_session_admit(h,mode,s,offer,request)) return 1;
     emos_parallel_session_cancel(h,s); return 0;
 }
-BYTE emos_parallel_block_complete(t_emosParallelHandover *h, t_parallelSession *s,
-    const BYTE *offer, BYTE status) {
-    /* UART phase must come from reciprocal physical recovery, never from a
-     * timeout or ACK. Buffer bytes are still provisional throughout this wait. */
-    if (PARALLEL_CONSOLE_BUSY || waiting || status>1 || h->phase!=EPH_UART ||
-        s->phase!=PARALLEL_SESSION_ACTIVE || !emos_keyboard_parallel_reserved() ||
-        memcmp(s->bytes,offer+4,6)) return 0;
-    memcpy(request,offer,CONSOLE_SIZE); request[13]=status || h->failed;
-    if (exchange(PARALLEL_COMPLETE) && !status && !h->failed && !request[13]) return 1;
-    emos_parallel_session_cancel(h,s); return 0;
-}
-
 #if defined(EMOS_EXEXT_STREAM)
 /* Queue/status control carries no VDU or returned packet payload. */
 BYTE emos_parallel_stream_control(t_parallelSession *s, BYTE op, UINT16 *pending) {
