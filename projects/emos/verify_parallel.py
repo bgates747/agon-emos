@@ -576,7 +576,10 @@ def verify_linked(
     # boot pad leaves. Ordinary hooks are inert. No unrelated caller is allowed.
     candidate = "_parallel_boot_grant" in symbols
     leaf_callers = {
-        "_emos_parallel_boot_fence": {"_emos_parallel_boot_start": 1, "_emos_parallel_boot_connect": 1},
+        # Startup releases pads before announcing reset. Connect fences again
+        # after the held CLOCK-high prefix, and on failure. Keep all three
+        # exact call sites owned by those two startup functions.
+        "_emos_parallel_boot_fence": {"_emos_parallel_boot_start": 1, "_emos_parallel_boot_connect": 2},
         "_emos_parallel_boot_poll": {"_emos_parallel_boot_connect": 1},
     }
     for leaf, callers in leaf_callers.items():

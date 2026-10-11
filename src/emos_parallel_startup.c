@@ -24,7 +24,8 @@ void emos_parallel_boot_start(void) {
     /* A mainboard-only reset otherwise leaves C0/V1 identical to live UART:
      * old READY-high can be mistaken for a new release acknowledgement before
      * P4 observes VALID-low. Request recovery first, with our data pads already
-     * released. P4 withdraws READY only after its own pad fence completes.
+     * released. P4 acknowledges C1/V0 high, then C1/V1 low, only after its
+     * own pad fence completes; connect requires both held prefix phases.
      * This is not a UART grant; connect still requires the full release cycle. */
     emos_parallel_io_write_control(0x20); /* C1/V0: reset request, no data drive */
 }
