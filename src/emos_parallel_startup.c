@@ -8,6 +8,7 @@
 #include "emos_parallel_handover.h"
 #include "emos_keyboard.h"
 #include "uart.h"
+extern void emos_parallel_io_write_control(UINT24 bits);
 static t_emosParallelHandover parallel_boot_state;
 /* Shared with the existing keyboard ISR; admission callers must resample. */
 static volatile BYTE parallel_boot_grant;
@@ -20,6 +21,12 @@ void emos_parallel_boot_start(void) {
     parallel_boot_block = 0;
 #endif
     emos_parallel_boot_fence(&parallel_boot_state);
+    /* A mainboard-only reset otherwise leaves C0/V1 identical to live UART:
+     * old READY-high can be mistaken for a new release acknowledgement before
+     * P4 observes VALID-low. Request recovery first, with our data pads already
+     * released. P4 withdraws READY only after its own pad fence completes.
+     * This is not a UART grant; connect still requires the full release cycle. */
+    emos_parallel_io_write_control(0x20); /* C1/V0: reset request, no data drive */
 }
 BYTE emos_parallel_boot_uart_allowed(void) {
     /* A later high READY cannot resurrect an observed loss. Grant 1 is the
@@ -47,9 +54,25 @@ void emos_parallel_boot_tick(void) {
 }
 void emos_parallel_boot_connect(void) {
     t_emosDeadline d;
-    BYTE opened = 0, action;
+    BYTE opened = 0, action, requested = 0;
     d.last = emos_keyboard_clock(); d.elapsed = 0; d.budget = (UINT24)262144;
     while (emos_keyboard_deadline_step(&d)) {
+        if (requested == 0) {
+            if (!(PD_DR & 0x10)) continue;
+            /* An old READY-high is allowed here: CLOCK stays high, so the
+             * peer must still observe the request and acknowledge C1/V1 low. */
+            emos_parallel_io_write_control(0xA0); /* C1/V1 */
+            requested = 1;
+            continue;
+        }
+        if (requested == 1) {
+            if (PD_DR & 0x10) continue;
+            /* Fresh peer recovery (or an unfinished old block) alone grants
+             * nothing. Release C0/V1 and require high/low/high plus actual
+             * local UART restore through the established phase machine. */
+            emos_parallel_boot_fence(&parallel_boot_state);
+            requested = 2;
+        }
         action = emos_parallel_boot_poll(&parallel_boot_state, opened);
         if (action == EPH_RESTORE && !opened) {
             parallel_boot_grant = 1; /* reciprocal release, sole authorized UART restore */

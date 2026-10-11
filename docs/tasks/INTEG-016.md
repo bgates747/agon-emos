@@ -587,3 +587,12 @@ combined/interleaved packet tests pass. Linked full-ISR checks now require down
 and up on successive ticks, checking callbacks and full saved register context.
 Fresh complete-ROM and physical CLI verification remain necessary. Separate
 post-FLASH/parallel-reset recovery concerns stay in paired EX06.
+
+EX06 reset correction: the stale READY-high warm-reset race requires a paired
+CLOCK-high prefix, not a single sampled low. EMOS releases pads, requests C1/V0,
+waits high, then holds C1/V1 until low before the established release sequence.
+The P4 boot adapter acknowledges this only while genuinely fenced; its pad-release
+proof is revoked before UART restoration. Actual foreground startup plus paired
+GPIO/core adapters pass754 host cases, including every recovery phase and unequal
+polling without automatic retries. Earlier single-level proposal is rejected,
+not installed. Complete identified builds and physical resets remain necessary.
