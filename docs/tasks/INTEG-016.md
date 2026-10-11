@@ -608,3 +608,21 @@ STOP may fetch a partial tail while awaiting real-ISR publication. All4096
 header-offset/body-length/STOP cases now pass with the actual reservation's
 packet-boundary condition modeled. Fresh full-ROM/linked and physical checks
 remain required; no complete gameplay acceptance is claimed.
+
+
+### Linked batching control — 2026-10-11
+
+The actual linked EMOS-r07 byte/count batching paths preserve data, returned
+status, stack/IX and interrupt enable state across1,000bytes. Four independent
+refusal states leave the queued bytes intact. This test stops below the physical
+flush boundary and models no peripheral calls. Byte calls execute165,000CPU
+instructions versus1,145for one counted1,000-byte call; these are instruction
+counts, **not calibrated cycle/time or physical bandwidth figures**.
+`tests/uart_put_cpu/src/bin/exext_output.rs` retains the reusable control.
+Do not infer that its direct internal C call preserves IY: ZDS uses it as
+scratch; the public serial/RST wrapper and real ISR have their own tested saves.
+
+Physical stream-r05/EMOS-r07 T01/T03 each save120valid ordered records. A P4
+HDMI teardown crash before the subsequent idle-input fixture launches remains
+a separate Extender-owned correction. No idle/game-input success is claimed
+from accepted P4 event counters. Original startup restored after recovery.
