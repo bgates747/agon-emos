@@ -767,3 +767,16 @@ buffering must justify physical-link necessity rather than inheriting authority
 from the experimental implementation. No CRC or substitute checksum. Extender's
 PORT-008 P08-P05/D02/D03 and ADR-0026 own the narrowed contract. No source or
 deployed behavior changes in this clarification; broader goal remains paused.
+
+### Minimum transport review completed — 2026-10-11
+
+Extender's [source review](../../../agon-extender/docs/tasks/PORT-008/MINIMAL-TRANSPORT-RESULTS.md)
+maps the actual `exext-stream-candidate.mk` path and fourteen dispositions.
+Recommend removing parallel CRC first, then COMPLETE/ACK after preserving actual
+DMA/reciprocal pad-release completion. VBlank-only partial flush, one-key-per-tick
+publication and IRQ-disabled output refusal are non-stock behavior requiring
+bounded follow-up under PORT-008 P08-P05/D02. Necessary count/direction/readiness
+and electrical handover remain. Existing console activation still uses its
+separate version-1 controls; do not globally strip shared CRC from unrelated
+ExCom/SD behavior. No EMOS source/build/deployment change. Stop for result
+discussion before implementation; exact original UART pair remains restored.
