@@ -804,3 +804,14 @@ START/POLL/STOP and ignored padding are exercised on the actual new ELF. Host
 console/queue checks and private MOSlet target/host checks pass. These are dirty
 exploratory builds, uninstalled; no speed/production claim. Next proposed cut
 removes software COMPLETE/ACK after actual physical return. Broad goal paused.
+
+### Software completion removal authorized — 2026-10-11
+
+Author authorizes Extender's [COMPLETION-REMOVAL-R01](../../../agon-extender/docs/tasks/PORT-008/COMPLETION-REMOVAL-R01.md)
+with fsim using the bench. EMOS removes COMPLETE/ACK exchange and finishes
+successful blocks after real EPH_LIVE and reservation release. Retain native
+runner, electrical ownership/cleanup, failure fencing and no-replay behavior.
+Matched experimental format4 rejects formats2/3. Preserve ordinary version1,
+callbacks/ISR/ABI, batching and current scheduling. Full ordinary/ExExt wrapper
+builds and host/linked tests only; no flashing, device/SD access or production
+change. Broad goal paused. Commit/push contract before implementation.
