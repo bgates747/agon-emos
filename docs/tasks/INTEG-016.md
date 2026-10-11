@@ -596,3 +596,15 @@ proof is revoked before UART restoration. Actual foreground startup plus paired
 GPIO/core adapters pass754 host cases, including every recovery phase and unequal
 polling without automatic retries. Earlier single-level proposal is rejected,
 not installed. Complete identified builds and physical resets remain necessary.
+
+The installed held-prefix pair passes three ordinary Agon-only resets and full
+ROM verification. A subsequent focused stream test saves120valid pixel-query
+records, but small-query median67ms and lost CLI characters remain unacceptable.
+A separate actual-owner negative reproduces a split-return deadlock at256bytes:
+partial VDP data occupies the UART control parser, preventing the next fetch.
+Retain incomplete packets in512bytes of EMOS RAM and feed only complete packets
+through the unchanged parser in the real ISR. Cap each physical fetch at256bytes;
+STOP may fetch a partial tail while awaiting real-ISR publication. All4096
+header-offset/body-length/STOP cases now pass with the actual reservation's
+packet-boundary condition modeled. Fresh full-ROM/linked and physical checks
+remain required; no complete gameplay acceptance is claimed.
