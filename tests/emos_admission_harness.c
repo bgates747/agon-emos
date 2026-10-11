@@ -94,6 +94,14 @@ int main(void){
     {unsigned n=sends;tick++;assert(!emos_admission_idle(keycount));assert(sends==n);}
     fresh();caps=5;emos_admission_leave();mode=EMOS_MODE_EXCLUSIVE_COMPAT;tick++;
     {unsigned n=sends;assert(!emos_admission_idle(keycount));assert(sends==n);}
+    /* A prior ExCom grant must never put SD admission on ExExt's control UART,
+     * including a pending DECIDE which ordinary leave would send CLOSE for. */
+    for(unsigned s=IDLE;s<=DECIDE_WAIT;++s) {
+        fresh();state=s;mode=EMOS_MODE_EXCLUSIVE_EXTENDED;tick++;
+        unsigned n=sends;
+        assert(!emos_admission_idle(keycount));
+        assert(sends==n && state==OFF && !caps && !waiting);
+    }
     fresh();sequence=0xffffffffUL;tick+=24;retrying=0;state=OFF;tick++;
     assert(!emos_admission_idle(keycount));assert(exhausted);
     assert(irq);

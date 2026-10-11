@@ -7,6 +7,10 @@
 #include "emos_parallel.h"
 
 volatile BYTE uart1_keyboard_owned, emos_console_owned;
+#if defined(EMOS_EXEXT_STREAM)
+volatile BYTE emos_exext_owned;
+void emos_exext_tick(void) {}
+#endif
 static unsigned sd_packets, sd_resets;
 static BYTE guard_held, park_result=UART_POLL_READY, restore_result=UART_POLL_READY;
 BYTE emos_parallel_uart1_guard_acquire(void) {
@@ -279,6 +283,14 @@ int main(void) {
 #endif
     /* Reservation precedes control exchange, and survives UART restore. */
     frozen_clock=1;reply=0;tx_count=0;
+#if defined(EMOS_EXEXT_STREAM)
+    emos_exext_owned=1;
+    assert(emos_keyboard_send((BYTE *)"x",1)==EMOS_KEY_BUSY && !tx_count);
+    assert(emos_keyboard_parallel_reserve()==UART_POLL_READY);
+    assert(emos_keyboard_parallel_send((BYTE *)"c",1)==EMOS_KEY_OK && tx_count==1);
+    assert(emos_keyboard_parallel_release()==UART_POLL_READY);
+    emos_exext_owned=0;tx_count=0;
+#endif
     assert(emos_keyboard_parallel_send((BYTE *)"x",1)==EMOS_KEY_BUSY);
     assert(emos_keyboard_parallel_park()==UART_POLL_UNAVAILABLE);
     assert(emos_keyboard_parallel_release()==UART_POLL_UNAVAILABLE);

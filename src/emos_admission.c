@@ -109,7 +109,11 @@ static BYTE reply(void) {
 }
 BYTE emos_admission_idle(BYTE observed) {
     BYTE now=emos_keyboard_clock(), irq, mode=emos_get_mode();
-    if(exhausted || !emos_admission_core() || emos_key_source!=EMOS_KEY_EXTENDER ||
+    /* PORT-008 EX04: an ExCom capability is not permission to inject F6 on
+     * ExExt's control-only UART. SD admission remains Legacy/ExCom only;
+     * discard its old grant before considering any pending reply or CLOSE. */
+    if((mode!=EMOS_MODE_LEGACY && mode!=EMOS_MODE_EXCLUSIVE_COMPAT) ||
+       exhausted || !emos_admission_core() || emos_key_source!=EMOS_KEY_EXTENDER ||
        emos_key_faulted || !uart1_keyboard_owned) {
         if(state!=OFF || caps)emos_admission_reset();
         return 0;

@@ -446,7 +446,13 @@ BYTE emos_keyboard_parallel_send(const BYTE *data, UINT16 length) {
 }
 BYTE emos_keyboard_send(const BYTE *data, UINT16 length) {
     BYTE irq = emos_keyboard_lock(), result;
-    if (!irq || transitioning || preparing || fault_requested || stop_requested ||
+    /* The active ExExt stream reserves UART for its versioned coordinator.
+     * Ordinary private services may not quietly bypass the parallel route. */
+    if (
+#if defined(EMOS_EXEXT_STREAM)
+        emos_exext_owned ||
+#endif
+        !irq || transitioning || preparing || fault_requested || stop_requested ||
         emos_key_faulted || !uart1_keyboard_owned) {
         emos_keyboard_unlock(irq); return EMOS_KEY_BUSY;
     }
