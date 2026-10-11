@@ -696,3 +696,32 @@ All mandatory build/link checks, actual linked parallel/output/VBlank controls,
 These are modeled correctness, not physical throughput results. No emulator
 profile or hardware changed. Author/fsim bench reservation remains in force;
 retain the verified UART rollback installation pending bench release.
+
+
+## Matched stream timing — physical comparison and restoration
+
+The Author-approved bounded comparison is complete. Extender's
+[physical result record](../../../agon-extender/docs/tasks/PORT-008/STREAM-TIMING-R01-RESULTS.md)
+retains 48 fully byte-verified selected samples, original row/chunk origins and
+all raw capture hashes. Five incomplete USB dumps across twelve completed
+invocations are excluded; four corresponding fresh-repeat samples fill the
+original gaps without changing indices or timing fields.
+
+Parallel wire drain is 6.57× UART time for 256 bytes, 2.30× for 4097 bytes and
+1.37× for 8192 bytes. Exactly 4096 bytes drains 17.2% faster; ordered replies
+remain slower for every length. These are ordinary EMOS-owned application
+paths including interrupts, handovers and EDP backpressure, not isolated byte
+loop costs, CPU utilization or display FPS. Phase attribution remains open.
+MOS adds two clock units per VBlank; at the measured cadence that is about
+120 units/s. Primary measurements use PRT1, not assumed centisecond units.
+
+The exact pre-test UART pair is restored. EMOS 2026-10-10 01:48:39Z passes full
+128 KiB ROM comparison, SHA256
+`69d7b11ac1fa6fcd48cc3770356c3b8806d8f308c345bd670075a7eb21b613dd`.
+P4 data-r20/all four segments, original startup and admitted input verify;
+listener and test are stopped, reset released, bench free. Mixed-pair admission
+fails during restoration; matching stream-r14 restores input before one old
+EMOS FLASH submission and old P4 installation complete the original pair.
+Do not treat the intermediate command submission as ROM verification.
+Timing hooks remain source-only for later investigation; no production
+promotion or optimization acceptance. The broader ExExt goal stays paused.
