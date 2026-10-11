@@ -8,7 +8,7 @@
 #include "emos_parallel_handover.h"
 #include "emos_keyboard.h"
 #include "uart.h"
-volatile BYTE emos_console_owned=1,emosVduBackend,emos_key_faulted;
+volatile BYTE emos_console_owned=1,emosVduBackend,emos_key_faulted,keycount;
 static BYTE irq=1,reserved,in_tick,fail_block;
 static BYTE sent[16384], replies[1024], published[1024];
 static unsigned sent_n,reply_n,published_n,blocks,fences;
@@ -43,7 +43,13 @@ BYTE emos_parallel_native_coordinate(t_parallelSession *s,const BYTE *d,BYTE *p,
  else{assert(sent_n+n<=sizeof(sent));memcpy(sent+sent_n,p,n);sent_n+=n;}
  reserved=0;return 1;
 }
-void emos_keyboard_byte(BYTE b){assert(in_tick&&!irq);assert(published_n<sizeof(published));published[published_n++]=b;}
+void emos_keyboard_byte(BYTE b){
+ static BYTE command,left,state;
+ assert(in_tick&&!irq);assert(published_n<sizeof(published));published[published_n++]=b;
+ if(!state){command=b;state=1;}
+ else if(state==1){left=b;state=2;}
+ else if(!--left){if(command==0x81)++keycount;state=0;}
+}
 void emos_exext_interrupt_service(void){assert(in_tick&&!irq&&emos_exext_busy);irq=1;emos_exext_service();irq=0;}
 static void tick(void){assert(irq);irq=0;in_tick=1;emos_exext_tick();assert(!irq);in_tick=0;irq=1;}
 int main(void){
@@ -59,10 +65,19 @@ int main(void){
  assert(published_n==6&&!memcmp(published,"\x81\x04\x61\x00\x01\x01",6));
  // No application output: a second physical key/reply still reaches the ISR.
  memcpy(replies,"\x81\x04\x00\x00\x01\x00",6);reply_n=6;tick();assert(published_n==12&&blocks==4);
- emos_exext_busy=1;assert(emos_parallel_route_write_byte(4)==EMOS_PARALLEL_BUSY);tick();assert(blocks==4);emos_exext_busy=0;
+ // Bundled down/up must expose each event in a separate real interrupt.
+ // Other replies retain order; unpublished bytes cannot be overwritten.
+ {const BYTE batch[]={0x83,1,0x52,0x81,4,'b',0,2,1,0x81,4,0,0,2,0,0x83,1,0x62};
+  memcpy(replies,batch,sizeof(batch));reply_n=sizeof(batch);
+  tick();assert(keycount==3&&published_n==21&&blocks==5);
+  tick();assert(keycount==4&&published_n==27&&blocks==5);
+  tick();assert(keycount==4&&published_n==30&&blocks==5);
+  assert(!memcmp(published+12,batch,sizeof(batch)));
+ }
+ emos_exext_busy=1;assert(emos_parallel_route_write_byte(4)==EMOS_PARALLEL_BUSY);tick();assert(blocks==5);emos_exext_busy=0;
  irq=0;assert(emos_parallel_route_write_byte(4)==EMOS_PARALLEL_BUSY);assert(!irq);irq=1;
  memcpy(replies,"\x81\x04\x00\x00\x01\x00",6);reply_n=6;
- assert(emos_exext_stop());assert(!emos_exext_owned&&!emos_exext_busy);tick();assert(blocks==5&&published_n==18);
+ assert(emos_exext_stop());assert(!emos_exext_owned&&!emos_exext_busy);tick();assert(blocks==6&&published_n==36);
  assert(emos_exext_start());assert(emos_parallel_route_write_byte(9)==0);
  fail_block=1;tick();assert(fences&&!emos_exext_owned);assert(emos_parallel_route_write_byte(1)==EMOS_PARALLEL_BUSY);
  puts("PASS actual EMOS byte batching, full-block flush, idle replies/keys, IRQ context, nested refusal and fault fence");

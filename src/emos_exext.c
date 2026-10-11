@@ -16,6 +16,7 @@
 #include "emos_keyboard.h"
 #include "uart.h"
 extern volatile BYTE emosVduBackend;
+extern volatile BYTE keycount;
 extern void emos_keyboard_byte(BYTE);
 extern BYTE emos_parallel_stream_control(t_parallelSession *, BYTE, UINT16 *);
 static t_parallelSession stream_session;
@@ -23,6 +24,7 @@ static BYTE stream_transaction[4], offer[16];
 static BYTE outgoing[4096], incoming[256];
 static UINT16 queued;
 static volatile UINT16 received;
+static UINT16 read_at;
 static volatile BYTE portc_reserved;
 volatile BYTE emos_exext_owned, emos_exext_busy;
 
@@ -75,7 +77,7 @@ static BYTE poll_return(void) {
     if (!ok) return 0;
     if (pending>sizeof(incoming)) pending=sizeof(incoming);
     if (pending && !transfer(incoming,pending,1)) return 0;
-    received=pending;
+    read_at=0; received=pending;
     return 1;
 }
 BYTE emos_exext_start(void) {
@@ -83,7 +85,7 @@ BYTE emos_exext_start(void) {
     t_emosParallelHandover *h=emos_parallel_boot_handover();
     if (emos_exext_owned || emos_exext_busy || !emos_console_owned ||
         h->phase!=EPH_UART || !emos_parallel_boot_uart_allowed()) return 0;
-    emos_exext_busy=emos_exext_owned=1; queued=received=0;
+    emos_exext_busy=emos_exext_owned=1; queued=received=read_at=0;
     for (i=0;i<4;++i) if (++stream_transaction[i]) break;
     if (emos_keyboard_parallel_reserve()!=UART_POLL_READY) goto failed;
     ok=emos_parallel_session_negotiate(h,&stream_session,stream_transaction) &&
@@ -115,11 +117,11 @@ BYTE emos_exext_stop(void) {
         if(pending>sizeof(incoming))pending=sizeof(incoming);
         ok=transfer(incoming,pending,1);
         if(ok) {
-            irq=emos_keyboard_lock();received=pending;emos_keyboard_unlock(irq);
+            irq=emos_keyboard_lock();read_at=0;received=pending;emos_keyboard_unlock(irq);
         }
     } while(emos_keyboard_deadline_step(&d));
     if(pending || received)ok=0;
-    if (ok) { emos_exext_owned=0; queued=received=0; }
+    if (ok) { emos_exext_owned=0; queued=received=read_at=0; }
     emos_exext_busy=0; return ok;
 }
 BYTE emos_parallel_route_write_stream(const BYTE *p, UINT16 n) {
@@ -140,21 +142,31 @@ BYTE emos_parallel_route_write_stream(const BYTE *p, UINT16 n) {
 BYTE emos_parallel_route_write_byte(BYTE value) {
     return emos_parallel_route_write_stream(&value,1);
 }
+static void publish_return(void) {
+    BYTE before=keycount;
+    /* MOS3.0.2 editor/getkey read one latest keydown/count latch, not a FIFO.
+     * Publishing bundled down/up in one ISR hides the down from foreground.
+     * Preserve stock effects/callback order and retain the rest of this block
+     * until the next real VBlank. Non-key replies drain to that boundary.
+     * Do not negotiate another return block over these unpublished bytes. */
+    while(read_at<received && !emos_key_faulted) {
+        emos_keyboard_byte(incoming[read_at++]);
+        if(keycount!=before)break;
+    }
+    if(read_at==received || emos_key_faulted)received=read_at=0;
+}
 void emos_exext_tick(void) {
-    UINT16 i;
     /* A foreground mode transition may own transport while waiting for the
      * preceding return block's actual ISR effects. Publication itself never
      * negotiates a block and therefore precedes the non-reentrancy guard. */
-    for(i=0;i<received && !emos_key_faulted;++i) emos_keyboard_byte(incoming[i]);
-    received=0;
+    if(received) { publish_return();return; }
     if (!emos_exext_owned || emos_exext_busy || emosVduBackend!=2 || emos_key_faulted) return;
     /* Caller is the fully saved real VBlank handler, with interrupts masked.
      * The assembly bridge holds busy while admitting UART interrupts, then
      * returns masked. Nested ticks/foreground output cannot take this owner. */
     emos_exext_busy=1;
     emos_exext_interrupt_service();
-    for(i=0;i<received && !emos_key_faulted;++i) emos_keyboard_byte(incoming[i]);
-    received=0; emos_exext_busy=0;
+    publish_return(); emos_exext_busy=0;
 }
 void emos_exext_service(void) {
     /* Only the interrupt bridge calls this, with busy already held. */

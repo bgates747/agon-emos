@@ -578,3 +578,12 @@ exact-block coordinator. Actual C owner/console tests and linked eZ80 nested-IRQ
 callback checks pass; complete ROM130335bytes,737free. These are software checks,
 not physical stream or gameplay evidence. Private probe and ordinary profiles
 remain separately identifiable; no selected production change is made.
+
+EX04 physical correction: combined parallel down/up packets previously reached
+stock MOS in one ISR, hiding keydown from editor/getkey despite intact input
+admission. Preserve stock handlers and callbacks; retain unpublished bytes and
+admit one keyboard event per real VBlank, including transition drains. Actual-C
+combined/interleaved packet tests pass. Linked full-ISR checks now require down
+and up on successive ticks, checking callbacks and full saved register context.
+Fresh complete-ROM and physical CLI verification remain necessary. Separate
+post-FLASH/parallel-reset recovery concerns stay in paired EX06.
