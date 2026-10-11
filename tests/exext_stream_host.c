@@ -9,6 +9,7 @@
 #include "emos_keyboard.h"
 #include "uart.h"
 volatile BYTE emos_console_owned=1,emosVduBackend,emos_key_faulted,keycount;
+volatile BYTE hostPbDr=0x10;
 static BYTE irq=1,reserved,in_tick,fail_block,parser_state;
 static BYTE sent[16384], replies[1024], published[1024];
 static unsigned sent_n,reply_n,published_n,blocks,fences;
@@ -61,7 +62,9 @@ int main(void){
  assert(emos_parallel_route_write_byte(data[4095])==0);assert(blocks==1&&sent_n==4096&&!memcmp(sent,data,4096));
  assert(emos_parallel_route_write_stream(data,7)==0);assert(blocks==1);
  memcpy(replies,"\x81\x04\x61\x00\x01\x01",6);reply_n=6;
- tick();assert(blocks==3&&sent_n==4103&&!memcmp(sent+4096,data,7));
+ // A selected stock SD transaction must not be preempted by physical blocks.
+ hostPbDr=0;tick();assert(blocks==1&&sent_n==4096&&reply_n==6&&!published_n);
+ hostPbDr=0x10;tick();assert(blocks==3&&sent_n==4103&&!memcmp(sent+4096,data,7));
  assert(published_n==6&&!memcmp(published,"\x81\x04\x61\x00\x01\x01",6));
  // No application output: a second physical key/reply still reaches the ISR.
  memcpy(replies,"\x81\x04\x00\x00\x01\x00",6);reply_n=6;tick();assert(published_n==12&&blocks==4);
@@ -70,9 +73,11 @@ int main(void){
  {const BYTE batch[]={0x83,1,0x52,0x81,4,'b',0,2,1,0x81,4,0,0,2,0,0x83,1,0x62};
   memcpy(replies,batch,sizeof(batch));reply_n=sizeof(batch);
   tick();assert(keycount==3&&published_n==21&&blocks==5);
+  hostPbDr=0; // Already received packets still publish during SD selection.
   tick();assert(keycount==4&&published_n==27&&blocks==5);
   tick();assert(keycount==4&&published_n==30&&blocks==5);
   assert(!memcmp(published+12,batch,sizeof(batch)));
+  hostPbDr=0x10;
  }
  emos_exext_busy=1;assert(emos_parallel_route_write_byte(4)==EMOS_PARALLEL_BUSY);tick();assert(blocks==5);emos_exext_busy=0;
  irq=0;assert(emos_parallel_route_write_byte(4)==EMOS_PARALLEL_BUSY);assert(!irq);irq=1;

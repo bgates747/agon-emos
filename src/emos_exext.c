@@ -8,6 +8,7 @@
  * No callback is invoked in invented foreground interrupt context.
  */
 #include <string.h>
+#include <ez80.h>
 #include "emos_exext.h"
 #include "emos_parallel.h"
 #include "emos_parallel_handover.h"
@@ -196,6 +197,15 @@ void emos_exext_tick(void) {
      * negotiates a block and therefore precedes the non-reentrancy guard. */
     if(received && publish_return())return;
     if (!emos_exext_owned || emos_exext_busy || emosVduBackend!=2 || emos_key_faulted) return;
+    /* Stock MOS v3.0.2 src/sd.asm owns active-low PB4 and a 100ms
+     * response-token timer. Our synchronous block service can outlast that
+     * foreground transaction's deadline if it preempts SD mid-command.
+     * Defer physical ExExt work while SD is selected; clock ticks and complete
+     * returned packet publication above continue. Resume on a later real
+     * VBlank after stock SD releases CS. Never extend/replace its timeout.
+     * PORT-008 EX-C12: T09 diagnostic observed FR_DISK_ERR at offset0487FC.
+     * This is EMOS scheduling accommodation, not an upstream SD patch. */
+    if (!(PB_DR & 0x10)) return;
     /* Caller is the fully saved real VBlank handler, with interrupts masked.
      * The assembly bridge holds busy while admitting UART interrupts, then
      * returns masked. Nested ticks/foreground output cannot take this owner. */

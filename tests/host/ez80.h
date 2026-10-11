@@ -3,6 +3,9 @@
 
 #include "defines.h"
 
+extern volatile BYTE hostPbDr;
+#define PB_DR hostPbDr
+
 extern volatile BYTE hostPcDr;
 extern volatile BYTE hostPcDdr;
 extern volatile BYTE hostPcAlt1;

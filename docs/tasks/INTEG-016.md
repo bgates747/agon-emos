@@ -645,3 +645,22 @@ Actual linked1000byte calls fall165000→72000instructions (−56.36%); the one
 counted call remains1145instructions. Physical transfer/public PUTCH overhead
 is excluded. Host mixed/byte-only4096boundaries and actual nested/non-nested
 VBlank register/stack/IFF/callback checks pass. Hardware remains pending.
+
+
+### ExExt SD scheduling isolation — 2026-10-11
+
+Full-ROM readback verifies the byte-append candidate (r08). Aginvadors completes
+120 ExExt updates, but throughput remains below UART. The separate original
+Nurples T09 fails during asset loading. A guarded diagnostic derivative reports
+AGNB error02 / FatFS FR_DISK_ERR01 at logical offset0487FC, foreground SP0BFF63.
+P4 stream queues are empty with no transport/native failure; no gameplay timing
+pass is claimed.
+
+Stock MOS v3.0.2 sd.asm/spi.asm own active-low PB4 chip select and a 100ms
+response-token timeout. ExExt's new synchronous VBlank transfer must yield
+while this foreground SD transaction is selected. Defer only physical ExExt
+service; preserve the real clock and publication of already-received complete
+packets, then resume at an eligible VBlank. Do not alter upstream SD timeouts.
+Host actual-owner and actual linked ISR controls must establish deferred/resumed
+service and ABI preservation; repeat the frozen Nurples workload physically
+before attributing the fault to this scheduling interaction.
