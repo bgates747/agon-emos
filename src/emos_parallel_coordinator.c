@@ -10,6 +10,7 @@
 #include "emos_keyboard.h"
 #include "uart.h"
 #include <ez80.h>
+#include "emos_phase_timing.h"
 extern BYTE emos_parallel_native_payload(t_emosParallelHandover *, BYTE,
     BYTE, BYTE *, UINT24);
 extern void emos_parallel_io_write_control(UINT24);
@@ -27,6 +28,7 @@ BYTE emos_parallel_native_coordinate(t_parallelSession *s, const BYTE *offer,
     length = (UINT24)offer[10] | ((UINT24)offer[11] << 8);
     if (!length || length > 4096 || capacity < length ||
         !emos_parallel_boot_block_begin()) return 0;
+    PHASE(coordinate_begin);
     phase = h->phase;
     deadline.last = emos_keyboard_clock(); deadline.elapsed = 0;
     deadline.budget = (UINT24)262144;
@@ -37,6 +39,7 @@ BYTE emos_parallel_native_coordinate(t_parallelSession *s, const BYTE *offer,
             BYTE r = emos_keyboard_parallel_park();
             if (r == UART_POLL_EMPTY) continue;
             if (r != UART_POLL_READY) break;
+            PHASE(park_end);
             parked = 1; done |= EPH_QUIET;
         }
         if (h->phase == EPH_ENTRY_RELEASE || h->phase == EPH_BLOCK_RELEASE) {
@@ -45,13 +48,16 @@ BYTE emos_parallel_native_coordinate(t_parallelSession *s, const BYTE *offer,
         }
         if (h->phase == EPH_LOCAL_ARM) done |= EPH_ARMED;
         if (h->phase == EPH_BLOCK) {
+            PHASE(payload_begin);
             status = emos_parallel_native_payload(h,parked,offer[12],buffer,length);
+            PHASE(payload_end);
             if (status != EMOS_PARALLEL_OK) break;
             done |= EPH_DONE;
         }
         if (h->phase == EPH_RETURN_UART) {
             if (!restored) {
                 if (emos_keyboard_parallel_unpark() != UART_POLL_READY) break;
+                PHASE(unpark_end);
                 restored = 1;
             }
             done |= EPH_UART_UP;
@@ -63,7 +69,9 @@ BYTE emos_parallel_native_coordinate(t_parallelSession *s, const BYTE *offer,
         emos_parallel_io_write_control((h->validN ? 0x80 : 0) |
             (h->clockHigh ? 0x20 : 0));
         if (action == EPH_LIVE) {
+            PHASE(completion_begin);
             if (!restored || !emos_parallel_block_complete(h,s,offer,0)) break;
+            PHASE(completion_end);
             emos_parallel_boot_block_end(1);
             /* A late owner fault can still refuse release after matched status.
              * Route that failure through the same physical fence below. */

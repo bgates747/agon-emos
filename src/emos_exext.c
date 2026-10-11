@@ -16,6 +16,7 @@
 #include "emos_console_wire.h"
 #include "emos_keyboard.h"
 #include "uart.h"
+#include "emos_phase_timing.h"
 extern volatile BYTE emosVduBackend;
 extern volatile BYTE keycount;
 extern void emos_keyboard_byte(BYTE);
@@ -29,6 +30,9 @@ static UINT16 read_at;
 static volatile BYTE need_more;
 static volatile BYTE portc_reserved;
 volatile BYTE emos_exext_owned, emos_exext_busy;
+#ifdef EMOS_PHASE_TIMING
+volatile BYTE emos_phase_armed; /* reset-zero; only exact-bound diagnostic MOSlet arms */
+#endif
 #ifdef EMOS_STREAM_TIMING
 /* Private timing composition only. Raw single-pass PRT1 countdown at the
  * final forward clock boundary; fixture owns timer control/results. */
@@ -49,7 +53,9 @@ static BYTE transfer(BYTE *p, UINT16 length, BYTE reverse) {
     UINT16 next = (UINT16)(stream_session.bytes[4] |
         ((UINT16)stream_session.bytes[5] << 8)) + 1;
     t_emosParallelHandover *h = emos_parallel_boot_handover();
+    PHASE(reserve_begin);
     if (emos_keyboard_parallel_reserve() != UART_POLL_READY) return 0;
+    PHASE(reserve_end);
     /* Renew only at the proved UART boundary, before a block number wraps.
      * No outstanding payload is replayed; the ordinary console lease and
      * stream queues survive this fresh private transport capability. */
@@ -66,6 +72,7 @@ static BYTE transfer(BYTE *p, UINT16 length, BYTE reverse) {
     offer[8]=(BYTE)next; offer[9]=(BYTE)(next>>8);
     offer[10]=(BYTE)length; offer[11]=(BYTE)(length>>8); offer[12]=reverse;
     console_seal(offer);
+    PHASE(offer_begin);
     if (emos_parallel_block_offer(h,&stream_session,PARALLEL_EXEXT,offer) &&
         emos_parallel_native_coordinate(&stream_session,offer,p,length)) return 1;
     emos_parallel_boot_block_end(0); return 0;
@@ -96,10 +103,12 @@ static BYTE fetch_return(UINT16 pending) {
 static BYTE poll_return(void) {
     UINT16 pending=0;
     BYTE ok;
+    PHASE(poll_begin);
     if (emos_keyboard_parallel_reserve()!=UART_POLL_READY) return 0;
     ok=emos_parallel_stream_control(&stream_session,PARALLEL_STREAM_POLL,&pending);
     if (emos_keyboard_parallel_release()!=UART_POLL_READY) ok=0;
     if (!ok) return 0;
+    PHASE(poll_end);
     return fetch_return(pending);
 }
 BYTE emos_exext_start(void) {
@@ -148,7 +157,7 @@ BYTE emos_parallel_route_write_stream(const BYTE *p, UINT16 n) {
         emos_keyboard_unlock(irq); return EMOS_PARALLEL_BUSY;
     }
     emos_exext_busy=1; emos_keyboard_unlock(irq);
-#ifdef EMOS_STREAM_TIMING
+#if defined(EMOS_STREAM_TIMING) || defined(EMOS_PHASE_TIMING)
     /* PORT-008 STREAM-TIMING-R01: zero-length private invocation explicitly
      * drains a partial batch through this SAME guarded foreground owner.
      * Normal compositions retain their existing zero-length behavior. No
@@ -183,6 +192,7 @@ BYTE emos_parallel_route_write_byte(BYTE value) {
 }
 static BYTE publish_return(void) {
     BYTE before=keycount;
+    PHASE(publish_begin);
     /* MOS3.0.2 editor/getkey read one latest keydown/count latch, not a FIFO.
      * Publishing bundled down/up in one ISR hides the down from foreground.
      * Preserve stock effects/callback order and retain the rest of this block
@@ -201,6 +211,7 @@ static BYTE publish_return(void) {
     }
     if(read_at==received || emos_key_faulted)received=read_at=0;
     else if(keycount==before)need_more=1;
+    PHASE(publish_end);
     return keycount!=before;
 }
 void emos_exext_tick(void) {
@@ -227,8 +238,10 @@ void emos_exext_tick(void) {
 }
 void emos_exext_service(void) {
     /* Only the interrupt bridge calls this, with busy already held. */
+    PHASE(service_begin);
     if (!flush() || !poll_return()) {
         emos_parallel_boot_block_end(0);
         emos_exext_owned=0;
     }
+    PHASE(service_end);
 }

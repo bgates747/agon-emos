@@ -725,3 +725,13 @@ EMOS FLASH submission and old P4 installation complete the original pair.
 Do not treat the intermediate command submission as ROM verification.
 Timing hooks remain source-only for later investigation; no production
 promotion or optimization acceptance. The broader ExExt goal stays paused.
+
+## PORT-008 phase attribution — authorized 2026-10-11
+
+Cross-component contract: sibling Extender `docs/tasks/PORT-008/PHASE-TIMING-R01.md`.
+Only boundary probes in an explicit diagnostic composition are authorized now.
+Sixteen named aliases share one guarded ROM leaf; reset-zero arm byte dispatches
+to the exact-bound MOSlet RAM recorder only during samples. Ordinary profiles
+preprocess all probes out. No transport, scheduling, GPIO ownership, P4 parser,
+mainboard VDP or product behavior change; byte integrity and exact restoration
+remain required. Stop if fit demands removal of product functionality.
