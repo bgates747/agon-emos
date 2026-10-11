@@ -40,8 +40,8 @@ def main():
 
     check(a.native, True, True, '')
     check(a.ordinary, False, True, '')
-    check(a.native, False, False, 'ordinary image links private native payload symbols')
-    check(a.ordinary, True, False, 'linked Port C writer set changed')
+    check(a.native, False, False, 'linked image must contain exactly one _emos_parallel_engine_configure' if a.stream else 'ordinary image links private native payload symbols')
+    check(a.ordinary, True, False, 'ordinary ExExt links obsolete indefinite epoch owner' if a.stream else 'linked Port C writer set changed')
     with a.native.open('rb') as f:
         elf = ELFFile(f)
         symbols = {s.name: s['st_value'] for s in elf.get_section_by_name('.symtab').iter_symbols()}
