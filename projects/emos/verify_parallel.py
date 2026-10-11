@@ -444,10 +444,19 @@ def verify_source(source: Path) -> None:
 
 def verify_linked(
     elf: Path, nm: Path, objdump: Path, *, allow_fixed_qualification: bool = False,
-    allow_native_payload: bool = False
+    allow_native_payload: bool = False, allow_exext_stream: bool = False
 ) -> None:
     symbols = linked_symbols(nm, elf)
-    addresses = require_global_text_symbols(symbols, REQUIRED_SYMBOLS)
+    required=REQUIRED_SYMBOLS
+    if allow_exext_stream:
+        retired={"_emos_parallel_generation_next", "_emos_parallel_init",
+            "_emos_parallel_last_fault", "_emos_parallel_write_stream", "_emos_parallel_write_byte",
+            "_emos_parallel_route_enter", "_emos_parallel_route_leave", "_emos_parallel_route_owned"}
+        required=tuple(n for n in required if n not in retired and
+                       not n.startswith(("_emos_parallel_engine_","_emos_parallel_epoch_")))
+        if any(n in symbols for n in retired) or "_emos_parallel_engine_open" in symbols:
+            raise ParallelError("ordinary ExExt links obsolete indefinite epoch owner")
+    addresses = require_global_text_symbols(symbols, required)
     addresses.update(
         require_text_symbols(
             symbols,
@@ -469,13 +478,13 @@ def verify_linked(
     addresses.update(
         require_data_symbols(
             symbols,
-            (
+            (("_serialFlags",) if allow_exext_stream else (
                 "_emosParallelPinsOwned",
                 "_emosParallelWriterLock",
                 "_emosParallelDeferredFault",
                 "_emosParallelRouteLease",
                 "_serialFlags",
-            ),
+            )),
         )
     )
     backend_records = symbols.get("_emosVduBackend", [])
@@ -549,6 +558,8 @@ def verify_linked(
         "_emos_parallel_ez80_write_data",
         *rts_portc_writes,
     }
+    if allow_exext_stream:
+        allowed_portc_writers-={"_emos_parallel_epoch_enter", "_emos_parallel_release_local_pins", "_emos_parallel_ez80_write_data"}
     text_names_by_address: dict[int, set[str]] = {}
     for name, records in symbols.items():
         for address, kind in records:
@@ -805,6 +816,13 @@ def verify_linked(
                 "linked parallel block bridge argument/epilogue sequence changed "
                 f"at instruction {index}: got {actual}, expected {expected}"
             )
+    if allow_exext_stream:
+        # The first ordinary adapter has a different bounded queue/guard owner;
+        # all common pad, boot, router and byte/stream ABI checks above remain.
+        for caller,callee in (("_open_UART1","_emos_parallel_uart1_guard_acquire"),
+                              ("_open_UART1","_emos_parallel_uart1_guard_release")):
+            require_transfers(caller,callee,mnemonics=("call",))
+        return
     require_transfers(
         "_emos_parallel_route_enter",
         "_emos_parallel_epoch_enter",

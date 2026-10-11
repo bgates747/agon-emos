@@ -567,3 +567,14 @@ boot-adapter cases pass. Do not install that rejected ROM.
 own exact artifacts and remaining checks. Mainboard Pingo VDP and production
 are unchanged. Emulator-coupled work remains uncommitted pending Author validation;
 unrelated application_peer changes are untouched.
+
+## Ordinary ExExt stream — authorized2026-10-11
+
+The Author's eight-hour [paired contract](../../../agon-extender/docs/tasks/PORT-008/EXEXT-STREAM-R01.md)
+owns the current bounded implementation/qualification checklist. EMOS's explicit
+`exext-stream-candidate.mk` profile replaces obsolete indefinite epoch code with
+batched ordinary output and actual-VBlank return delivery through the qualified
+exact-block coordinator. Actual C owner/console tests and linked eZ80 nested-IRQ
+callback checks pass; complete ROM130335bytes,737free. These are software checks,
+not physical stream or gameplay evidence. Private probe and ordinary profiles
+remain separately identifiable; no selected production change is made.

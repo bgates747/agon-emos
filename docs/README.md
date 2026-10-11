@@ -22,6 +22,17 @@ repository lineage; old provider-module qualification does not qualify current
 foreground utilities. Current limits are stated in the contracts above, so
 routine readers do not need to reconstruct them from historical tasks.
 
+## Experimental ordinary ExExt
+
+`port/exext-stream-candidate.mk` builds the new ordinary byte-stream binding:
+EMOS batches existing application VDU and services actual return packets on the
+real VBlank handler. The obsolete indefinite forward epoch is excluded only in
+this explicit composition. Software and full-ROM checks pass; physical operation
+and performance remain unqualified. See the [paired work contract](../../agon-extender/docs/tasks/PORT-008/EXEXT-STREAM-R01.md)
+and [wire/scheduling contract](../../agon-extender/docs/protocols/exext-stream.md).
+Legacy/ExCom and selected production are unchanged. The following older candidate
+sizes and activation statements describe their named profiles, not this build.
+
 ## Development candidate
 
 [REMOTE-005](tasks/REMOTE-005.md) adds private idle-CLI admission and finite utility

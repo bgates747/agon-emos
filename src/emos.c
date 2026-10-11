@@ -16,6 +16,9 @@
 #include "emos_admission.h"
 #include "emos_telemetry.h"
 #include "emos_console.h"
+#if defined(EMOS_EXEXT_STREAM)
+#include "emos_exext.h"
+#endif
 #include "uart.h"
 #include "emos_uart_flow.h"
 #ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
@@ -301,7 +304,11 @@ static void emos_mode_shape(BYTE mode, t_emosModeState *state) {
 
 static int emos_adapter_prepare(BYTE mode) {
 	emosEduState.lastStatus = EMOS_UNAVAILABLE;
-    if (mode == EMOS_MODE_EXCLUSIVE_COMPAT &&
+    if ((mode == EMOS_MODE_EXCLUSIVE_COMPAT
+#if defined(EMOS_EXEXT_STREAM)
+         || mode == EMOS_MODE_EXCLUSIVE_EXTENDED
+#endif
+        ) &&
         emosEduState.selectedAdapter != EMOS_ADAPTER_FAKE) {
         #ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
         /* A failed parallel cleanup can still own its lease in logical Legacy.
@@ -336,7 +343,11 @@ static int emos_adapter_prepare(BYTE mode) {
 static int emos_adapter_ready(BYTE mode) {
 	if (emosEduState.preparedMode != mode) return EMOS_UNAVAILABLE;
     if (emosEduState.selectedAdapter == EMOS_ADAPTER_UART_CONSOLE) {
-        return mode == EMOS_MODE_EXCLUSIVE_COMPAT && emos_console_owned ? FR_OK : EMOS_UNAVAILABLE;
+        return (mode == EMOS_MODE_EXCLUSIVE_COMPAT
+#if defined(EMOS_EXEXT_STREAM)
+            || mode == EMOS_MODE_EXCLUSIVE_EXTENDED
+#endif
+        ) && emos_console_owned ? FR_OK : EMOS_UNAVAILABLE;
     }
 	if (emosEduState.selectedAdapter == EMOS_ADAPTER_FAKE)
 		return mode == EMOS_MODE_DUAL ? FR_OK : EMOS_UNAVAILABLE;
@@ -353,6 +364,9 @@ static int emos_adapter_commit(BYTE mode) {
     if (emosEduState.selectedAdapter == EMOS_ADAPTER_UART_CONSOLE && !emos_console_commit()) {
         return EMOS_UNAVAILABLE;
     }
+#if defined(EMOS_EXEXT_STREAM)
+    if (mode == EMOS_MODE_EXCLUSIVE_EXTENDED && !emos_exext_start()) return EMOS_UNAVAILABLE;
+#endif
 	emosEduState.active = TRUE;
 	emosEduState.generation++;
 	emosEduState.lastStatus = FR_OK;
@@ -448,8 +462,8 @@ int emos_request_mode(BYTE mode) {
 	emosModeState = prepared;
 	emosVduBackend = prepared.vduRoute;
     if (emosEduState.selectedAdapter == EMOS_ADAPTER_UART_CONSOLE) {
-        if (mode == EMOS_MODE_EXCLUSIVE_COMPAT) emos_console_publish();
-        emos_console_notice(mode == EMOS_MODE_EXCLUSIVE_COMPAT);
+        if (mode != EMOS_MODE_LEGACY) emos_console_publish();
+        emos_console_notice(mode != EMOS_MODE_LEGACY);
     }
 	return FR_OK;
 }
@@ -628,13 +642,18 @@ int emos_cmd(char *args) {
 			emosModeState.generation);
 		return FR_OK;
 	}
-    if (strcasecmp(operation, "excom") == 0 || strcasecmp(operation, "legacy") == 0) {
+    if (strcasecmp(operation, "excom") == 0 || strcasecmp(operation, "legacy") == 0
+#if defined(EMOS_EXEXT_STREAM)
+        || strcasecmp(operation, "exext") == 0
+#endif
+        ) {
         /* INTEG-011: mos_oscli uses this same coordinator; no application
          * transport bypass. The option belongs to one request, even on error. */
         if (args && *args && strcasecmp(args,"--keep-display")) return FR_INVALID_PARAMETER;
         emos_console_keep = args && *args;
-        result = emos_request_mode(strcasecmp(operation,"excom") == 0 ?
-            EMOS_MODE_EXCLUSIVE_COMPAT : EMOS_MODE_LEGACY);
+        result = emos_request_mode(strcasecmp(operation,"legacy") == 0 ?
+            EMOS_MODE_LEGACY : strcasecmp(operation,"excom") == 0 ?
+            EMOS_MODE_EXCLUSIVE_COMPAT : EMOS_MODE_EXCLUSIVE_EXTENDED);
         emos_console_keep = 0;
         if (result != FR_OK) printf("EMOS: display switch failed; current route retained\r\n");
         return result;

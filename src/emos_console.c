@@ -10,6 +10,14 @@
 #include "emos_parallel_handover.h"
 #include "emos_keyboard.h"
 #include "uart.h"
+#if defined(EMOS_EXEXT_STREAM)
+#include "emos_exext.h"
+#define PARALLEL_CONSOLE_BUSY (emos_console_owned && !emos_exext_owned)
+#define EDP_PACKET_ROUTE (emosVduBackend == 1 || (emosVduBackend == 2 && emos_exext_owned))
+#else
+#define PARALLEL_CONSOLE_BUSY emos_console_owned
+#define EDP_PACKET_ROUTE (emosVduBackend == 1)
+#endif
 
 extern volatile BYTE emosVduBackend;
 extern BYTE vdp_protocol_data[];
@@ -20,6 +28,15 @@ static BYTE request[CONSOLE_SIZE], transaction[4];
 static volatile BYTE waiting, accepted, staging, seen, poll_done;
 static BYTE staged_mode[8], staged_cursor[2], poll_token;
 static BYTE lease;
+#if defined(EMOS_EXEXT_STREAM)
+/* Version-2 transactions borrow request, never the live version-1 lease. */
+static BYTE lease_nonce[4];
+static void restore_console_request(void) {
+    memset(request,0,sizeof(request));
+    request[0]='E';request[1]='X';request[2]=request[12]=1;
+    memcpy(request+4,transaction,4);memcpy(request+8,lease_nonce,4);
+}
+#endif
 
 static BYTE wait_reply(volatile BYTE *flag) {
     BYTE last = emos_keyboard_clock();
@@ -68,6 +85,15 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
         if (length != CONSOLE_SIZE || !waiting || accepted ||
             p[2] != request[2] ||
             p[3] != (BYTE)(waiting | 0x80)) return;
+#if defined(EMOS_EXEXT_STREAM)
+        if (request[2] == PARALLEL_WIRE_VERSION &&
+            (waiting == PARALLEL_STREAM_START || waiting == PARALLEL_STREAM_POLL ||
+             waiting == PARALLEL_STREAM_STOP)) {
+            if (memcmp(p,request,3) || memcmp(p+4,request+4,6) || p[12] || p[13] ||
+                p[11]>16 || (p[11]==16 && p[10]) ||
+                p[14]!=(BYTE)console_crc(p) || p[15]!=(BYTE)(console_crc(p)>>8)) return;
+        } else
+#endif
         if (request[2] == PARALLEL_WIRE_VERSION &&
             (waiting == PARALLEL_OFFER || waiting == PARALLEL_COMPLETE)) {
             /* Length and direction are part of identity. Capture a matched
@@ -90,7 +116,7 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
     /* INTEG-012 diagnostic packets have their own type. Never relax KEY's
      * four-byte validation or publish these sixteen bytes as keyboard state. */
     if (command == 0x8C) {
-        if (length == 16 && emosVduBackend == 1 && lease) effect(command,p,length);
+        if (length == 16 && EDP_PACKET_ROUTE && lease) effect(command,p,length);
         return;
     }
     if (command < 0x80 || command > 0x89 || command == 0x81 || command == 0x88 ||
@@ -99,7 +125,7 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
         if (command == 0x86) { memcpy(staged_mode,p,8); seen |= 1; }
         if (command == 0x82) { memcpy(staged_cursor,p,2); seen |= 2; }
         if (command == 0x80 && p[0] == poll_token && seen == 3) poll_done = 1;
-    } else if (emosVduBackend == 1 && lease) effect(command,p,length);
+    } else if (EDP_PACKET_ROUTE && lease) effect(command,p,length);
 }
 BYTE emos_console_prepare(void) {
     BYTE i;
@@ -111,6 +137,9 @@ BYTE emos_console_prepare(void) {
     request[0]='E'; request[1]='X'; request[2]=1; request[12]=1;
     memcpy(request+4,transaction,4);
     if (!exchange(emos_console_keep ? CONSOLE_PREPARE_KEEP : CONSOLE_PREPARE)) return 0;
+#if defined(EMOS_EXEXT_STREAM)
+    memcpy(lease_nonce,request+8,4);
+#endif
     lease = 1;
     return 1;
 }
@@ -138,10 +167,14 @@ void emos_console_publish(void) {
 }
 BYTE emos_console_recover(void) {
     BYTE ok = 1;
-    if (lease) ok = exchange(emosVduBackend == 1 ? CONSOLE_LEAVE : CONSOLE_ABORT);
+#if defined(EMOS_EXEXT_STREAM)
+    if (!emos_exext_stop()) return 0;
+    if (lease) restore_console_request();
+#endif
+    if (lease) ok = exchange(emosVduBackend ? CONSOLE_LEAVE : CONSOLE_ABORT);
     /* A failed entry never published EDP. Abandon its local lease even if
      * the peer disappeared. An active route must not falsely report LEAVE. */
-    if (!ok && emosVduBackend == 1) return 0;
+    if (!ok && emosVduBackend) return 0;
     lease = staging = waiting = emos_console_owned = 0;
     emos_keyboard_transport_release();
     return 1;
@@ -214,7 +247,7 @@ BYTE emos_parallel_session_negotiate(t_emosParallelHandover *h,
     t_parallelSession *s, const BYTE *transaction) {
     /* An existing ExCom lease still needs its own request identity for LEAVE.
      * The coordinator must close it before borrowing this buffer. */
-    if (emos_console_owned || waiting ||
+    if (PARALLEL_CONSOLE_BUSY || waiting ||
         !emos_parallel_session_start(h,s,transaction,request)) return 0;
     do {
         BYTE op = request[3];
@@ -232,7 +265,7 @@ BYTE emos_parallel_session_negotiate(t_emosParallelHandover *h,
  */
 BYTE emos_parallel_block_offer(t_emosParallelHandover *h, t_parallelSession *s,
     BYTE mode, const BYTE *offer) {
-    if (emos_console_owned || waiting || mode != PARALLEL_EXEXT ||
+    if (PARALLEL_CONSOLE_BUSY || waiting || mode != PARALLEL_EXEXT ||
         h->phase != EPH_UART || s->phase != PARALLEL_SESSION_ACTIVE ||
         !emos_keyboard_parallel_reserved() || !parallel_offer_valid(s->bytes,offer)) return 0;
     memcpy(request,offer,CONSOLE_SIZE);
@@ -243,13 +276,26 @@ BYTE emos_parallel_block_complete(t_emosParallelHandover *h, t_parallelSession *
     const BYTE *offer, BYTE status) {
     /* UART phase must come from reciprocal physical recovery, never from a
      * timeout or ACK. Buffer bytes are still provisional throughout this wait. */
-    if (emos_console_owned || waiting || status>1 || h->phase!=EPH_UART ||
+    if (PARALLEL_CONSOLE_BUSY || waiting || status>1 || h->phase!=EPH_UART ||
         s->phase!=PARALLEL_SESSION_ACTIVE || !emos_keyboard_parallel_reserved() ||
         memcmp(s->bytes,offer+4,6)) return 0;
     memcpy(request,offer,CONSOLE_SIZE); request[13]=status || h->failed;
     if (exchange(PARALLEL_COMPLETE) && !status && !h->failed && !request[13]) return 1;
     emos_parallel_session_cancel(h,s); return 0;
 }
+
+#if defined(EMOS_EXEXT_STREAM)
+/* Queue/status control carries no VDU or returned packet payload. */
+BYTE emos_parallel_stream_control(t_parallelSession *s, BYTE op, UINT16 *pending) {
+    if (!emos_exext_owned || waiting || s->phase!=PARALLEL_SESSION_ACTIVE ||
+        !emos_keyboard_parallel_reserved()) return 0;
+    memset(request,0,sizeof(request));memcpy(request,"EX\x02",3);
+    memcpy(request+4,s->bytes,6);
+    if (!exchange(op)) return 0;
+    *pending=(UINT16)request[10] | ((UINT16)request[11]<<8);
+    return 1;
+}
+#endif
 
 #if defined(EMOS_PARALLEL_PROBE) && EMOS_PARALLEL_PROBE
 /* PORT-008 LC03-A: fixed private MOSlet composition only. Gateway validates

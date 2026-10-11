@@ -17,9 +17,9 @@ from verify_parallel import (
     verify_linked, verify_source,
 )
 
-def verify_native(source, elf, nm, objdump, *, qualification=False):
+def verify_native(source, elf, nm, objdump, *, qualification=False, stream=False):
     verify_source(source)
-    verify_linked(elf, nm, objdump, allow_native_payload=True)
+    verify_linked(elf, nm, objdump, allow_native_payload=True, allow_exext_stream=stream)
     symbols = linked_symbols(nm, elf)
     addresses = require_global_text_symbols(symbols, (
         "_emos_parallel_native_payload", "_emos_parallel_native_bytes",
@@ -31,7 +31,7 @@ def verify_native(source, elf, nm, objdump, *, qualification=False):
     raw = disassemble_global_extent(objdump, elf, "_emos_parallel_native_bytes")
     coordinator = disassemble_global_extent(objdump, elf, "_emos_parallel_native_coordinate")
     count = direct_transfer_count(whole, addresses["_emos_parallel_native_coordinate"])
-    if count != (1 if qualification else 0):
+    if count != (1 if qualification or stream else 0):
         raise ParallelError("private coordinator acquired an unreviewed activation caller")
     if qualification:
         q = require_global_text_symbols(symbols, ("_emos_parallel_probe", "_emos_uartdiag_gateway"))

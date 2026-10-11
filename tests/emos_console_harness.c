@@ -5,6 +5,13 @@
 #include "emos_console.h"
 #include "emos_console_wire.h"
 #include "emos_keyboard.h"
+#if defined(EMOS_EXEXT_STREAM)
+#include "emos_parallel_handover.h"
+volatile BYTE emos_exext_owned,emos_exext_busy;
+BYTE emos_exext_stop(void){emos_exext_owned=0;return 1;}
+static BYTE reserve;
+extern BYTE emos_parallel_stream_control(t_parallelSession *,BYTE,UINT16 *);
+#endif
 
 volatile BYTE emosVduBackend, emos_key_faulted;
 BYTE vdp_protocol_data[16];
@@ -12,9 +19,21 @@ static BYTE irq=1, tick, suppress, wrong_nonce, wrong_crc, frozen, claimed, old_
 static BYTE tx[128], mode[8], cursor[2];
 static unsigned tx_count, effects, release_count, fresh_initializations, kept_initializations, mainboard_writes;
 /* Dormant parallel-session owners have no live reservation in this console test. */
-BYTE emos_keyboard_parallel_reserved(void) { return 0; }
+BYTE emos_keyboard_parallel_reserved(void) {
+#if defined(EMOS_EXEXT_STREAM)
+ return reserve;
+#else
+ return 0;
+#endif
+}
 BYTE emos_keyboard_parallel_send(const BYTE *p, UINT16 n) {
+#if defined(EMOS_EXEXT_STREAM)
+    if(n==16){BYTE r[16];memcpy(r,p,16);assert(p[2]==2);r[3]|=0x80;
+      r[10]=0x34;r[11]=1;console_seal(r);emos_console_packet(CONSOLE_REPLY,r,16);}
+    return EMOS_KEY_OK;
+#else
     (void)p; (void)n; assert(!"parallel send must not serve version 1"); return EMOS_KEY_BUSY;
+#endif
 }
 BYTE emos_keyboard_clock(void) { if (!frozen) tick+=2; return tick; }
 BYTE emos_keyboard_lock(void) { BYTE old=irq;irq=0;return old; }
@@ -70,6 +89,16 @@ int main(void) {
         assert(mode[4]==80 && mode[5]==60 && cursor[0]==2 && cursor[1]==3);
         for(unsigned i=0;i<16;++i)assert(vdp_protocol_data[i]==0xA5);
         assert(!emos_console_write_byte('a'));
+#if defined(EMOS_EXEXT_STREAM)
+        /* Version-2 requests borrow scratch; LEAVE must still use the original
+         * transaction/challenge. Selected-route effects also work in ExExt. */
+        t_parallelSession session={.bytes={1,2,3,4,5,6},.phase=PARALLEL_SESSION_ACTIVE};
+        UINT16 pending=0;emos_exext_owned=1;reserve=1;
+        assert(emos_parallel_stream_control(&session,PARALLEL_STREAM_POLL,&pending));assert(pending==308);
+        reserve=0;emosVduBackend=2;
+        BYTE next[]={7,8};receive(0x82,next,2);assert(cursor[0]==7);
+        emosVduBackend=1;BYTE prev[]={2,3};receive(0x82,prev,2);effects-=2;
+#endif
         BYTE invalid_mode[]={1,2,3,4,5,6,7};receive(0x86,invalid_mode,7);assert(effects==before+2);
         BYTE key[]={65,0,20,1};receive(0x81,key,4);assert(effects==before+2);
         wrong_nonce=1;assert(!emos_console_recover());assert(emos_console_owned && claimed);

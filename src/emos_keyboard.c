@@ -11,6 +11,9 @@
 #include "emos_telemetry.h"
 #include "emos_parallel.h"
 #include "emos_parallel_handover.h"
+#if defined(EMOS_EXEXT_STREAM)
+#include "emos_exext.h"
+#endif
 
 volatile BYTE emos_key_source, emos_key_faulted;
 static volatile BYTE transitioning, preparing, stop_requested, fault_requested;
@@ -137,6 +140,9 @@ void emos_keyboard_tick(void) {
             emos_keyboard_async_irq();
         }
     }
+#endif
+#if defined(EMOS_EXEXT_STREAM)
+    emos_exext_tick();
 #endif
 }
 void emos_keyboard_dispatch(void) {

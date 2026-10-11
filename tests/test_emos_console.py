@@ -8,10 +8,17 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class ConsoleTests(unittest.TestCase):
     def test_real_adapter_with_scripted_uart_and_interrupts(self):
+        self.run_adapter(False)
+
+    def test_exext_controls_preserve_console_lease(self):
+        self.run_adapter(True)
+
+    def run_adapter(self, stream):
         with tempfile.TemporaryDirectory() as tmp:
             exe = Path(tmp) / 'console'
             subprocess.run(['cc', '-std=c17', '-Wall', '-Wextra', '-Werror',
                             '-Wno-endif-labels', '-fsanitize=address,undefined',
+                            *(['-DEMOS_EXEXT_STREAM=1'] if stream else []),
                             '-I'+str(ROOT/'tests/host'), '-I'+str(ROOT/'src'),
                             str(ROOT/'src/emos_console.c'),
                             str(ROOT/'src/emos_parallel_handover.c'),
