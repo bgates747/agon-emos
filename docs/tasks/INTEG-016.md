@@ -636,3 +636,12 @@ mode/owner refusal, full-block coordinator and public ABI. The final boundary
 byte still uses the counted writer. Verify mixed/byte-only4096byte boundaries
 and actual linked eZ80 refusals/IFF/stack before installing. No wire-format
 change or raw throughput claim; ROM fit and paired game comparisons are gates.
+
+The first byte-append candidate passes wrapper/link guards at130960bytes
+(112free), build `agon-emos-v0.1.24-b2026-10-11-14-27-50Z`, source
+`62928801038f8ca16ca8299714899adb2574c72a`, imageSHA256
+`30e527b5d5efc3c43a30a7d295c1d7c0df52356ca80c43fec19d6b99723f0341`.
+Actual linked1000byte calls fall165000→72000instructions (−56.36%); the one
+counted call remains1145instructions. Physical transfer/public PUTCH overhead
+is excluded. Host mixed/byte-only4096boundaries and actual nested/non-nested
+VBlank register/stack/IFF/callback checks pass. Hardware remains pending.
