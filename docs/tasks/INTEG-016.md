@@ -780,3 +780,14 @@ and electrical handover remain. Existing console activation still uses its
 separate version-1 controls; do not globally strip shared CRC from unrelated
 ExCom/SD behavior. No EMOS source/build/deployment change. Stop for result
 discussion before implementation; exact original UART pair remains restored.
+
+### Paired CRC-removal tranche authorized — 2026-10-11
+
+Author authorizes Extender's [CRC-REMOVAL-R01](../../../agon-extender/docs/tasks/PORT-008/CRC-REMOVAL-R01.md)
+after freeze/commit/push. EMOS removes all parallel CRC calls, including shared
+console exchange/reply branches, session/admission and offer constructors.
+Format3 retains sixteen-byte carrier; former CRC slots transmitted zero and
+ignored on receipt. Format2 must not admit. Ordinary version1 console activation,
+SD contracts, electrical handover and storage lifetime remain unchanged. Compile
+through full profile/link/ROM guards and execute existing paired/linked tests.
+No bench deployment, production promotion or broad-goal resumption.
