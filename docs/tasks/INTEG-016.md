@@ -626,3 +626,13 @@ Physical stream-r05/EMOS-r07 T01/T03 each save120valid ordered records. A P4
 HDMI teardown crash before the subsequent idle-input fixture launches remains
 a separate Extender-owned correction. No idle/game-input success is claimed
 from accepted P4 event counters. Original startup restored after recovery.
+
+## Ordinary stream EX05 byte batching — 2026-10-11
+
+Linked baseline measurement is165000instructions for1000single-byte C route
+calls versus1145instructions for one counted1000byte call, excluding physical
+transfer. Optimize only the RAM append: retain the existing interrupt lock,
+mode/owner refusal, full-block coordinator and public ABI. The final boundary
+byte still uses the counted writer. Verify mixed/byte-only4096byte boundaries
+and actual linked eZ80 refusals/IFF/stack before installing. No wire-format
+change or raw throughput claim; ROM fit and paired game comparisons are gates.

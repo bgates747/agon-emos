@@ -101,6 +101,15 @@ int main(void){
   }
   printf("PASS %u split-return/header/body/STOP cases with actual parser-boundary reservation\n",cases);
  }
+ /* Byte-only and mixed callers must share exactly one boundary/ordering. */
+ sent_n=0;blocks=0;assert(emos_exext_start());
+ for(i=0;i<4096;++i)assert(emos_parallel_route_write_byte(data[i])==0);
+ assert(blocks==1&&sent_n==4096&&!memcmp(sent,data,4096));
+ assert(emos_parallel_route_write_stream(data,4094)==0);
+ assert(emos_parallel_route_write_byte(data[4094])==0);
+ assert(emos_parallel_route_write_byte(data[4095])==0);
+ assert(blocks==2&&sent_n==8192&&!memcmp(sent+4096,data,4096));
+ assert(emos_exext_stop());
  puts("PASS actual EMOS byte batching, full-block flush, idle replies/keys, IRQ context, nested refusal and fault fence");
  return 0;
 }

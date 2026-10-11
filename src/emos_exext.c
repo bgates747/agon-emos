@@ -152,6 +152,20 @@ BYTE emos_parallel_route_write_stream(const BYTE *p, UINT16 n) {
     return ok ? EMOS_PARALLEL_OK : EMOS_PARALLEL_COMPLETION_TIMEOUT;
 }
 BYTE emos_parallel_route_write_byte(BYTE value) {
+    BYTE irq=emos_keyboard_lock();
+    if(!emos_exext_owned || emos_exext_busy || emosVduBackend!=2 || !irq) {
+        emos_keyboard_unlock(irq);return EMOS_PARALLEL_BUSY;
+    }
+    /* EX05: RST10/RST18 delimiter output is byte-oriented. A RAM append needs
+     * no C memcpy/general-stream owner round trip. Keep its pointer/count
+     * publication atomic against real VBlank, then restore the caller's IFF.
+     * The boundary byte still uses the SAME guarded full-block coordinator.
+     * An intervening tick may flush before that call; it cannot lose/replay it. */
+    if(queued<sizeof(outgoing)-1) {
+        outgoing[queued++]=value;
+        emos_keyboard_unlock(irq);return EMOS_PARALLEL_OK;
+    }
+    emos_keyboard_unlock(irq);
     return emos_parallel_route_write_stream(&value,1);
 }
 static BYTE publish_return(void) {
