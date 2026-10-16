@@ -553,11 +553,12 @@ int mos_exec(char * buffer, BOOL in_mos) {
 			}
 			umm_free(command);
 			return result;
-		} else {
-			umm_free(command);
-			// Command not built-in, so see if it's a file
-			char * path;
-			bool useWildcard = false;
+			} else {
+				/* Keep declarations at block entry for native ZDS II. */
+				char * path;
+				bool useWildcard = false;
+				umm_free(command);
+				// Command not built-in, so see if it's a file
 			if (cmdLen < 2) {
 				// Command is too short to be a valid command
 				return MOS_INVALID_COMMAND;

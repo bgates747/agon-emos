@@ -386,8 +386,11 @@ static int emos_select_fake(BOOL enabled) {
 }
 
 int emos_request_mode(BYTE mode) {
-	t_emosModeState prepared = emosModeState;
+	t_emosModeState prepared;
 	int result;
+	/* ZDS II5.3.5 rejects aggregate initialization from another structure.
+	 * Preserve the complete mode snapshot using the standard byte-copy API. */
+	memcpy(&prepared, &emosModeState, sizeof(prepared));
 	if (mode > EMOS_MODE_EXCLUSIVE_EXTENDED) return FR_INVALID_PARAMETER;
 	/* INTEG-011: an application may explicitly retain the two displays at a
      * complete VDU boundary. Default/mixed-mode transitions remain CLI-only. */
