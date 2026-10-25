@@ -1,5 +1,12 @@
 # Mainboard SD foreground service
 
+The prepared fast correction uses checksum-free protocol major2 for every
+record, file operation and recovery path. It requires paired P4/host updates;
+no resident EMOS ABI change is needed. Source and target compile checks are
+separate from installation and physical acceptance, which remain pending.
+The original installed v0.2.0 fast listener still uses packet CRCs; the Author's
+processor-link policy requires an explicit request before operational use.
+
 The listener uses resident `ext.sdlink` and matching Extender P4 firmware.
 The recorded current installation is the sdserve v0.2.0 EMOSlet at
 `/emos/sdserve.bin`, launched through EMOS v0.1.19:
@@ -61,7 +68,8 @@ A compile-only unversioned build is not a deployment candidate.
 
 `scripts/prepare_sdserve.py --output build/sdserve-candidate --toolchain ...`
 prepares an identified **ordinary application** bundle, with source/compiler
-hashes. It does not select the MOSlet layout. The identified MOSlet workflow
+hashes. Add `--moslet` for the identified B0000/32KiB `/emos` layout; its manifest
+records the layout and load address. The earlier MOSlet workflow
 and frozen validation are in Extender's
 [fast-transfer tasklet](https://github.com/bgates747/agon-extender/blob/main/docs/tasks/REMOTE-005/FAST-TRANSFER.md).
 The ordinary fallback remains `/extender/sdserve.bin`, using
@@ -74,8 +82,11 @@ Normal mode checks sync/close and rereads staged and activated bytes for
 length/CRC. The host additionally downloads both copies for comparison. Fast
 mode requires `--fast` on the listener and on the host client's `put` command;
 a mismatch is rejected before BEGIN. HELLO bit 0x10 advertises fast mode.
-Fast FINISH echoes the declared CRC, not a measured one. Packet CRCs, checked
-byte counts, sync/close, staging, backups, replay and recovery remain, but fast
+Corrected fast FINISH returns declared size and zero. Major2 uses reserved zero
+fields rather than packet/file/MOVE CRCs and writes checksum-free SDT2 metadata.
+Fast recovery never computes a CRC, preserves old SDT1 metadata and uses size
+or bounded readability checks where checked recovery used a digest. Checked
+byte counts, sync/close, staging, backups and replay remain, but fast
 success does not verify stored contents. Both modes retain target-adjacent
 `.p17part`, `.p17meta` and `.p17bak` files. FAT rename is not power-failure atomic;
 follow the operating guide rather than manually deleting an uncertain journal.

@@ -143,3 +143,29 @@ Physical follow-through: v0.1.22 build 2026-09-28-01-40-45Z and sdjob v0.1.0 bui
 file operations, fault recovery and native GVfs root-mounted file management.
 The selected production bundle is unchanged; wider ExCom/application/native GUI
 qualification remains with Extender. The deployed manual listener was not changed.
+
+## R05-11 checksum-free fast listener correction — 2026-10-25
+
+The Author directs removing retained CRC cost from fast copies. Extender's
+REMOTE-005 R05-11 owns the paired host/P4 contract and installation boundary.
+The foreground listener must select a distinct fast carrier and metadata
+format, avoid all checksum calculations in fast operations/recovery, and
+preserve the checked historical mode. Resident EMOS ABI/source and stock MOS
+references stay unchanged. Implement and host-test the engine, compile the
+AgonDev MOSlet, then obtain a new listener identity before identified packaging.
+Do not deploy through the old CRC-bearing listener without resolving bootstrap.
+
+Prepared listener engine passes47 instrumented host checks; every fast case
+asserts zero actual CRC-function calls, with checked cases proving detection.
+Fast SDT2 recovery preserves old checked metadata without evaluating its CRC.
+The AgonDev MOSlet compiles unversioned to22,970bytes. Existing seven linked
+application-helper host checks pass. No resident EMOS, generated prepared
+firmware, emulator profile, SD or physical bench state changed. Proposed new
+listener identity sdserve-v0.3.0 awaits Author agreement; paired P4, bootstrap
+and physical qualification remain Extender-owned gates.
+
+
+Author approves sdserve-v0.3.0, paired P4r13 and one final legacy-service
+bootstrap session on2026-10-25. Identified MOSlet packaging uses the maintained
+prepare_sdserve.py --moslet option. Resident EMOSv26 is retained unchanged;
+physical installation verification remains with Extender.

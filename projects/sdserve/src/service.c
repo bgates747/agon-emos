@@ -1,9 +1,11 @@
 /* PORT-017 foreground file engine. Uses public MOS/FatFS calls, never UART.
  * WRITE acknowledges the checked open-file write; FINISH syncs/closes and
- * independently reads the stage by default. Explicit fast mode omits stage
- * and activated-target digest passes; framing and filesystem errors stay checked.
+ * independently reads the stage by default. Fast-v2 performs no CRC work:
+ * packet/descriptor fields are reserved zero; SDT2 metadata has no checksum.
+ * Framing, offsets/counts and filesystem errors remain checked. Old SDT1
+ * metadata requires the checked mode; fast recovery never evaluates its CRC.
  * FAT rename is recoverable, NOT power-atomic.
- * Wire contract: agon-extender/docs/tasks/PORT-017/PROTOCOL.md.
+ * Wire contract: agon-extender/docs/protocols/mainboard-sd.md.
  */
 #include <agon/mos.h>
 #include <string.h>
@@ -117,6 +119,19 @@ static int checked_digest(const char *path,uint32_t length,uint32_t crc) {
     uint32_t actual,hash;int r=digest(path,&actual,&hash);
     return r?r:(actual!=length || hash!=crc)?SD_INTEGRITY:SD_OK;
 }
+static int size_matches(const char *path,uint32_t size) {
+    FILINFO info;uint8_t r=ffs_stat(&info,path);
+    return r?fail(r):(info.fattrib&AM_DIR || info.fsize!=size)?SD_INTEGRITY:SD_OK;
+}
+static int readable(const char *path) {
+    FIL f;uint32_t size;unsigned got;uint8_t r=ffs_fopen(&f,path,FA_READ);int result;
+    if(r)return fail(r);
+    /* Explicit fast backup cleanup checks accessibility, not the whole file. */
+    r=ffs_fsize(&f,&size);if(r)return close_file(&f,fail(r));
+    got=ffs_fread(&f,(char *)scratch,1);r=ffs_ferror(&f);
+    result=r?fail(r):got!=(size?1U:0U)?fail(FR_DISK_ERR):SD_OK;
+    return close_file(&f,result);
+}
 static int state(uint8_t *bits,uint8_t *metadata) {
     const char *paths[4]={target,part,meta,backup};FILINFO info;unsigned i;
     *bits=0;
@@ -130,8 +145,11 @@ static int state(uint8_t *bits,uint8_t *metadata) {
         r=ffs_fsize(&f,&size);
         result=r?fail(r):size!=20?SD_INTEGRITY:read_exact(&f,metadata,20);
         result=close_file(&f,result);
-        if(result || memcmp(metadata,"SDT1",4) || !sd_u32(metadata+4) ||
-           sd_u32(metadata+16)!=sd_crc(metadata,16)) *bits|=16;
+        if(result || !sd_u32(metadata+4)) *bits|=16;
+        else if(fast_mode) {
+            if(memcmp(metadata,"SDT2",4) || sd_u32(metadata+12) || sd_u32(metadata+16)) *bits|=16;
+        } else if(memcmp(metadata,"SDT1",4) ||
+                  sd_u32(metadata+16)!=sd_crc(metadata,16)) *bits|=16;
     }
     return SD_OK;
 }
@@ -145,7 +163,7 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
     switch(op) {
     case SD_HELLO:
         if(n) return SD_BAD_REQUEST;
-        sd_put32(out,boot_id);sd_put16(out+4,212);sd_put16(out+6,15 | 32 | (fast_mode?16:0));*out_n=8;return SD_OK;
+        sd_put32(out,boot_id);sd_put16(out+4,212);sd_put16(out+6,15 | 32 | (fast_mode?16|64:0));*out_n=8;return SD_OK;
     case SD_STAT: {
         if(!path_read(p,n,path)) return SD_BAD_REQUEST;
         /* Stock MOS 3.0.2 FatFS f_stat rejects the origin directory with
@@ -195,9 +213,11 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
         FIL journal;
         if(active) return SD_BUSY;
         if(n<14 || !(tid=sd_u32(p)) || !path_read(p+12,n-12,path) || !siblings(path)) return SD_BAD_REQUEST;
+        if(fast_mode && sd_u32(p+8))return SD_BAD_REQUEST;
         result=state(&bits,metadata);if(result) return result;
         if(bits&14) return SD_RECOVERY_REQUIRED;
-        memcpy(metadata,"SDT1",4);memcpy(metadata+4,p,12);sd_put32(metadata+16,sd_crc(metadata,16));
+        memcpy(metadata,fast_mode?"SDT2":"SDT1",4);memcpy(metadata+4,p,12);
+        sd_put32(metadata+16,fast_mode?0:sd_crc(metadata,16));
         r=ffs_fopen(&journal,meta,FA_WRITE|FA_CREATE_NEW);if(r) return fail(r);
         result=write_exact(&journal,metadata,20);
         if(!result && (r=ffs_fsync(&journal))) result=fail(r);
@@ -224,8 +244,8 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
             if(!fast_mode) { result=checked_digest(part,expected_size,expected_crc);if(result) return result; }
             active=1;finished=1;
         }
-        /* In fast mode this echoes the declared transfer identity, not a
-         * measured digest. HELLO bit 0x10 tells the host which mode is active. */
+        /* Fast mode returns the declared size and a reserved zero field.
+         * HELLO bits0x10/0x40 distinguish it from the old CRC-bearing fast path. */
         sd_put32(out,expected_size);sd_put32(out+4,expected_crc);*out_n=8;return SD_OK;
     case SD_ACTIVATE:
         if(n!=4) return SD_BAD_REQUEST;
@@ -255,7 +275,8 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
             if(!(bits&1) && ((bits&8) || !(bits&4))) return SD_RECOVERY_REQUIRED;
             // Metadata without a part may mean the new file was activated.
             if((bits&7)==5) {
-                result=checked_digest(target,sd_u32(metadata+8),sd_u32(metadata+12));
+                result=fast_mode?size_matches(target,sd_u32(metadata+8)):
+                    checked_digest(target,sd_u32(metadata+8),sd_u32(metadata+12));
                 if(result) return result;
             }
             result=remove_if_present(part);if(result) return result;
@@ -263,7 +284,7 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
         } else if(p[0]==3) {
             uint32_t size,crc;
             if(!(bits&1) || (bits&6)) return SD_RECOVERY_REQUIRED;
-            result=digest(target,&size,&crc);if(result) return result;
+            result=fast_mode?readable(target):digest(target,&size,&crc);if(result) return result;
             result=remove_if_present(backup);if(result) return result;
         }
         result=state(&bits,metadata);if(!result) { out[0]=bits;*out_n=1; }return result;
@@ -281,6 +302,7 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
         if(active)return SD_BUSY;
         if(n<9 || n>192){move_total=move_at=0;return SD_BAD_REQUEST;}
         total=sd_u16(p);at=sd_u16(p+2);crc=sd_u32(p+4);count=n-8;
+        if(fast_mode && crc){move_total=move_at=0;return SD_BAD_REQUEST;}
         if(!at){move_total=move_at=0;move_crc=crc;if(total>=10 && total<=248)move_total=total;}
         if(!move_total || total!=move_total || at!=move_at || crc!=move_crc || count>total-at) {
             move_total=move_at=0;return SD_BAD_REQUEST;
@@ -289,7 +311,7 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
         sd_put16(out,move_at);out[2]=move_at==move_total;*out_n=3;
         if(move_at<move_total)return SD_OK;
         move_total=move_at=0;
-        if(sd_crc(move_descriptor,total)!=crc)return SD_INTEGRITY;
+        if(!fast_mode && sd_crc(move_descriptor,total)!=crc)return SD_INTEGRITY;
         a=sd_u16(move_descriptor+2);b=sd_u16(move_descriptor+4);
         if(move_descriptor[0]!=6 || move_descriptor[1] || move_descriptor[6] || move_descriptor[7] ||
            a>120 || b>120 || 8+a+b!=total || memchr(move_descriptor+8,0,a+b))return SD_BAD_REQUEST;
@@ -317,7 +339,8 @@ int service_init_mode(const char *scope,uint32_t boot,int fast) {
 int service_init(const char *scope,uint32_t boot) { return service_init_mode(scope,boot,0); }
 unsigned service_request(const uint8_t *in,unsigned n,uint8_t *out) {
     uint32_t sid,seq;unsigned payload=0;int status;
-    if(!sd_valid(in,n) || in[3]!=SD_REQUEST || in[13] || !(seq=sd_u32(in+8))) return 0;
+    if(n<SD_HEADER || in[2]!=(fast_mode?SD_FAST_VERSION:SD_CHECKED_VERSION) ||
+       !sd_valid(in,n) || in[3]!=SD_REQUEST || in[13] || !(seq=sd_u32(in+8))) return 0;
     sid=sd_u32(in+4);
     if(sid==session && seq==sequence) {
         if(n==previous_size && !memcmp(in,previous,n)) { memcpy(out,cached,cached_size);return cached_size; }
@@ -328,11 +351,11 @@ unsigned service_request(const uint8_t *in,unsigned n,uint8_t *out) {
     else {
         fs_error=0;status=handle(in[12],in+SD_HEADER,n-SD_HEADER,out+SD_HEADER,&payload);
         if(status) { payload=0;if(status==SD_FILE_ERROR) { out[SD_HEADER]=fs_error;payload=1; } }
-        sd_header(out,SD_RESPONSE,sid,seq,in[12],status,payload);sd_seal(out);
+        sd_header_mode(out,SD_RESPONSE,sid,seq,in[12],status,payload,fast_mode);sd_seal(out);
         session=sid;sequence=seq;previous_size=n;memcpy(previous,in,n);
         cached_size=SD_HEADER+payload;memcpy(cached,out,cached_size);return cached_size;
     }
-    sd_header(out,SD_RESPONSE,sid,seq,in[12],status,0);sd_seal(out);return SD_HEADER;
+    sd_header_mode(out,SD_RESPONSE,sid,seq,in[12],status,0,fast_mode);sd_seal(out);return SD_HEADER;
 }
 int service_exiting(void) { return exiting; }
 void service_stop(void) {

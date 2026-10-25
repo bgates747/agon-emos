@@ -23,6 +23,7 @@ def main():
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--toolchain", type=Path, required=True)
     p.add_argument("--utility", choices=("sdserve", "sdjob"), default="sdserve")
+    p.add_argument("--moslet", action="store_true", help="Build for /emos at B0000 within32KiB")
     a = p.parse_args()
     app = ROOT / "projects" / a.utility
     prefix = a.utility.upper()
@@ -44,8 +45,9 @@ def main():
                       f'#define {prefix}_STATUS "{identity["status"]}"\n')
     with (output/"build.log").open("w") as log:
         for target in ("clean", "all"):
+            layout = ["RAM_START=0xB0000", "RAM_SIZE=0x8000"] if a.moslet else []
             subprocess.run(["make", f"AGONDEV_TOOLCHAIN={toolchain}",
-                            f"{prefix}_IDENTIFIED_BUILD=1", target], cwd=app,
+                            f"{prefix}_IDENTIFIED_BUILD=1", *layout, target], cwd=app,
                            stdout=log, stderr=subprocess.STDOUT, check=True)
     if git("status", "--porcelain") or git("rev-parse", "HEAD") != commit:
         raise RuntimeError("source changed during candidate build")
@@ -55,10 +57,12 @@ def main():
     target = output/(build_id+".bin")
     shutil.copyfile(source, target)
     manifest = {"schema_version": 1,
-                "build": dict(identity, build_id=build_id, created_at=now.isoformat()),
+                "build": dict(identity, build_id=build_id, created_at=now.isoformat(),
+                              layout="moslet" if a.moslet else "application",
+                              load_address="0xB0000" if a.moslet else "0x40000"),
                 "provenance": {"commit": commit, "dirty": False, "source_sha256": sources,
                                "compiler_sha256": sha(toolchain/"bin/ez80-none-elf-clang")},
-                "outputs": [{"filename": target.name, "role": "application",
+                "outputs": [{"filename": target.name, "role": "emoslet" if a.moslet else "application",
                              "sha256": sha(target), "size_bytes": target.stat().st_size}],
                 "notes": [f"Install with canonical filename {a.utility}.bin.",
                           "Candidate build only; physical qualification pending."]}

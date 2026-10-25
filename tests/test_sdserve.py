@@ -9,9 +9,9 @@ import unittest
 import zlib
 
 ROOT=Path(__file__).resolve().parents[1]
-def wire(session,seq,op,payload=b''):
-    h=S.pack('<2sBBIIBBH',b'SD',1,1,session,seq,op,0,len(payload))
-    return h+S.pack('<I',zlib.crc32(h+payload))+payload
+def wire(session,seq,op,payload=b'',*,fast=False):
+    h=S.pack('<2sBBIIBBH',b'SD',2 if fast else 1,1,session,seq,op,0,len(payload))
+    return h+(b'\0'*4 if fast else S.pack('<I',zlib.crc32(h+payload)))+payload
 def path(p):
     p=p.encode('ascii');return bytes([len(p)])+p
 
@@ -24,10 +24,20 @@ class SdserveTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.build=tempfile.TemporaryDirectory();lib=Path(cls.build.name)/'sd.so'
+        probe=Path(cls.build.name)/'probe.c'
+        probe.write_text('#include "'+str(ROOT/'projects/sdserve/src/service.c')+'"\n'+'''
+static unsigned crc_calls;
+void __attribute__((no_instrument_function)) __cyg_profile_func_enter(void *f,void *caller) {
+    (void)caller;if(f==(void *)sd_crc_update)++crc_calls;
+}
+void __attribute__((no_instrument_function)) __cyg_profile_func_exit(void *f,void *caller) {(void)f;(void)caller;}
+unsigned __attribute__((no_instrument_function)) test_crc_calls(void) {return crc_calls;}
+void __attribute__((no_instrument_function)) test_crc_reset(void) {crc_calls=0;}
+''')
         subprocess.run(['cc','-std=c17','-Wall','-Wextra','-Werror',
                         '-Wno-misleading-indentation','-fsanitize=undefined',
-                        '-fPIC','-shared','-I'+str(ROOT/'tests/sdserve_host'),
-                        str(ROOT/'projects/sdserve/src/service.c'),
+                        '-fPIC','-shared','-finstrument-functions','-fno-inline','-Wl,-Bsymbolic',
+                        '-I'+str(ROOT/'tests/sdserve_host'),str(probe),
                         str(ROOT/'tests/sdserve_host/fs.c'),'-o',str(lib)],check=True)
         cls.lib=C.CDLL(str(lib));cls.lib.service_request.argtypes=[C.c_char_p,C.c_uint,C.c_void_p]
     @classmethod
@@ -36,18 +46,23 @@ class SdserveTests(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory();self.disk=Path(self.temp.name)
         (self.disk/'test').mkdir();self.lib.fs_root(str(self.disk).encode())
         self.assertEqual(self.lib.service_init_mode(b'/test',101,self.FAST),1)
-        self.seq=0;self.sid=19;self.rpc(1)
-    def tearDown(self): self.lib.service_stop();self.temp.cleanup()
+        self.lib.test_crc_reset();self.seq=0;self.sid=19;self.rpc(1)
+    def tearDown(self):
+        self.lib.service_stop();self.temp.cleanup()
+        if self.FAST:self.assertEqual(self.lib.test_crc_calls(),0,'Fast engine performed CRC work')
+        else:self.assertGreater(self.lib.test_crc_calls(),0,'Instrumentation must see checked CRC work')
+    def wire(self,*args):return wire(*args,fast=self.FAST)
     def send(self,request):
         out=C.create_string_buffer(240);n=self.lib.service_request(request,len(request),out)
         if not n:return None
-        b=out.raw[:n];self.assertEqual(S.unpack_from('<I',b,16)[0],zlib.crc32(b[:16]+b[20:]))
+        b=out.raw[:n];self.assertEqual(b[2],2 if self.FAST else 1)
+        self.assertEqual(S.unpack_from('<I',b,16)[0],0 if self.FAST else zlib.crc32(b[:16]+b[20:]))
         self.assertEqual(b[4:13],request[4:13]);return b[13],b[20:]
     def rpc(self,op,p=b'',status=0):
-        self.seq+=1;self.last=wire(self.sid,self.seq,op,p);result=self.send(self.last)
+        self.seq+=1;self.last=self.wire(self.sid,self.seq,op,p);result=self.send(self.last)
         self.assertIsNotNone(result);self.assertEqual(result[0],status);return result[1]
     def begin(self,data,name='/test/game.bin'):
-        return self.rpc(5,S.pack('<III',73,len(data),zlib.crc32(data))+path(name))
+        return self.rpc(5,S.pack('<III',73,len(data),0 if self.FAST else zlib.crc32(data))+path(name))
     def stage(self,data):
         self.begin(data)
         for at in range(0,len(data),212):self.rpc(6,S.pack('<II',73,at)+data[at:at+212])
@@ -56,7 +71,7 @@ class SdserveTests(unittest.TestCase):
         a=source.encode();b=destination.encode()
         return S.pack('<BBHHH',6,0,len(a),len(b),0)+a+b
     def move_frag(self,d,offset=0,count=184,status=0,crc=None):
-        return self.rpc(14,S.pack('<HHI',len(d),offset,zlib.crc32(d) if crc is None else crc)+d[offset:offset+count],status)
+        return self.rpc(14,S.pack('<HHI',len(d),offset,(0 if self.FAST else zlib.crc32(d)) if crc is None else crc)+d[offset:offset+count],status)
     def test_root_metadata_uses_directory_api(self):
         self.lib.service_stop()
         self.assertEqual(self.lib.service_init_mode(b'/',101,self.FAST),1)
@@ -85,7 +100,8 @@ class SdserveTests(unittest.TestCase):
         a='/test/'+('a'*114);b='/test/'+('b'*114);(self.disk/a[1:]).write_bytes(b'x');d=self.move_descriptor(a,b)
         self.move_frag(d);self.rpc(2,path(a));self.move_frag(d,184,status=1)
         self.move_frag(d);self.move_frag(d,183,status=1)
-        self.move_frag(d,crc=0);self.move_frag(d,184,crc=0,status=7)
+        if self.FAST:self.move_frag(d,crc=1,status=1)
+        else:self.move_frag(d,crc=0);self.move_frag(d,184,crc=0,status=7)
         self.assertTrue((self.disk/a[1:]).exists());self.assertFalse((self.disk/b[1:]).exists())
     def test_move_relationships_reserved_and_fault(self):
         (self.disk/'test/dir').mkdir();(self.disk/'test/dir/a').write_bytes(b'x')
@@ -102,7 +118,7 @@ class SdserveTests(unittest.TestCase):
         for size in (0,1,211,212,213,256,65536,131731):
             with self.subTest(size=size):
                 data=random.Random(size).randbytes(size);self.stage(data)
-                before=self.last;self.assertEqual(self.send(before),(0,S.pack('<II',size,zlib.crc32(data))))
+                before=self.last;self.assertEqual(self.send(before),(0,S.pack('<II',size,0 if self.FAST else zlib.crc32(data))))
                 self.rpc(8,S.pack('<I',73))
                 result=bytearray()
                 for at in range(0,max(1,size),216):
@@ -114,12 +130,14 @@ class SdserveTests(unittest.TestCase):
     def test_replay_conflict_corruption_sequence_and_session(self):
         self.begin(b'abcd');self.rpc(6,S.pack('<II',73,0)+b'abcd')
         self.assertEqual(self.send(self.last),(0,S.pack('<II',73,4)))
-        self.assertEqual(self.send(wire(self.sid,self.seq,6,b'different'))[0],5)
-        self.assertEqual(self.send(wire(self.sid,self.seq+2,7,S.pack('<I',73)))[0],5)
-        self.assertEqual(self.send(wire(22,1,1))[0],3)
-        damaged=bytearray(self.last);damaged[-1]^=128;self.assertIsNone(self.send(bytes(damaged)))
+        self.assertEqual(self.send(self.wire(self.sid,self.seq,6,b'different'))[0],5)
+        self.assertEqual(self.send(self.wire(self.sid,self.seq+2,7,S.pack('<I',73)))[0],5)
+        self.assertEqual(self.send(self.wire(22,1,1))[0],3)
+        damaged=bytearray(self.last);damaged[-1]^=128
+        if self.FAST:self.assertEqual(self.send(bytes(damaged))[0],5)
+        else:self.assertIsNone(self.send(bytes(damaged)))
         self.rpc(7,S.pack('<I',73));self.rpc(9,S.pack('<I',73))
-        self.assertEqual(self.send(wire(22,1,1))[0],0)
+        self.assertEqual(self.send(self.wire(22,1,1))[0],0)
     def test_root_traversal_nul_and_bounds(self):
         for p in ('/else','/test/../else','/test//game','/test/a.','/test/a ', '/test/a:b', '/test/a\\b'):
             self.rpc(2,path(p),1)
@@ -178,27 +196,29 @@ class SdserveTests(unittest.TestCase):
     def test_unfinished_stage_survives_stop(self):
         (self.disk/'test/game.bin').write_bytes(b'old');self.begin(b'data')
         self.rpc(6,S.pack('<II',73,0)+b'da');self.lib.service_stop()
-        self.lib.service_init(b'/test',102);self.sid=20;self.seq=0;self.rpc(1)
+        self.lib.service_init_mode(b'/test',102,self.FAST);self.sid=20;self.seq=0;self.rpc(1)
         self.assertEqual(self.rpc(10,b'\0'+path('/test/game.bin')),b'\x07')
         self.rpc(10,b'\x02'+path('/test/game.bin'))
     def test_first_upload_orphan_can_be_explicitly_abandoned(self):
         self.begin(b'data');self.rpc(6,S.pack('<II',73,0)+b'da')
-        self.lib.service_stop();self.lib.service_init(b'/test',103)
+        self.lib.service_stop();self.lib.service_init_mode(b'/test',103,self.FAST)
         self.sid=21;self.seq=0;self.rpc(1)
         self.assertEqual(self.rpc(10,b'\0'+path('/test/game.bin')),b'\x06')
         self.rpc(10,b'\x02'+path('/test/game.bin'))
         self.assertEqual(list((self.disk/'test').iterdir()),[])
 
     def test_mode_and_verification_read_cost(self):
-        self.assertEqual(S.unpack('<IHH',self.rpc(1)),(101,212,47|(16 if self.FAST else 0)))
+        self.assertEqual(S.unpack('<IHH',self.rpc(1)),(101,212,47|(80 if self.FAST else 0)))
         data=bytes(range(256))*16
         before=self.lib.fs_read_bytes()
         self.stage(data);self.rpc(8,S.pack('<I',73))
         self.assertEqual(self.lib.fs_read_bytes()-before,20+(0 if self.FAST else 2*len(data)))
         self.assertEqual((self.disk/'test/game.bin').read_bytes(),data)
 
-    def test_declared_crc_is_not_verified_in_fast_mode(self):
-        self.rpc(5,S.pack('<III',73,4,123)+path('/test/game.bin'))
+    def test_fast_reserved_crc_refused_and_checked_bad_digest_rejected(self):
+        if self.FAST:
+            self.rpc(5,S.pack('<III',73,4,123)+path('/test/game.bin'),1)
+        self.rpc(5,S.pack('<III',73,4,0 if self.FAST else 123)+path('/test/game.bin'))
         self.rpc(6,S.pack('<II',73,0)+b'data')
         self.rpc(7,S.pack('<I',73),0 if self.FAST else 7)
         if self.FAST:
@@ -218,5 +238,34 @@ class SdserveTests(unittest.TestCase):
 
 class FastSdserveTests(SdserveTests):
     FAST=1
+
+    def test_checked_packet_is_refused_without_crc_work(self):
+        self.assertIsNone(self.send(wire(self.sid,self.seq+1,1)))
+        bad=bytearray(self.wire(self.sid,self.seq+1,1));bad[16]=1
+        self.assertIsNone(self.send(bytes(bad)))
+
+    def test_checked_metadata_is_preserved_without_crc_work(self):
+        metadata=b'SDT1'+S.pack('<III',73,4,zlib.crc32(b'data'))
+        metadata+=S.pack('<I',zlib.crc32(metadata))
+        (self.disk/'test/game.bin.p17meta').write_bytes(metadata)
+        (self.disk/'test/game.bin.p17part').write_bytes(b'data')
+        self.assertEqual(self.rpc(10,b'\0'+path('/test/game.bin')),bytes([22]))
+        self.rpc(10,b'\x02'+path('/test/game.bin'),8)
+        self.assertEqual((self.disk/'test/game.bin.p17meta').read_bytes(),metadata)
+        self.assertEqual((self.disk/'test/game.bin.p17part').read_bytes(),b'data')
+
+    def test_fast_metadata_and_size_only_recovery(self):
+        self.stage(b'data')
+        meta=self.disk/'test/game.bin.p17meta'
+        self.assertEqual(meta.read_bytes(),b'SDT2'+S.pack('<IIII',73,4,0,0))
+        self.lib.service_stop();self.lib.service_init_mode(b'/test',104,1)
+        self.sid=22;self.seq=0;self.rpc(1)
+        (self.disk/'test/game.bin.p17part').unlink()
+        (self.disk/'test/game.bin').write_bytes(b'bad')
+        self.rpc(10,b'\x02'+path('/test/game.bin'),7)
+        self.assertTrue(meta.exists())
+        (self.disk/'test/game.bin').write_bytes(b'good')
+        self.rpc(10,b'\x02'+path('/test/game.bin'))
+        self.assertFalse(meta.exists())
 
 if __name__=='__main__':unittest.main()

@@ -1,6 +1,6 @@
 # EMOS TODO
 
-- [ ] **[INPUT-001 — Resident controller read candidate](docs/tasks/INPUT-001.md)** — Candidate cache/gateway/IRQ source and native pipeline checks pass. Identified v0.1.25 full-ROM/mandatory linked checks and installed complete ROM readback pass at131010bytes/62free. Viewer-r02 fails with controller/keyboard loss; receive-overlap defect reproduced offline. Prepared checksum-free96-byte correction passes full unversioned/host/linked checks (130748bytes/324free); matched naming/P4 build/deployment and physical review remain.
+- [ ] **[INPUT-001 — Resident controller read candidate](docs/tasks/INPUT-001.md)** — Installed v0.1.25 remains unchanged; viewer-r02 controller/keyboard failure reproduced offline. Named v0.1.26 checksum-free96-byte correction passes wrapper/linked checks at130786bytes/286free. Installation waits for Extender's corrected fast-copy P4/listener and bootstrap; physical review remains.
 
 - [ ] **[INTEG-016 — Bidirectional ExExt parallel transport](docs/tasks/INTEG-016.md)** — Paired CRC and software COMPLETE/ACK removal complete offline: format4, actual native/cleanup/reciprocal UART return; full builds and host/linked checks pass, ExExt 130,334 bytes/738 free. No hardware access while fsim uses the bench. Remaining control/scheduling and physical qualification gated; production unchanged.
 
@@ -8,7 +8,7 @@
 
 - [ ] **[FWBUG-008 — Correct raw SD API write dispatch](docs/tasks/FWBUG-008.md)** — A10-RP04 candidate: replace the inherited API `0x73` read-driver call with the write driver, preserve wrapper ABI/status behavior, reuse `mos-tests` raw-image controls, and retain the separately authorized physical destructive-sector gate.
 
-- [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — Idle-CLI admission boundary implemented; automated checks pass, human emulator review pending.
+- [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — R05-11 checksum-free fast listener passes47 instrumented checks and target MOSlet compilation; new identity, paired P4, bootstrap and physical review pending. Earlier idle-CLI admission scope and its review gates remain recorded in the task.
 
 - [ ] **[AUDIT-008](docs/tasks/AUDIT-008.md)** — Retire cancelled provider machinery and validate minimal foreground /emos dispatch; deployed with bounded physical checks passing; broader acceptance pending.
 
