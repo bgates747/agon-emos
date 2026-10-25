@@ -94,3 +94,39 @@ healthy. EMOSv0.1.25 and mainboard VDP are unchanged from the preceding
 installation; startup exact. CLI handback verified before preloading viewer;
 viewer never RUN, listener closed, Legacy CLI/input neutral. Author owns the
 manual mode20 invocation/visual handling review. No production promotion.
+
+
+## Receive-overlap correction — 2026-10-25
+
+Author directs the bug correction and forbids CRCs in EMOS–Extender VDP traffic
+unless specifically requested. The installed v0.1.25 cached READ masks IRQs
+through two CRC calculations while another P4 reply may be outstanding. A
+linked-image synthetic arrival test reproduces FIFO overrun, resident keyboard
+fault and subsequent REQUEST35, matching the reported dead Escape.
+
+Prepared source has no controller CRCs: carrier2/96-byte result, shared fixed
+F7 padding zero. READ during a pending refresh returns busy; snapshot copying,
+unused-record clearing and age processing run with interrupts enabled. A short
+final lock revalidates and acknowledges the completed copy. Timestamp publication
+precedes the request waiting flag. The actual linked correction has no FIFO
+fault, returns coherent fresh data and delivers Escape through the real IRQ
+while reading. Tested ordinary READ masking is82 versus176,936 instructions;
+counts are not physical timing. The optional profile's full unversioned ROM
+build and all mandatory guards pass:130,748bytes/324free. Host resident and
+paired27-test pipeline/receiver suites pass. Canonical carrier bytes match.
+
+Matched P4/EMOS/viewer identified builds and deployment require naming agreement;
+proposed EMOSv0.1.26, indexed-hdmi-r12 and controller-viewer-r03. The current
+profile still admits only the previously approved v0.1.25 or an explicit
+unversioned preparation. No flash/reset/SD operation or viewer invocation was
+performed. Preserve the running failed instance and installed bytes. This does
+not resolve LAN ACK timeouts or unrelated pre-existing console/SD CRC policy
+debt, and does not claim physical qualification.
+
+
+Author approves EMOSv0.1.26, indexed-hdmi-r12 and controller-viewer-r03 on
+2026-10-25 and directs continuing the matched correction. This settles naming
+for the private experimental carrier/API change; it does not accept the feature
+or promote production. Build/installation verification is authorized, with the
+viewer left stopped for Author invocation. Preserve mainboard VDP/startup and
+follow the no-CRC processor-communication policy for deployment.

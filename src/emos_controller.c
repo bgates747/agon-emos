@@ -31,10 +31,11 @@ static BYTE send_request(BYTE operation){
     BYTE *p=request+3,result;
     if(sequence==65535){emos_controller_reset();return EMOS_UNAVAILABLE;}
     ++sequence;memset(request,0,sizeof(request));request[0]=23;request[2]=0xf7;
-    p[0]='C';p[1]='I';p[2]=1;p[3]=operation;
+    p[0]='C';p[1]='I';p[2]=CONTROLLER_CARRIER_VERSION;p[3]=operation;
     controller_put32(p+4,token);controller_put32(p+8,acknowledged);controller_put16(p+12,sequence);
-    controller_put16(p+14,controller_crc(p,14));
-    waiting=operation==1;last_request=emos_keyboard_clock();
+    /* Publish the timestamp before waiting: VBlank may interrupt between
+     * these stores and must never expire a newly armed request using old age. */
+    last_request=emos_keyboard_clock();waiting=operation==1;
     result=emos_keyboard_send(request,sizeof(request));
     if(result!=EMOS_KEY_OK){emos_controller_reset();return FR_TIMEOUT;}
     return FR_OK;
@@ -42,10 +43,9 @@ static BYTE send_request(BYTE operation){
 void emos_controller_packet(const BYTE*p,BYTE length){
     BYTE i;UINT24 age,interval;
     if(waiting&&expired(last_request)){emos_controller_reset();return;}
-    if(!active||!waiting||ready||length!=CONTROLLER_RESULT_SIZE||memcmp(p,"CIS1",4)||
+    if(!active||!waiting||ready||length!=CONTROLLER_RESULT_SIZE||memcmp(p,CONTROLLER_RESULT_MAGIC,4)||
        controller_u32(p+4)!=token||controller_u16(p+8)!=sequence||p[10]>3||p[10]==2||
-       p[11]>CONTROLLER_BATCH||p[46]||p[47]||
-       controller_crc(p,96)!=controller_u16(p+96))return;
+       p[11]>CONTROLLER_BATCH||p[46]||p[47])return;
     if((controller_u16(p+34)&0x8000)||(controller_u16(p+34)&0x1800)==0x1800||
        (controller_u16(p+34)&0x6000)==0x6000)return;
     for(i=0;i<p[11];++i){
@@ -64,11 +64,11 @@ void emos_controller_packet(const BYTE*p,BYTE length){
     if(age>65535)age=65535;
     controller_put16(cache+32,age);
     if((cache[10]&2)&&age>=250)stale_sample(cache);
-    controller_put16(cache+96,controller_crc(cache,96));
     waiting=0;ready=have_cache=1;
 }
 UINT24 emos_controller_gateway(t_emosGatewayRequest*r){
     UINT24 in,n,out,capacity;BYTE operation,irq,result=FR_OK;
+    UINT32 copied_edge;
     if(!range((UINT24)r,sizeof(*r))||!emos_application_context())return EMOS_UNSAFE_CALLER;
     in=emos_read24(r->input);n=emos_read24(r->inputLength);
     out=emos_read24(r->output);capacity=emos_read24(r->outputCapacity);
@@ -92,16 +92,29 @@ UINT24 emos_controller_gateway(t_emosGatewayRequest*r){
     }
     if(!active||(waiting&&expired(last_request))){emos_controller_reset();emos_keyboard_unlock(irq);return EMOS_UNAVAILABLE;}
     if(operation==1){
-        if(!have_cache)result=EMOS_BUSY;
+        if(waiting||!have_cache)result=EMOS_BUSY;
         else if(expired(last_rx)){emos_controller_reset();result=EMOS_UNAVAILABLE;}
         else {
-            memcpy((BYTE*)out,cache,sizeof(cache));r->outputLength[0]=sizeof(cache);
-            if((cache[10]&2)&&controller_u16(cache+32)+
+            /* IN001-F02: a previous READ masked IRQs through two CRC loops.
+             * A pending P4 reply could overflow UART1 and stop keyboard input.
+             * No CRCs are permitted on this processor link. More generally,
+             * never bulk-copy/process a snapshot with interrupts disabled.
+             * With waiting==0 no reply can publish cache until a later
+             * foreground REQUEST; the gateway excludes recursive callers.
+             * Tick/fault reset only flags, never the cache bytes themselves. */
+            emos_keyboard_unlock(irq);
+            memcpy((BYTE*)out,cache,sizeof(cache));
+            if(((BYTE*)out)[11]==0)memset((BYTE*)out+48,0,48);
+            if((((BYTE*)out)[10]&2)&&controller_u16((BYTE*)out+32)+
                ((UINT24)(BYTE)(emos_keyboard_clock()-last_rx)+2)*9>=250)stale_sample((BYTE*)out);
-            if(ready&&((BYTE*)out)[11])acknowledged=controller_u32(cache+48+(cache[11]-1)*6);
-            controller_put16((BYTE*)out+96,controller_crc((BYTE*)out,96));
-            ready=0;cache[11]=0;memset(cache+48,0,48);
-            controller_put16(cache+96,controller_crc(cache,96));
+            copied_edge=((BYTE*)out)[11]?controller_u32((BYTE*)out+48+(((BYTE*)out)[11]-1)*6):acknowledged;
+            irq=emos_keyboard_lock();
+            if(!active||!healthy()||expired(last_rx))result=EMOS_UNAVAILABLE;
+            else {
+                /* Advance consumption only after the caller owns the copy. */
+                acknowledged=copied_edge;ready=0;cache[11]=0;
+                r->outputLength[0]=sizeof(cache);
+            }
         }
         emos_keyboard_unlock(irq);return result;
     }

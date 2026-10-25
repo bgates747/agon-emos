@@ -80,3 +80,20 @@ after a fault. The ordinary public-entry comparison still exercises already
 faulted calls. Complete IRQ cases assert fault-clear at every byte-call boundary
 and include callbacks releasing ownership, setting faults, and doing both at
 each of sixteen byte positions. This does not weaken public API coverage.
+
+
+## Controller READ and receive-overlap regression
+
+`cargo run --offline --release --manifest-path tests/uart_put_cpu/Cargo.toml
+--bin controller -- IMAGE_DIR` executes the real gateway, controller service,
+byte parser and complete receive IRQ from a corrected image containing
+`MOS.bin` and `nm.txt`. Use `--legacy` with the preserved installed v0.1.25
+image to reproduce its masked-read FIFO fault and subsequent REQUEST35.
+The historical response uses frozen fixture bytes; no checksum is computed by
+this test. The corrected image must return busy during a pending refresh,
+return a coherent fresh snapshot afterward, keep ordinary READ masking below
+512 executed instructions and deliver a complete Escape report through the
+actual UART IRQ during a cached READ. Synthetic arrivals are spaced by256
+instructions for the reply overlap and64 for keyboard overlap, honour the
+modeled RTS and use a16-byte FIFO. This is not a calibrated timing model or a
+physical UART/FIFO qualification; instruction counts are not clock cycles.

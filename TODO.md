@@ -1,6 +1,6 @@
 # EMOS TODO
 
-- [ ] **[INPUT-001 — Resident controller read candidate](docs/tasks/INPUT-001.md)** — Candidate cache/gateway/IRQ source and native pipeline checks pass. Identified v0.1.25 full-ROM/mandatory linked checks and installed complete ROM readback pass at131010bytes/62free. Paired P4 r11 source admission/snapshots are checked; the preloaded viewer is stopped for physical controller/lifecycle qualification.
+- [ ] **[INPUT-001 — Resident controller read candidate](docs/tasks/INPUT-001.md)** — Candidate cache/gateway/IRQ source and native pipeline checks pass. Identified v0.1.25 full-ROM/mandatory linked checks and installed complete ROM readback pass at131010bytes/62free. Viewer-r02 fails with controller/keyboard loss; receive-overlap defect reproduced offline. Prepared checksum-free96-byte correction passes full unversioned/host/linked checks (130748bytes/324free); matched naming/P4 build/deployment and physical review remain.
 
 - [ ] **[INTEG-016 — Bidirectional ExExt parallel transport](docs/tasks/INTEG-016.md)** — Paired CRC and software COMPLETE/ACK removal complete offline: format4, actual native/cleanup/reciprocal UART return; full builds and host/linked checks pass, ExExt 130,334 bytes/738 free. No hardware access while fsim uses the bench. Remaining control/scheduling and physical qualification gated; production unchanged.
 

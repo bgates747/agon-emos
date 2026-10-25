@@ -163,8 +163,11 @@ Qualification is tracked in [INTEG-015](tasks/INTEG-015.md).
 
 The separately selected controller candidate also adds `ext.controller` through
 this existing gateway. It is not in ordinary/production selection. Input
-operations0–3 open, read a resident98-byte cache, request one bounded refresh,
-and close. Application/IRQ/mode/UART-owner bounds, VBlank-enforced expiry and
+operations0–3 open, read a resident96-byte cache, request one bounded refresh,
+and close. This prepared checksum-free correction replaces the installed
+CRC-bearing98-byte candidate; matching P4/application updates are required.
+READ returns busy during a refresh and copies with interrupts enabled.
+Application/IRQ/mode/UART-owner bounds, VBlank-enforced expiry and
 post-copy transition acknowledgement remain EMOS-owned. The
 [controller task](tasks/INPUT-001.md) and
 [paired development contract](../../agon-extender/docs/protocols/controller-emos.md)
