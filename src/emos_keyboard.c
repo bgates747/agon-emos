@@ -5,6 +5,9 @@
  */
 #include <string.h>
 #include "emos_keyboard.h"
+#if defined(EMOS_CONTROLLER_INPUT)
+#include "emos_controller.h"
+#endif
 #include "uart.h"
 #include "emos_console.h"
 #include "emos_sdlink.h"
@@ -95,6 +98,9 @@ void emos_keyboard_fault(void) {
     /* ISR only. Foreground TX errors request this through fault_requested. */
     if (uart1_keyboard_owned == UART_KEYBOARD_PARKED) { fault_requested = 1; return; }
     uart1_keyboard_stop();
+#if defined(EMOS_CONTROLLER_INPUT)
+    emos_controller_reset();
+#endif
     #ifdef EMOS_BENCH_TELEMETRY
     async_abort();
     emos_telemetry_reset();
@@ -106,6 +112,9 @@ void emos_keyboard_fault(void) {
     if (emos_key_source != EMOS_KEY_MAINBOARD) cleanup();
 }
 void emos_keyboard_tick(void) {
+#if defined(EMOS_CONTROLLER_INPUT)
+    emos_controller_tick();
+#endif
     if (uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
     emos_parallel_boot_tick();
     if (stop_requested) {
@@ -146,6 +155,9 @@ void emos_keyboard_tick(void) {
 #endif
 }
 void emos_keyboard_dispatch(void) {
+#if defined(EMOS_CONTROLLER_INPUT)
+    if(emos_key_rx.command==0x8e){emos_controller_packet(emos_key_rx.payload,emos_key_rx.length);return;}
+#endif
     if (emos_key_rx.command == 0x8D) { emos_sdlink_packet(emos_key_rx.payload,emos_key_rx.length); return; }
     emos_console_packet(emos_key_rx.command, emos_key_rx.payload, emos_key_rx.length);
     if (emos_key_rx.command == 0x80 && emos_key_rx.length == 1 && preparing && emos_key_rx.payload[0] == token) {

@@ -16,6 +16,9 @@
 #include "emos_admission.h"
 #include "emos_telemetry.h"
 #include "emos_console.h"
+#if defined(EMOS_CONTROLLER_INPUT)
+#include "emos_controller.h"
+#endif
 #if defined(EMOS_EXEXT_STREAM)
 #include "emos_exext.h"
 #endif
@@ -231,6 +234,12 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
         return result;
     }
     if (strcmp(namespaceName,"ext") == 0) {
+#if defined(EMOS_CONTROLLER_INPUT)
+        if(!strcmp(providerName,"controller")){
+            if(emosBusy)return EMOS_BUSY;
+            emosBusy=TRUE;result=emos_controller_gateway(request);emosBusy=FALSE;return result;
+        }
+#endif
 #ifdef EMOS_BENCH_TELEMETRY
         BYTE telemetry = strcmp(providerName,"telemetry") == 0;
 #else
@@ -259,6 +268,9 @@ BYTE emos_application_enter(UINT8 *image, UINT24 address) {
 	BYTE flags;
     if (!emos_admission_dispatching()) emos_admission_leave();
     emos_uartdiag_reset();
+#if defined(EMOS_CONTROLLER_INPUT)
+    emos_controller_reset();
+#endif
     emos_sdlink_reset();
 #ifdef EMOS_BENCH_TELEMETRY
     emos_telemetry_reset();
@@ -283,6 +295,9 @@ BYTE emos_application_enter(UINT8 *image, UINT24 address) {
 void emos_application_leave(BYTE previousPolicy) {
     if (!emos_admission_dispatching()) emos_admission_leave();
     emos_uartdiag_reset();
+#if defined(EMOS_CONTROLLER_INPUT)
+    emos_controller_reset();
+#endif
     emos_sdlink_reset();
 #ifdef EMOS_BENCH_TELEMETRY
     emos_telemetry_reset();

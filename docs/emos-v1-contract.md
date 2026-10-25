@@ -159,6 +159,18 @@ and retain their source/value checks. This scoped compatibility correction does
 not introduce a generalized callback API; UART1 behavior is unchanged.
 Qualification is tracked in [INTEG-015](tasks/INTEG-015.md).
 
+## Development controller candidate: `ext.controller`
+
+The separately selected controller candidate also adds `ext.controller` through
+this existing gateway. It is not in ordinary/production selection. Input
+operations0–3 open, read a resident98-byte cache, request one bounded refresh,
+and close. Application/IRQ/mode/UART-owner bounds, VBlank-enforced expiry and
+post-copy transition acknowledgement remain EMOS-owned. The
+[controller task](tasks/INPUT-001.md) and
+[paired development contract](../../agon-extender/docs/protocols/controller-emos.md)
+own its exact candidate semantics and physical review limits. This allocates no
+global MOS/getfunction number and supplies no application UART bypass.
+
 ## Development diagnostic service: `ext.uartdiag` v1
 
 This PORT-008 candidate service supports the foreground UARTFLOW, UARTTEST and

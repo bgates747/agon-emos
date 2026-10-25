@@ -50,6 +50,14 @@ their named checkpoints, not this build.
 
 ## Development candidate
 
+The separate `port/controller-candidate.mk` builds the uninstalled
+[controller read service](tasks/INPUT-001.md) for Extender's mode20 viewer. It
+uses the existing resident gateway and EMOS-owned UART, with cached READ and
+bounded REQUEST operations. Native service/pipeline and full-ROM/linked checks
+pass; no physical controller, UART, display or coexistence qualification is
+claimed. Default firmware selection excludes it. The profile requires explicit
+unversioned experimental identity and is not a deployment image.
+
 [REMOTE-005](tasks/REMOTE-005.md) adds private idle-CLI admission and finite utility
 dispatch. It is not an available automatic file-transfer service or production
 release. Continue using the documented manual listener until paired qualification.
