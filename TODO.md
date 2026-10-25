@@ -1,6 +1,6 @@
 # EMOS TODO
 
-- [ ] **[INPUT-001 — Resident controller read candidate](docs/tasks/INPUT-001.md)** — Installed v0.1.25 remains unchanged; viewer-r02 controller/keyboard failure reproduced offline. Named v0.1.26 checksum-free96-byte correction passes wrapper/linked checks at130786bytes/286free. Installation waits for Extender's corrected fast-copy P4/listener and bootstrap; physical review remains.
+- [ ] **[INPUT-001 — Resident controller read candidate](docs/tasks/INPUT-001.md)** — v0.1.26 checksum-free96-byte correction installed/full-ROM readback verified at130786bytes/286free. Paired P4r13/sdserve-v0.3.0 and viewer-r03 RAM are verified; viewer stopped for Author axis/button/Escape review. Wider qualification/acceptance remains.
 
 - [ ] **[INTEG-016 — Bidirectional ExExt parallel transport](docs/tasks/INTEG-016.md)** — Paired CRC and software COMPLETE/ACK removal complete offline: format4, actual native/cleanup/reciprocal UART return; full builds and host/linked checks pass, ExExt 130,334 bytes/738 free. No hardware access while fsim uses the bench. Remaining control/scheduling and physical qualification gated; production unchanged.
 
@@ -8,7 +8,7 @@
 
 - [ ] **[FWBUG-008 — Correct raw SD API write dispatch](docs/tasks/FWBUG-008.md)** — A10-RP04 candidate: replace the inherited API `0x73` read-driver call with the write driver, preserve wrapper ABI/status behavior, reuse `mos-tests` raw-image controls, and retain the separately authorized physical destructive-sector gate.
 
-- [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — R05-11 checksum-free fast listener passes47 instrumented checks and target MOSlet compilation; new identity, paired P4, bootstrap and physical review pending. Earlier idle-CLI admission scope and its review gates remain recorded in the task.
+- [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — R05-11 checksum-free fast listener-v0.3.0 installed/readback verified with P4r13;128KiB downloads and551-byte install-record upload/readback pass. Legacy bootstrap closed; broader physical qualification/acceptance pending. Earlier admission scope retains its separate gates.
 
 - [ ] **[AUDIT-008](docs/tasks/AUDIT-008.md)** — Retire cancelled provider machinery and validate minimal foreground /emos dispatch; deployed with bounded physical checks passing; broader acceptance pending.
 

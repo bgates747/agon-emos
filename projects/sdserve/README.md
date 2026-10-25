@@ -1,14 +1,16 @@
 # Mainboard SD foreground service
 
-The prepared fast correction uses checksum-free protocol major2 for every
+The fast correction uses checksum-free protocol major2 for every
 record, file operation and recovery path. It requires paired P4/host updates;
 no resident EMOS ABI change is needed. Source and target compile checks are
-separate from installation and physical acceptance, which remain pending.
-The original installed v0.2.0 fast listener still uses packet CRCs; the Author's
+separate from physical acceptance. The identified v0.3.0 MOSlet and paired P4r13
+are installed with exact file readbacks,128KiB downloads and a551-byte receipt
+upload/readback. Broader transfer qualification remains pending.
+The original v0.2.0 fast listener still uses packet CRCs; the Author's
 processor-link policy requires an explicit request before operational use.
 
 The listener uses resident `ext.sdlink` and matching Extender P4 firmware.
-The recorded current installation is the sdserve v0.2.0 EMOSlet at
+The selected production bundle retains the sdserve v0.2.0 EMOSlet at
 `/emos/sdserve.bin`, launched through EMOS v0.1.19:
 
 ```text

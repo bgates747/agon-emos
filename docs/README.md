@@ -55,13 +55,15 @@ The separate `port/controller-candidate.mk` builds the experimental
 uses the existing resident gateway and EMOS-owned UART, with cached READ and
 bounded REQUEST operations. Native service/pipeline and full-ROM/linked checks
 pass; no physical controller, UART, display or coexistence qualification is
-claimed. Default firmware selection excludes it. The Author-approved v0.1.25 image is installed with complete ROM readback
-verification; ordinary selection still excludes it. The first viewer review failed with controller and keyboard input loss.
+claimed. Default firmware selection excludes it. The Author-approved v0.1.26
+correction is installed with complete ROM readback; ordinary selection still
+excludes it. The earlier viewer review lost controller and keyboard input.
 That masked-read UART failure is reproduced by a linked instruction test;
-prepared source removes controller CRCs, returns busy during a pending refresh
+the correction removes controller CRCs, returns busy during a pending refresh
 and copies96-byte snapshots with interrupts enabled. Native/linked checks and
-an unversioned full-ROM build pass. Corrected named builds/deployment and
-physical review remain pending. The profile also retains explicit unversioned builds.
+the identified full-ROM build pass. P4r13, sdserve-v0.3.0 and viewer-r03 are
+installed; viewer RAM matches its binary and remains stopped for Author review.
+The profile also retains explicit unversioned builds.
 
 [REMOTE-005](tasks/REMOTE-005.md) adds private idle-CLI admission and finite utility
 dispatch. It is not an available automatic file-transfer service or production

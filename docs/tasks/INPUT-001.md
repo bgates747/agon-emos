@@ -130,3 +130,13 @@ for the private experimental carrier/API change; it does not accept the feature
 or promote production. Build/installation verification is authorized, with the
 viewer left stopped for Author invocation. Preserve mainboard VDP/startup and
 follow the no-CRC processor-communication policy for deployment.
+
+
+## Corrected named ROM installed — 2026-10-25
+
+Author-approved agon-emos-v0.1.26-b2026-10-25-04-24-35Z/source11b7a5c1 is
+installed with exact128KiB ROM readback,130786rawbytes/286free. Paired P4r13,
+sdserve-v0.3.0 and viewer-r03 installation is verified by Extender; viewer RAM
+matches its file but remains uninvoked. Mainboard VDP/startup unchanged.
+Physical axis/button/Escape review remains with the Author; no acceptance or
+production promotion is claimed.

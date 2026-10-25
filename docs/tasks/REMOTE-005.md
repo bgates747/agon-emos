@@ -169,3 +169,14 @@ Author approves sdserve-v0.3.0, paired P4r13 and one final legacy-service
 bootstrap session on2026-10-25. Identified MOSlet packaging uses the maintained
 prepare_sdserve.py --moslet option. Resident EMOSv26 is retained unchanged;
 physical installation verification remains with Extender.
+
+
+## Named fast listener installed — 2026-10-25
+
+Author-approved sdserve-v0.3.0-b2026-10-25-05-14-41Z/source9a92d811 is22968bytes
+and installed at /emos/sdserve.bin with independent readback. Old listener is
+preserved. Paired P4r13 uses major2; actual128KiB downloads and a551-byte
+installation-record upload/readback pass. One legacy bootstrap session closed;
+no continuing checked fallback. Resident source was unchanged by this listener
+correction; the separately prepared controller EMOSv26 is installed/ROM-verified.
+No emulator or viewer invocation; broader physical qualification is pending.
