@@ -159,13 +159,24 @@ and retain their source/value checks. This scoped compatibility correction does
 not introduce a generalized callback API; UART1 behavior is unchanged.
 Qualification is tracked in [INTEG-015](tasks/INTEG-015.md).
 
+The Author-approved v0.1.27 VDPlet extension in current development source
+additionally admits the exact ten-byte `VDPL` signature through that same
+callback-only path. The committed-mainboard-display guard, physical-key
+source/value filtering and UART1 behavior are unchanged. The application
+interprets VDPlet's protocol, kind, token and value fields; EMOS adds no checksum
+or generalized packet API. The identified v0.1.27 build is installed with exact
+full-ROM verification. Linked CPU checks and bounded physical discovery/input
+checks pass in modes0/20; arbitrary reply kinds, module lifecycle and rendering
+remain outside that result. Selected production is unchanged.
+
 ## Development controller candidate: `ext.controller`
 
 The separately selected controller candidate also adds `ext.controller` through
 this existing gateway. It is not in ordinary/production selection. Input
 operations0–3 open, read a resident96-byte cache, request one bounded refresh,
-and close. This prepared checksum-free correction replaces the installed
-CRC-bearing98-byte candidate; matching P4/application updates are required.
+and close. Installed v0.1.27 retains the checksum-free correction introduced in
+v0.1.26, replacing the earlier CRC-bearing98-byte candidate. Matching P4 and
+application updates are required.
 READ returns busy during a refresh and copies with interrupts enabled.
 Application/IRQ/mode/UART-owner bounds, VBlank-enforced expiry and
 post-copy transition acknowledgement remain EMOS-owned. The

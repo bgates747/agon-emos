@@ -50,3 +50,6 @@ projects/keyboard-api/build/
 
 /projects/parprobe/bin/
 /projects/parprobe/obj/
+
+/projects/vdplet-check/bin/
+/projects/vdplet-check/obj/

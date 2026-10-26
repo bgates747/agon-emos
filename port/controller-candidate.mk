@@ -1,4 +1,5 @@
-# INPUT-001 controller appliance; Author approved v0.1.26 for bench deployment.
+# INPUT-001 controller appliance; Author approved v0.1.26 and the bounded
+# INTEG-015 VDPlet-admission correction v0.1.27 for bench deployment.
 include $(dir $(lastword $(MAKEFILE_LIST)))mos-agondev.mk
 # Refuse inherited ordinary identities; keep exploratory builds available.
 ifeq ($(EMOS_SOURCE_IDENTITY),UNVERSIONED-DO-NOT-DEPLOY)
@@ -6,11 +7,11 @@ ifneq ($(EMOS_BUILD_ID),UNVERSIONED-DO-NOT-DEPLOY)
 $(error Unversioned controller source requires an unversioned build)
 endif
 else
-ifneq ($(EMOS_SOURCE_IDENTITY),agon-emos-v0.1.26)
-$(error Controller candidate requires approved agon-emos-v0.1.26 identity)
+ifeq ($(filter agon-emos-v0.1.26 agon-emos-v0.1.27,$(EMOS_SOURCE_IDENTITY)),)
+$(error Controller candidate requires approved agon-emos-v0.1.26 or agon-emos-v0.1.27 identity)
 endif
-ifeq ($(filter agon-emos-v0.1.26-b%Z,$(EMOS_BUILD_ID)),)
-$(error Controller candidate requires a matching timestamped v0.1.26 build)
+ifeq ($(filter $(EMOS_SOURCE_IDENTITY)-b%Z,$(EMOS_BUILD_ID)),)
+$(error Controller candidate requires a matching timestamped build)
 endif
 endif
 ifneq ($(EMOS_ARTIFACT_STATUS),experimental)

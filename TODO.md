@@ -4,7 +4,7 @@
 
 - [ ] **[INTEG-016 — Bidirectional ExExt parallel transport](docs/tasks/INTEG-016.md)** — Paired CRC and software COMPLETE/ACK removal complete offline: format4, actual native/cleanup/reciprocal UART return; full builds and host/linked checks pass, ExExt 130,334 bytes/738 free. No hardware access while fsim uses the bench. Remaining control/scheduling and physical qualification gated; production unchanged.
 
-- [ ] **[INTEG-015 — Pingo completion callback compatibility](docs/tasks/INTEG-015.md)** — Bounded assembly correction builds; 796 linked CPU cases and existing keyboard checks pass. Installed ROM verified; unchanged Pingo application passes bounded completion/input check. Author acceptance and fsim visual review pending.
+- [ ] **[INTEG-015 — Pingo/VDPlet callback compatibility](docs/tasks/INTEG-015.md)** — v0.1.27 installed/full-ROM verified; 1594 linked cases and real discovery/Escape pass modes0/20 with unchanged keyboard state. Mode20 clock supports nominal120units/s. Bench handed back; Author acceptance and wider consumer/visual qualification remain. Production unchanged.
 
 - [ ] **[FWBUG-008 — Correct raw SD API write dispatch](docs/tasks/FWBUG-008.md)** — A10-RP04 candidate: replace the inherited API `0x73` read-driver call with the write driver, preserve wrapper ABI/status behavior, reuse `mos-tests` raw-image controls, and retain the separately authorized physical destructive-sector gate.
 

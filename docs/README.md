@@ -56,14 +56,24 @@ uses the existing resident gateway and EMOS-owned UART, with cached READ and
 bounded REQUEST operations. Native service/pipeline and full-ROM/linked checks
 pass; no physical controller, UART, display or coexistence qualification is
 claimed. Default firmware selection excludes it. The Author-approved v0.1.26
-correction is installed with complete ROM readback; ordinary selection still
+correction is retained by installed v0.1.27 with complete ROM readback; ordinary selection still
 excludes it. The earlier viewer review lost controller and keyboard input.
 That masked-read UART failure is reproduced by a linked instruction test;
 the correction removes controller CRCs, returns busy during a pending refresh
 and copies96-byte snapshots with interrupts enabled. Native/linked checks and
 the identified full-ROM build pass. P4r13, sdserve-v0.3.0 and viewer-r03 are
-installed; viewer RAM matches its binary and remains stopped for Author review.
+installed. The Author reported successful controller operation and deferred
+latency work; broader controller qualification remains open.
 The profile also retains explicit unversioned builds.
+
+The Author-approved v0.1.27 extension retains that controller composition and
+adds only bounded mainboard `VDPL` replies alongside `P3DR` to the existing
+callback-only path. Its identified full build fits at 130802 bytes/270 free and
+passes all mandatory linked checks. Installation/full-ROM verification and
+finite physical discovery/Escape checks in modes0/20 pass. The selected
+production bundle is unchanged. See the maintained
+[completion contract](emos-v1-contract.md#pingo-completion-compatibility-candidate)
+and [implementation evidence](tasks/INTEG-015.md).
 
 [REMOTE-005](tasks/REMOTE-005.md) adds private idle-CLI admission and finite utility
 dispatch. It is not an available automatic file-transfer service or production

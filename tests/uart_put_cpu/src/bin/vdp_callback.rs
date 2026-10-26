@@ -1,11 +1,14 @@
 //! INTEG-015: execute the actual linked UART0 parser/C key owner/assembly
 //! callback bridge. Only the application callback and hardware ports are models.
+//! Old-image control is v26: P3DR admitted, VDPL rejected before this correction.
 use ez80::{Cpu, Machine, Reg16};
 use std::{collections::HashMap, env, fs, path::Path};
 const SP: u32 = 0xaff00;
 const EXIT: u32 = 0xa0000;
 const CALLBACK: u32 = 0xa0100;
-const NOTICE: [u8;10] = [b'P',b'3',b'D',b'R',1,1,0x34,0x12,0xcd,0xab];
+const PINGO: [u8;10] = [b'P',b'3',b'D',b'R',1,1,0x34,0x12,0xcd,0xab];
+const VDPLET: [u8;10] = [b'V',b'D',b'P',b'L',1,1,0x34,0x12,0xcd,0xab];
+const NOTICES: [[u8;10];2] = [PINGO,VDPLET];
 struct Image { data: Vec<u8>, syms: HashMap<String,u32> }
 impl Image {
     fn load(path: &str) -> Self {
@@ -73,47 +76,60 @@ fn main() {
     let args:Vec<_>=env::args().collect(); assert_eq!(args.len(),3,"old-image new-image");
     let old=Image::load(&args[1]); let im=Image::load(&args[2]); let mut checks=0;
     for source in 0..=2 {
-        let mut b=Board::new(&old,source,0,true); b.packet(&old,0x81,&NOTICE);
-        assert!(b.calls.is_empty(),"old-image rejection control"); checks+=1;
+        let mut b=Board::new(&old,source,0,true); b.packet(&old,0x81,&PINGO);
+        assert_eq!(b.calls,vec![PINGO.to_vec()],"v26 P3DR preservation control");
+        b.calls.clear(); b.packet(&old,0x81,&VDPLET);
+        assert!(b.calls.is_empty(),"v26 VDPL rejection control"); checks+=2;
     }
+    for notice in NOTICES {
     for source in 0..=2 { for backend in 0..=1 { for registered in [false,true] {
         let mut b=Board::new(&im,source,backend,registered);
         // Preserve an actually held key and nonzero sysvars through completion.
         b.poke(im.a("_keycount"),77); b.poke(im.a("_held")+2,0x55);
         b.poke(im.a("_keymap")+1,0x33);
-        let before=b.state(&im); b.edit=true; b.packet(&im,0x81,&NOTICE);
+        let before=b.state(&im); b.edit=true; b.packet(&im,0x81,&notice);
         assert_eq!(b.calls.len(),usize::from(backend==0 && registered));
-        if !b.calls.is_empty() {assert_eq!(b.calls[0],NOTICE);}
+        if !b.calls.is_empty() {assert_eq!(b.calls[0],notice);}
         assert_eq!(b.state(&im),before,"completion altered keys"); checks+=1;
     }}}
     for source in 0..=2 { for length in 0..=255 {
         let mut b=Board::new(&im,source,0,true);
         // Prime the receive buffer with a complete record, leaving stale tail.
-        b.packet(&im,0x81,&NOTICE); b.calls.clear();
+        b.packet(&im,0x81,&notice); b.calls.clear();
         let mut payload=vec![0x81;length];
-        for (at,&v) in NOTICE.iter().enumerate().take(length) {payload[at]=v;}
+        for (at,&v) in notice.iter().enumerate().take(length) {payload[at]=v;}
         b.packet(&im,0x81,&payload);
         assert_eq!(b.calls.len(),usize::from(length==10),"source{source} length{length}");
         b.packet(&im,0x80,&[0x5a]); assert_eq!(b.peek(im.a("_gp")),0x5a);
         checks+=1;
     }}
     for at in 0..4 {
-        let mut b=Board::new(&im,2,0,true); let mut bad=NOTICE; bad[at]^=1;
+        let mut b=Board::new(&im,2,0,true); let mut bad=notice; bad[at]^=1;
         b.packet(&im,0x81,&bad); assert!(b.calls.is_empty()); checks+=1;
     }
+    // The application, not EMOS, interprets protocol/kind/token/value bytes.
+    let mut b=Board::new(&im,2,0,true); let mut opaque=notice;
+    opaque[4..].copy_from_slice(&[255,255,0,0,255,255]);
+    b.packet(&im,0x81,&opaque); assert_eq!(b.calls,vec![opaque.to_vec()]); checks+=1;
     for source in 0..=2 { for backend in 0..=1 {
         let mut b=Board::new(&im,source,backend,true);
         b.packet(&im,0x81,&[b'a',0,1,1]);
         let admitted=source==0;
         assert_eq!(b.calls.len(),usize::from(admitted));
         assert_eq!(b.peek(im.a("_keycount")),u8::from(admitted));
-        let held=b.state(&im); b.packet(&im,0x81,&NOTICE);
+        let held=b.state(&im); b.packet(&im,0x81,&notice);
         assert_eq!(b.state(&im),held);
         b.packet(&im,0x81,&[b'a',0,1,0]);
         assert_eq!(b.peek(im.a("_keycount")),2*u8::from(admitted));
         assert_eq!(b.peek(im.a("_held")),0); assert_eq!(b.peek(im.a("_keymap")),0);
         checks+=1;
     }}
+    }
+    for signature in [*b"P3DL",*b"VDPR",*b"ABCD"] {
+        let mut b=Board::new(&im,2,0,true); let mut bad=PINGO;
+        bad[..4].copy_from_slice(&signature);
+        b.packet(&im,0x81,&bad); assert!(b.calls.is_empty()); checks+=1;
+    }
     for bad in [[b'a',0,249,1],[b'a',0,1,2]] {
         let mut b=Board::new(&im,0,0,true); let before=b.state(&im);
         b.packet(&im,0x81,&bad); assert!(b.calls.is_empty()); assert_eq!(b.state(&im),before); checks+=1;

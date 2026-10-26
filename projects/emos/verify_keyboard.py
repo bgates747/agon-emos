@@ -55,15 +55,17 @@ def verify(image, linked):
           b'\x78\x32'+address('_keycode')+b'\xc3'+address('keyboard_handler'))
     exact('_emos_keyboard_settings', b'\x21\x03\x00\x00\x39\xed\x27\x11'+
           address('_keydelay')+b'\x01\x05\x00\x00\xed\xb0\xc9')
-    # Mainboard parser admits exact four-byte keys or the bounded Pingo
-    # completion only. The actual linked CPU harness exercises malformed input.
+    # Mainboard parser admits exact four-byte keys or the two bounded Pingo /
+    # VDPlet reply signatures. The linked CPU harness exercises malformed input.
     exact('vdp_protocol_KEY', b'\x2a'+address('_vdp_protocol_ptr')+
           b'\x11'+address('_vdp_protocol_data')+b'\xb7\xed\x52\x7d\xfe\x04\x28'+
           bytes([(linked['keyboard_mainboard_key']-(linked['vdp_protocol_KEY']+16)) & 255])+
           b'\xfe\x0a\xc0\x3a'+address('_emosVduBackend')+b'\xb7\xc0\x2a'+
-          address('_vdp_protocol_data')+b'\x11\x50\x33\x44\xb7\xed\x52\xc0\x3a'+
+          address('_vdp_protocol_data')+b'\x11\x50\x33\x44\xb7\xed\x52\x3e\x52\x28'+
+          bytes([(linked['keyboard_completion_last']-(linked['vdp_protocol_KEY']+40)) & 255])+
+          b'\x2a'+address('_vdp_protocol_data')+b'\x11\x56\x44\x50\xb7\xed\x52\xc0\x3e\x4c\x21'+
           (linked['_vdp_protocol_data']+3).to_bytes(3,'little')+
-          b'\xfe\x52\xc0\xc3'+address('vdp_callback_only'))
+          b'\xbe\xc0\xc3'+address('vdp_callback_only'))
     exact('vdp_callback_only', b'\x2a'+address('_user_kbvector')+
           b'\x11\x00\x00\x00\xb7\xed\x52\xc8\x11'+
           address('_vdp_protocol_data')+b'\xe9')

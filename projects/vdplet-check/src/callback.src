@@ -1,0 +1,51 @@
+; v0.1.27 finite check. ISR copies one VDPL record or latches Escape only.
+; Preserve every register used; no libc/VDU/file/clock work inside the callback.
+    .assume adl=1
+    .section .text
+    .global _vd27_callback
+_vd27_callback:
+    push af
+    push bc
+    push de
+    push hl
+    push ix
+    push de
+    pop ix
+    ld a,(ix+0)
+    cp 'V'
+    jr nz,key
+    ld a,(ix+1)
+    cp 'D'
+    jr nz,key
+    ld a,(ix+2)
+    cp 'P'
+    jr nz,key
+    ld a,(ix+3)
+    cp 'L'
+    jr nz,key
+    push ix
+    pop hl
+    ld de,_vd27_reply
+    ld bc,10
+    ldir
+    ld a,1
+    ld (_vd27_ready),a
+    jr done
+key:
+    ld a,(ix+0)
+    cp 27
+    jr nz,done
+    ld a,(ix+3)
+    or a
+    jr z,done
+    ld a,1
+    ld (_vd27_escape),a
+done:
+    xor a
+    ld (ix+0),a
+    pop ix
+    pop hl
+    pop de
+    pop bc
+    pop af
+    ret

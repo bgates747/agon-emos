@@ -230,8 +230,8 @@ vdp_protocol_GP:	LD	A, (_vdp_protocol_data + 0)
 ; Received after a keypress event in the VPD
 ;
 vdp_protocol_KEY:
-            ; INTEG-015: Pingo's custom VDP carries completion as KEY/0x81.
-            ; Its app uses stock mos_setkbvector and consumes ten P3DR bytes.
+            ; Mainboard Pingo/VDPlet carry bounded replies as KEY/0x81.
+            ; mos_setkbvector receives only ten-byte P3DR or VDPL records.
             ; EMOS key-source/valid-key filtering had hidden this callback.
             ; Check completed length first: short packets must not expose stale
             ; tails. Ordinary keys keep their selected-source and value guards.
@@ -253,13 +253,22 @@ vdp_protocol_KEY:
             LD DE, 443350h              ; P,3,D
             OR A
             SBC HL, DE
+            LD A, 52h                  ; Expected fourth byte: R
+            ; LD preserves the comparison flags used by this branch.
+            JR Z, keyboard_completion_last
+            LD HL, (_vdp_protocol_data)
+            LD DE, 504456h              ; V,D,P
+            OR A
+            SBC HL, DE
             RET NZ
-            LD A, (_vdp_protocol_data+3)
-            CP 52h                     ; R
+            LD A, 4Ch                  ; Expected fourth byte: L
+keyboard_completion_last:
+            LD HL, _vdp_protocol_data+3
+            CP (HL)
             RET NZ
-            ; App owns version/token/sequence. Never publish synthetic input,
+            ; App owns each reply's fields. Never publish synthetic input,
             ; even when no callback is installed or the callback edits bytes.
-            ; Revisit only with an agreed generalized completion ABI.
+            ; This explicit pair is not a generalized completion ABI.
             JP vdp_callback_only
 keyboard_mainboard_key:
             LD HL, _vdp_protocol_data
