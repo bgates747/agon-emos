@@ -68,8 +68,21 @@ candidate. Sequence, deadlines and reporting moved to the MOSlet; ownership and
 exit cleanup remain resident. UARTTEST and VDPPOLL now also use `/emos/uarttest.bin` and `/emos/vdppoll.bin`
 in the newer off-bench composition. Their [guide](../projects/uartprobe/README.md)
 records the paired service dependency and unperformed hardware validation.
-VDPTEXT and the text-probe service remain resident.
+The INTEG-017 development source additionally moves VDPTEXT to /emos/vdptext.bin
+and retires the resident text-probe diagnostic service and fake adapter. This
+new extraction is not installed; the retained v0.1.27 still has those hooks.
 The [UARTFLOW guide](../projects/uartflow/README.md) records build, peer and input
 requirements. The 2026-10-08 Author-authorized deployment passed full ROM/utility verification,
 real paired success and wrong-peer cleanup/input reacquisition. This remains a
 development candidate awaiting Author review, outside selected production.
+
+## External visible-text diagnostic (INTEG-017)
+
+Build `make -C projects/uartprobe NAME=vdptext` with the configured AgonDev
+installation. The resulting SD utility runs through `EMOS VDPTEXT` and accepts
+`--version`; no other arguments are accepted. Missing SD files return ordinary
+MOS/FatFS errors. Utility/transport failures return 15. It uses the same admitted
+`ext.uartdiag` service as UARTFLOW, UARTTEST and VDPPOLL without new resident
+operations. EMOS retains Legacy/MOSlet/busy admission and abandoned-lease cleanup.
+The [utility guide](../projects/uartprobe/README.md) records the dedicated peer
+and keyboard prerequisite; this is not an active-console test.

@@ -201,19 +201,8 @@ int main(void) {
     irq_enabled = 0;
     assert(emos_keyboard_select(EMOS_KEY_BROWSER) == EMOS_KEY_BUSY);
     assert(!irq_enabled); irq_enabled = 1;
-    activate(); before=event_count; interleave=1;
-    assert(emos_keyboard_text((BYTE *)"hello",5)==EMOS_KEY_OK);
-    assert(uart1_keyboard_owned && event_count==before+1 && events[before][0]=='q');
-    assert(tx_count==20 && !memcmp(tx+8,"hello",5));
-    assert(!memcmp(tx+13,(BYTE[]){23,0,0xCA,23,0,0x80},6));
-    interleave=0; reply=2;
-    assert(emos_keyboard_text((BYTE *)"x",1)==EMOS_KEY_TIMEOUT); tick();
-    assert(emos_key_faulted && !events[event_count-1][3]);
-    activate(); reply=0; frozen_clock=1;
-    assert(emos_keyboard_text((BYTE *)"x",1)==EMOS_KEY_TIMEOUT);
-    frozen_clock=0; tick(); assert(emos_key_faulted);
     activate(); irq_enabled=0;
-    assert(emos_keyboard_text((BYTE *)"x",1)==EMOS_KEY_BUSY);
+    assert(emos_keyboard_layout(1)==EMOS_KEY_BUSY);
     irq_enabled=1;
     /* Native USB selects the same IRQ-owned stock path under its own name. */
     assert(emos_keyboard_select(EMOS_KEY_EXTENDER)==EMOS_KEY_BUSY);
@@ -228,8 +217,11 @@ int main(void) {
     before=event_count;
     mainboard_key('x',0,45,1); assert(event_count==before);
     key('a',0,22,1); assert(event_count==before+1);
-    assert(emos_keyboard_text((BYTE *)"x",1)==EMOS_KEY_BUSY);
+    before=event_count; interleave=1;
     assert(emos_keyboard_layout(1)==EMOS_KEY_OK);
+    assert(event_count==before+1 && events[before][0]=='q');
+    key('q',0,38,0);
+    interleave=0;
     assert(emos_key_source==EMOS_KEY_EXTENDER && !emos_key_faulted);
     frame((BYTE[]){0x81,3},2);
     assert(emos_key_faulted && events[event_count-1][2]==22 && !events[event_count-1][3]);

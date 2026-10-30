@@ -61,7 +61,6 @@ class EmosPortTests(unittest.TestCase):
         project = (WORKTREE / "MOS.zdsproj").read_text(encoding="utf-8")
         for relative in (
             r".\\src\\emos.c",
-            r".\\src\\emos_uart_probe.c",
             r".\\src\\emos_uart_flow.c",
             r".\\src\\emos_parallel.c",
             r".\\src\\emos_parallel_engine.c",
@@ -98,8 +97,6 @@ class EmosPortTests(unittest.TestCase):
             "src/emos_keyboard.h",
             "src/emos_keyboard_io.asm",
             "src/emos.h",
-            "src/emos_uart_probe.c",
-            "src/emos_uart_probe.h",
             "src/emos_uart_flow.c",
             "src/emos_uart_flow.h",
             "src/emos_parallel.c",
@@ -117,11 +114,11 @@ class EmosPortTests(unittest.TestCase):
         linked_checks = _make_variable(PROFILE, "FIRMWARE_LINK_CHECKS")
         self.assertEqual(
             sources,
-            ["src/emos_admission.c", "src/emos_telemetry.c", "src/emos_sdlink.c", "src/emos_console.c", "src/emos_keyboard.c", "src/emos_uart_flow.c", "src/emos_uart_probe.c", "src/emos.c", "src/emos_parallel.c", "src/emos_parallel_engine.c", "src/emos_parallel_handover.c", "src/emos_parallel_boot.c", "src/emos_parallel_startup_disabled.c"],
+            ["src/emos_admission.c", "src/emos_telemetry.c", "src/emos_sdlink.c", "src/emos_console.c", "src/emos_keyboard.c", "src/emos_uart_flow.c", "src/emos.c", "src/emos_parallel.c", "src/emos_parallel_engine.c", "src/emos_parallel_handover.c", "src/emos_parallel_boot.c", "src/emos_parallel_startup_disabled.c"],
         )
         self.assertEqual(
             objects,
-            ["src/emos_admission.o", "src/emos_telemetry.o", "src/emos_sdlink.o", "src/emos_console.o", "src/emos_keyboard.o", "src/emos_uart_flow.o", "src/emos_uart_probe.o", "src/emos.o", "src/emos_parallel.o", "src/emos_parallel_engine.o", "src/emos_parallel_handover.o", "src/emos_parallel_boot.o", "src/emos_parallel_startup_disabled.o"],
+            ["src/emos_admission.o", "src/emos_telemetry.o", "src/emos_sdlink.o", "src/emos_console.o", "src/emos_keyboard.o", "src/emos_uart_flow.o", "src/emos.o", "src/emos_parallel.o", "src/emos_parallel_engine.o", "src/emos_parallel_handover.o", "src/emos_parallel_boot.o", "src/emos_parallel_startup_disabled.o"],
         )
         self.assertEqual(
             _make_variable(PROFILE, "ASM_SOURCES_EXTRA"),
@@ -165,7 +162,6 @@ class EmosPortTests(unittest.TestCase):
                 "src/emos_console.c",
                 "src/emos_keyboard.c",
                 "src/emos_uart_flow.c",
-                "src/emos_uart_probe.c",
                 "src/emos.c",
                 "src/emos_parallel.c",
                 "src/emos_parallel_engine.c",
@@ -293,7 +289,11 @@ class EmosPortTests(unittest.TestCase):
         # Tree translation inventories all maintained assembly, including the
         # private native leaf. Ordinary linking excludes it; the mandatory
         # linked profile guard independently rejects native symbols there.
-        expected.add("src/emos_parallel_native_io.asm")
+        expected.update({
+            "src/emos_parallel_native_io.asm", "src/emos_phase_timing_io.asm",
+            "src/emos_parallel_native_timing_io.asm", "src/emos_stream_timing_io.asm",
+            "src/emos_exext_io.asm",
+        })
         self.assertEqual(outputs, expected)
 
 

@@ -11,7 +11,7 @@ C_SOURCES_EXTRA := \
 	src/emos_console.c \
 	src/emos_keyboard.c \
 	src/emos_uart_flow.c \
-	src/emos_uart_probe.c \
+	\
 	src/emos.c \
 	src/emos_parallel.c \
 	src/emos_parallel_engine.c \
@@ -21,7 +21,7 @@ C_OBJECT_RELATIVE_EXTRA := \
 	src/emos_console.o \
 	src/emos_keyboard.o \
 	src/emos_uart_flow.o \
-	src/emos_uart_probe.o \
+	\
 	src/emos.o \
 	src/emos_parallel.o \
 	src/emos_parallel_engine.o \

@@ -53,6 +53,7 @@ int probe_main(int,char **);
 static int calls,pass;
 int emos_uart_probe(void){++calls;return pass;}
 int emos_general_poll(void){++calls;return pass;}
+int emos_visible_text(void){++calls;return pass;}
 int main(void){
  char *one[]={"probe"},*version[]={"probe","--version"},*bad[]={"probe","oops"};
  assert(probe_main(2,version)==0 && calls==0);
@@ -61,7 +62,7 @@ int main(void){
  pass=1;assert(probe_main(1,one)==0 && calls==2);
  return 0;
 }''')
-   for name,run in [('uarttest','emos_uart_probe'),('vdppoll','emos_general_poll')]:
+   for name,run in [('uarttest','emos_uart_probe'),('vdppoll','emos_general_poll'),('vdptext','emos_visible_text')]:
     obj=d/(name+'.o');exe=d/name
     common=['cc','-std=c17','-Wall','-Wextra','-Werror','-fsanitize=address,undefined',
      '-I'+str(ROOT/'projects/uartflow/src'),'-I'+str(ROOT/'projects/uartprobe/src')]

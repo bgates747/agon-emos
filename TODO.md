@@ -1,6 +1,6 @@
 # EMOS TODO
 
-- [ ] **[INTEG-017 — External text diagnostics and resident scaffold removal](docs/tasks/INTEG-017.md)** — Author-authorized extraction of remaining text diagnostics; remove ordinary fake adapter, retain minimum UART ownership and measure complete-ROM savings. Offline implementation only.
+- [ ] **[INTEG-017 — External text diagnostics and resident scaffold removal](docs/tasks/INTEG-017.md)** — Offline implementation complete: 2,947 ROM bytes recovered; ordinary/controller wrappers, 145 host tests and linked checks pass. VDPTEXT is external; admitted UART transport retained. Physical review/deployment identity and acceptance pending; installed firmware unchanged.
 
 - [ ] **[INPUT-001 — Resident controller read candidate](docs/tasks/INPUT-001.md)** — v0.1.26 checksum-free96-byte correction installed/full-ROM readback verified at130786bytes/286free. Paired P4r13/sdserve-v0.3.0 and viewer-r03 RAM are verified; viewer stopped for Author axis/button/Escape review. Wider qualification/acceptance remains.
 

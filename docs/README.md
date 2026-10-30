@@ -22,6 +22,15 @@ repository lineage; old provider-module qualification does not qualify current
 foreground utilities. Current limits are stated in the contracts above, so
 routine readers do not need to reconstruct them from historical tasks.
 
+## Remaining diagnostic extraction — offline candidate
+
+[INTEG-017](tasks/INTEG-017.md) moves VDPTEXT to an SD utility, retires
+`edu.text-probe` and removes fake-adapter scaffolding. The existing admitted
+UART diagnostic transport remains resident. Both ordinary/controller wrapper builds, 145 host tests and linked checks pass;
+2,947 ROM bytes are recovered with static RAM unchanged. No installation or
+production promotion is implied. The following
+named historical build sizes predate this extraction.
+
 ## Experimental ordinary ExExt
 
 `port/exext-stream-candidate.mk` builds the new ordinary byte-stream binding:

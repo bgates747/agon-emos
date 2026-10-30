@@ -191,36 +191,12 @@ static int recoveryFailureRetainsOwnershipAndLegacyRetryReleases(void) {
     return 0;
 }
 
-static int successfulFakeSwitchRecoversFixedRouteAndRestoresDefault(void) {
+static int unsupportedDualDoesNotCommitFakeRoute(void) {
     resetCoordinator();
-    routeOwned = TRUE;
-    CHECK(emos_select_fake(TRUE) == FR_OK);
-    CHECK(strcmp(events, "RL") == 0);
-    CHECK(emosEduState.selectedAdapter == EMOS_ADAPTER_FAKE);
-    CHECK(emosEduState.preparedMode == EMOS_MODE_LEGACY);
-    CHECK(emosEduState.active == FALSE);
-    CHECK(emosEduState.lastStatus == FR_OK);
-    CHECK(routeOwned == FALSE);
-
-    eventLength = 0;
-    events[0] = 0;
-    CHECK(emos_select_fake(FALSE) == FR_OK);
-    CHECK(strcmp(events, "") == 0);
-    CHECK(emosEduState.selectedAdapter == EMOS_ADAPTER_PARALLEL_FIXED);
-    CHECK(emosEduState.lastStatus == FR_OK);
-    CHECK(routeOwned == FALSE);
-    return 0;
-}
-
-static int failedRecoveryCannotSwitchAdapter(void) {
-    resetCoordinator();
-    routeOwned = TRUE;
-    scriptedLeave = 0xe2;
-    CHECK(emos_select_fake(TRUE) == EMOS_UNAVAILABLE);
-    CHECK(strcmp(events, "RL") == 0);
-    CHECK(emosEduState.selectedAdapter == EMOS_ADAPTER_PARALLEL_FIXED);
-    CHECK(emosEduState.lastStatus == 0xe2);
-    CHECK(routeOwned == TRUE);
+    CHECK(emos_request_mode(EMOS_MODE_DUAL) == EMOS_UNAVAILABLE);
+    CHECK(emosModeState.mode == EMOS_MODE_LEGACY);
+    CHECK(emosVduBackend == EMOS_VDU_ONBOARD);
+    CHECK(!routeOwned);
     return 0;
 }
 
@@ -267,8 +243,7 @@ int main(void) {
     if (failedPrepareCleansWithoutInventingAReleaseFailure()) return 1;
     if (failedEnterCleansPreownedRouteAndRetainsCause()) return 1;
     if (recoveryFailureRetainsOwnershipAndLegacyRetryReleases()) return 1;
-    if (successfulFakeSwitchRecoversFixedRouteAndRestoresDefault()) return 1;
-    if (failedRecoveryCannotSwitchAdapter()) return 1;
+    if (unsupportedDualDoesNotCommitFakeRoute()) return 1;
     if (publicResultMappingPreservesOnlyThePublicDomain()) return 1;
     puts("EMOS mode coordinator host checks passed");
     return 0;
@@ -286,7 +261,9 @@ def exact_mode_translation_unit() -> str:
     command_end = source.index('\n\tif (strcasecmp(operation, "mode")', command_start)
     command = ('int emos_review_command(char *operation, char *args) { int result;\n' +
                source[command_start:command_end] + '\nreturn FR_INVALID_PARAMETER; }\n')
-    return PREAMBLE + source[state_start:state_end] + source[mode_start:mode_end] + command + HARNESS
+    state = source[state_start:state_end]
+    state = state[:state.index("static BYTE emos_default_adapter")]
+    return PREAMBLE + state + source[mode_start:mode_end] + command + HARNESS
 
 
 class EmosModeTransactionTests(unittest.TestCase):

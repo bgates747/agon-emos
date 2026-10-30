@@ -1,20 +1,20 @@
+#define _GNU_SOURCE
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include "uart.h"
-#include "emos_uart_probe.h"
+#include "probe.h"
 #include "emos_keyboard.h"
 /* These legacy one-shot tests have no resident keyboard owner. Shared-session
  * effects are exercised against the real receiver in emos_keyboard_harness.c. */
 volatile BYTE uart1_keyboard_owned;
-BYTE emos_keyboard_text(const BYTE *p, UINT16 n) { (void)p; (void)n; return EMOS_KEY_BUSY; }
 
 volatile BYTE serialFlags;
 static unsigned mode,ticks,sent,received,closed,claimed,attempts,clock_polls;
 static const BYTE *payload;
 static unsigned length;
 static BYTE token;
-BYTE emos_uart_probe_clock(void) { if(mode!=8 && ++clock_polls%32==0) ticks+=2; return (BYTE)ticks; }
+BYTE emos_uart_flow_clock(void) { if(mode!=8 && ++clock_polls%32==0) ticks+=2; return (BYTE)ticks; }
 BYTE open_UART1(UART *s) {
  assert(s->baudRate==1152000 && s->flowControl==FCTL_HW && !s->interrupts);
  if(mode==9)return UART_ERR_FAILURE;
@@ -41,7 +41,10 @@ BYTE uart1_try_get(BYTE *b){
 static void reset(void) {
  ticks=250;sent=received=closed=claimed=attempts=clock_polls=0;serialFlags=mode==12?0x10:0;
 }
+#include "uartprobe_gateway_host.h"
+
 int main(void){
+ probe_init();
  static const BYTE legacy[]="\x0c\x1f\x02\x02" "EMOS TO EDP: UART TEXT\r\n";
  static const BYTE alternate[]="\x0c" "A different SD sample\r\n42\r\n";
  BYTE maximum[EMOS_TEXT_LIMIT]; memset(maximum,'X',sizeof(maximum));

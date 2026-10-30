@@ -13,9 +13,9 @@ class TextGuardTests(unittest.TestCase):
                 target=Path(td);shutil.copytree(ROOT/'src',target/'src')
                 with (target/'src'/filename).open('a') as f:f.write('\nvoid forbidden(void) { emos_visible_text(); }\n')
                 with self.assertRaises(M['ParallelError']):M['verify_source'](target)
-    def test_legacy_guard_cannot_be_removed(self):
+    def test_fake_adapter_cannot_reenter_ordinary_source(self):
         with tempfile.TemporaryDirectory() as td:
-            target=Path(td);shutil.copytree(ROOT/'src',target/'src');p=target/'src/emos.c'
-            head,branch=p.read_text().split('if (strcasecmp(operation, "vdptext") == 0)',1)
-            p.write_text(head+'if (strcasecmp(operation, "vdptext") == 0)'+branch.replace('emosModeState.mode != EMOS_MODE_LEGACY','0',1))
+            target=Path(td);shutil.copytree(ROOT/'src',target/'src')
+            with (target/'src/emos.c').open('a') as f:
+                f.write('\nstatic int emos_select_fake(int enabled) { return enabled; }\n')
             with self.assertRaises(M['ParallelError']):M['verify_source'](target)

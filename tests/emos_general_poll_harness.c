@@ -7,7 +7,6 @@
 /* These legacy one-shot tests have no resident keyboard owner. Shared-session
  * effects are exercised against the real receiver in emos_keyboard_harness.c. */
 volatile BYTE uart1_keyboard_owned;
-BYTE emos_keyboard_text(const BYTE *p, UINT16 n) { (void)p; (void)n; return EMOS_KEY_BUSY; }
 
 volatile BYTE serialFlags;
 static unsigned mode,ticks,sent,received,closed,claimed,attempts;

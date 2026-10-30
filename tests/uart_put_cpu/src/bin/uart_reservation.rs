@@ -60,7 +60,7 @@ fn main(){
  assert_eq!(b.call("_emos_keyboard_parallel_send",&[0x71000,19],true),0);
  let bytes:Vec<_>=b.io.iter().filter(|(w,p,_)|*w&&*p==0xd0).map(|(_,_,v)|*v).collect();assert_eq!(bytes,packet);
  assert_eq!(b.get("_parallel_reserved"),1);assert_eq!(b.get("_transitioning"),1);assert_eq!(b.get("_emosParallelWriterLock"),1);cases+=1;
- for name in ["_emos_keyboard_send","_emos_keyboard_text","_emos_keyboard_layout","_emos_keyboard_transport_claim"] {
+ for name in ["_emos_keyboard_send","_emos_keyboard_layout","_emos_keyboard_transport_claim"] {
   assert_eq!(b.call(name,&[0x71000,1],true),1);assert!(b.io.is_empty(),"reserved writer {name}");cases+=1;
  }
  b.set("_emos_key_rx",1);assert_eq!(b.call("_emos_keyboard_parallel_park",&[],true),3);assert!(b.io.is_empty());b.set("_emos_key_rx",0);cases+=1;

@@ -45,26 +45,69 @@ units explicit; gateway overhead changes actual polling cadence.
 
 ## Implementation and validation
 
-1. [ ] Commit/push this plan before source changes; preserve exact baseline
+1. [x] Commit/push this plan before source changes; preserve exact baseline
    binaries/maps/provenance before reusing builder directories.
-2. [ ] Move visible text exchange and reporting to projects/uartprobe, build
+2. [x] Move visible text exchange and reporting to projects/uartprobe, build
    vdptext as a third utility, reuse the existing UARTFLOW gateway adapter and
    clock helper. Keep utility arguments/version output and failure cleanup.
-3. [ ] Remove resident text algorithms, gateway/CLI special cases and build
+3. [x] Remove resident text algorithms, gateway/CLI special cases and build
    inclusion. Keep ext.uartdiag transport/admission and its utility-exit cleanup.
-4. [ ] Remove fake-adapter command/state-machine branches from ordinary EMOS;
+4. [x] Remove fake-adapter command/state-machine branches from ordinary EMOS;
    preserve admitted real console routing and failure/recovery behavior. Refuse
    the retired FAKE name explicitly. Update real mode/gateway tests, retaining
    external model tests and frozen emulator evidence.
-5. [ ] Update guards/tests and current contracts. Retire historical consumers of
+5. [x] Update guards/tests and current contracts. Retire historical consumers of
    edu.text-probe explicitly instead of silently redirecting them. Keep legacy
    emulator scripts frozen pending their own reviewed migration.
-6. [ ] Build all affected utilities and ordinary/controller complete ROMs via
+6. [x] Build all affected utilities and ordinary/controller complete ROMs via
    maintained wrappers and mandatory linked guards; preserve exact source and
    artifact hashes and compare like-for-like identity/configuration.
-7. [ ] Exercise actual utility plus resident transport against meaningful UART
+7. [x] Exercise actual utility plus resident transport against meaningful UART
    models: success, malformed/partial/extra replies, backpressure, deadlines,
    stopped clock, ownership refusal and cleanup. Run gateway/mode/keyboard/SD
    regressions; retain physical and emulator qualification as unperformed.
-8. [ ] Record measured linked ROM/RAM savings, utility slot bounds and all
+8. [x] Record measured linked ROM/RAM savings, utility slot bounds and all
    validation limits in the dated development log and Extender task record.
+
+## Implementation note
+
+Removing the resident text API also makes `emos_keyboard_text` unreachable.
+Remove that private diagnostic wrapper and its declaration; retain the same
+keyboard module's ordered readiness polling for real layout/admission work.
+The host keyboard test exercises an interleaved key and release during the
+retained layout poll. Historical browser-typing/visible-text samples and fake
+emulator scripts remain frozen and require their original firmware; migrating
+those emulator fixtures needs a separately reviewed validation gate.
+
+## Offline result — 2026-10-30
+
+Implementation is ready for physical review; no deployment/acceptance is claimed.
+Both measured profiles use the same UNVERSIONED-DO-NOT-DEPLOY identity, pinned
+builder/toolchain and configuration before/after. Controller ROM falls from
+130,764 to 127,817 bytes (3,255 free); ordinary falls from 128,467 to 125,520
+(5,552 free). Net saving is 2,947 bytes in either composition. Static RAM stays
+4,189 controller / 4,058 ordinary bytes. The installed named v0.1.27 remains
+130,802 / 270 free; its 38 additional identity bytes are not counted as savings.
+
+Object recovery is text service 1,587 + gateway/command/mode 951 + unused keyboard
+text writer 409 bytes. The admitted UART diagnostic gateway remains 538 bytes;
+the controller module remains 2,199. VDPTEXT utility is 9,236 file bytes and
+124 static RAM bytes; heap/stack room is 23,408 bytes, without a worst-case stack
+claim. UARTTEST/VDPPOLL remain 9,523/9,522 file bytes.
+
+All 145 repository host tests and 42 Extender controller tests pass, including
+42 text-transport scenarios and real keyboard interleaving/cleanup checks.
+Both complete wrappers and mandatory link guards pass. Linked instruction
+checks pass controller overlap/Escape, 298 UART diagnostic and 21 reservation
+cases. Host TX setup now includes the already-required inert startup binding;
+the assembly-inventory test now includes four already-maintained private leaves.
+Those stale test assumptions were corrected without new product behavior.
+
+Exact baseline/candidate artifacts, maps, provenance, source snapshots and logs
+remain in Extender ignored local evidence. The portable measurements and
+compatibility limits are tracked in Extender docs/tasks/DIAG-003/RESULTS.md
+and results.json. The old text-probe/browser-typing/fake emulator fixtures are
+not valid against the new source. No emulator was launched or modified; no
+firmware, startup, SD or physical device was changed. A separately identified
+installation and physical utility/keyboard/controller review remain before
+feature acceptance or production promotion.

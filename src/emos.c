@@ -9,7 +9,6 @@
 #include <ctype.h>
 
 #include "emos.h"
-#include "emos_uart_probe.h"
 #include "emos_keyboard.h"
 #include "emos_parallel_handover.h"
 #include "emos_sdlink.h"
@@ -62,7 +61,6 @@ volatile BYTE emosVduBackend = 0;
 #define EMOS_EDU_INACTIVE 0
 #define EMOS_EDU_ACTIVE 1
 #define EMOS_ADAPTER_UNAVAILABLE 0
-#define EMOS_ADAPTER_FAKE 1
 #define EMOS_ADAPTER_PARALLEL_FIXED 2
 #define EMOS_ADAPTER_UART_CONSOLE 3
 
@@ -218,21 +216,6 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
     }
     if (mosletRequest && (strcmp(namespaceName,"ext") || strcmp(providerName,"sdlink")))
         return EMOS_UNSAFE_CALLER;
-    if (strcmp(namespaceName, "edu") == 0 && strcmp(providerName, "text-probe") == 0) {
-        UINT24 address = emos_read24(request->input);
-        UINT24 length = emos_read24(request->inputLength);
-        if ((UINT24)request < 0x040000 || (UINT24)request > 0x0B0000 - sizeof(*request) ||
-            !length || length > EMOS_TEXT_LIMIT || address < 0x040000 ||
-            address >= 0x0B0000 || length > 0x0B0000 - address ||
-            !emos_zero(request->output, 9)) return FR_INVALID_PARAMETER;
-        if (emosBusy) return EMOS_BUSY;
-        if (emosModeState.mode != EMOS_MODE_LEGACY) return EMOS_UNAVAILABLE;
-        if (!emos_text_valid((const BYTE *)address, (UINT16)length)) return FR_INVALID_PARAMETER;
-        emosBusy = TRUE;
-        result = emos_text_probe((const BYTE *)address, (UINT16)length) ? FR_OK : FR_TIMEOUT;
-        emosBusy = FALSE;
-        return result;
-    }
     if (strcmp(namespaceName,"ext") == 0) {
 #if defined(EMOS_CONTROLLER_INPUT)
         if(!strcmp(providerName,"controller")){
@@ -319,12 +302,11 @@ static void emos_mode_shape(BYTE mode, t_emosModeState *state) {
 
 static int emos_adapter_prepare(BYTE mode) {
 	emosEduState.lastStatus = EMOS_UNAVAILABLE;
-    if ((mode == EMOS_MODE_EXCLUSIVE_COMPAT
+    if (mode == EMOS_MODE_EXCLUSIVE_COMPAT
 #if defined(EMOS_EXEXT_STREAM)
          || mode == EMOS_MODE_EXCLUSIVE_EXTENDED
 #endif
-        ) &&
-        emosEduState.selectedAdapter != EMOS_ADAPTER_FAKE) {
+        ) {
         #ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
         /* A failed parallel cleanup can still own its lease in logical Legacy.
          * Never hide that owner by replacing its adapter selection. */
@@ -334,9 +316,6 @@ static int emos_adapter_prepare(BYTE mode) {
         emosEduState.selectedAdapter = EMOS_ADAPTER_UART_CONSOLE;
         if (!emos_console_prepare()) return EMOS_UNAVAILABLE;
     }
-	else if (emosEduState.selectedAdapter == EMOS_ADAPTER_FAKE) {
-		if (mode != EMOS_MODE_DUAL) return EMOS_UNAVAILABLE;
-	}
 	#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
 	else if (emosEduState.selectedAdapter == EMOS_ADAPTER_PARALLEL_FIXED) {
 		/* The qualification procedure requires its operator/top-level to prepare
@@ -364,8 +343,6 @@ static int emos_adapter_ready(BYTE mode) {
 #endif
         ) && emos_console_owned ? FR_OK : EMOS_UNAVAILABLE;
     }
-	if (emosEduState.selectedAdapter == EMOS_ADAPTER_FAKE)
-		return mode == EMOS_MODE_DUAL ? FR_OK : EMOS_UNAVAILABLE;
 	#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
 	if (emosEduState.selectedAdapter == EMOS_ADAPTER_PARALLEL_FIXED)
 		return mode == EMOS_MODE_EXCLUSIVE_EXTENDED &&
@@ -417,16 +394,6 @@ static int emos_adapter_public_result(int result) {
 	 * the exact private failure while the public caller gets a printable error. */
 	return result >= FR_OK && result <= EMOS_REGISTRY_FULL ?
 		result : EMOS_UNAVAILABLE;
-}
-
-static int emos_select_fake(BOOL enabled) {
-	int result;
-	if (emosBusy) return EMOS_BUSY;
-	if (emosModeState.mode != EMOS_MODE_LEGACY) return EMOS_UNAVAILABLE;
-	result = emos_adapter_recover();
-	if (result != FR_OK) return emos_adapter_public_result(result);
-	emosEduState.selectedAdapter = enabled ? EMOS_ADAPTER_FAKE : emos_default_adapter();
-	return FR_OK;
 }
 
 int emos_request_mode(BYTE mode) {
@@ -494,7 +461,6 @@ static const char *emos_mode_name(BYTE mode) {
 
 static const char *emos_adapter_name(BYTE adapter) {
     if (adapter == EMOS_ADAPTER_UART_CONSOLE) return "uart-console";
-	if (adapter == EMOS_ADAPTER_FAKE) return "fake";
 	#ifdef EMOS_PARALLEL_FIXED_QUALIFICATION
 	if (adapter == EMOS_ADAPTER_PARALLEL_FIXED)
 		return "parallel-fixed-qualification";
@@ -631,22 +597,10 @@ int emos_cmd(char *args) {
 	}
 	if (result != FR_OK) return result;
     if (!strcasecmp(operation, "keyinput")) return emos_keyinput_command(args);
-    if (uart1_keyboard_owned && !strcasecmp(operation, "vdptext")) {
-        printf("EMOS: UART1 is owned by keyboard input\r\n");
-        return EMOS_BUSY;
-    }
-    if (strcasecmp(operation, "vdptext") == 0) {
-        if (args && *args) return FR_INVALID_PARAMETER;
-        if (emosModeState.mode != EMOS_MODE_LEGACY) {
-            printf("VDP TEXT FAIL: EMOS must be in Legacy\r\n");
-            return FR_INVALID_PARAMETER;
-        }
-        emos_print_identity();
-        return emos_visible_text() ? FR_OK : FR_TIMEOUT;
-    }
 	/* Retired names stay reserved: never reinterpret an old provider command
      * as an on-disk utility. Historical .emo fixtures are not current gates. */
-	if (!strcasecmp(operation, "discover") || !strcasecmp(operation, "clear"))
+	if (!strcasecmp(operation, "discover") || !strcasecmp(operation, "clear") ||
+        !strcasecmp(operation, "fake"))
 		return EMOS_UNAVAILABLE;
 	if (strcasecmp(operation, "status") == 0) {
 		emos_print_identity();
@@ -681,14 +635,6 @@ int emos_cmd(char *args) {
 		if (strcasecmp(modeName, "dual") == 0) return emos_request_mode(EMOS_MODE_DUAL);
 		if (strcasecmp(modeName, "compatible") == 0) return emos_request_mode(EMOS_MODE_EXCLUSIVE_COMPAT);
 		if (strcasecmp(modeName, "extended") == 0) return emos_request_mode(EMOS_MODE_EXCLUSIVE_EXTENDED);
-		return FR_INVALID_PARAMETER;
-	}
-	if (strcasecmp(operation, "fake") == 0) {
-		char *setting;
-		result = extractString(args, &args, NULL, &setting, EXTRACT_FLAG_AUTO_TERMINATE);
-		if (result != FR_OK) return result;
-		if (strcasecmp(setting, "on") == 0) return emos_select_fake(TRUE);
-		if (strcasecmp(setting, "off") == 0) return emos_select_fake(FALSE);
 		return FR_INVALID_PARAMETER;
 	}
 	if (strcasecmp(operation, "call") == 0) return emos_call_service(args);

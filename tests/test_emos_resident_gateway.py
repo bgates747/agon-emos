@@ -28,13 +28,9 @@ PREAMBLE=r'''
 static BOOL emosBusy;
 static struct { BYTE mode; } emosModeState;
 static BYTE emosPolicy;
-static unsigned sdCalls, textCalls, diagCalls;
+static unsigned sdCalls, diagCalls;
 static UINT24 emos_uartdiag_gateway(t_emosGatewayRequest *r) {
     assert(emosBusy && r);++diagCalls;return 0;
-}
-static BYTE emos_text_valid(const BYTE *p, UINT16 n) { return n && *p=='A'; }
-static BYTE emos_text_probe(const BYTE *p, UINT16 n) {
-    assert(emosBusy && n==1 && *p=='A'); ++textCalls;return 1;
 }
 static UINT24 emos_sdlink_gateway(t_emosGatewayRequest *r) {
     assert(emosBusy && r);++sdCalls;return 15;
@@ -67,11 +63,9 @@ int main(void) {
     r->flags[0]=0;r->namespaceName[15]=1;assert(emos_gateway(r)==19);
     r=request(0x40000,"edu","text-probe");
     emos_write24(r->input,0x41000);emos_write24(r->inputLength,1);
-    *(BYTE *)0x41000='A';
-    assert(emos_gateway(r)==0 && textCalls==1 && !emosBusy);
-    emosModeState.mode=2;assert(emos_gateway(r)==35 && textCalls==1);
-    emosModeState.mode=0;emosBusy=1;assert(emos_gateway(r)==31);emosBusy=0;
-    emos_write24(r->input,0xB0000);assert(emos_gateway(r)==19);
+    assert(emos_gateway(r)==27 && !emosBusy);
+    emosModeState.mode=2;assert(emos_gateway(r)==27);
+    emosModeState.mode=0;
     r=request(0xB0000,"edu","text-probe");assert(emos_gateway(r)==32);
     r=request(0xB0000,"ext","uartdiag");
     assert(emos_gateway(r)==32 && !diagCalls);

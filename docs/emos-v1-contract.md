@@ -85,19 +85,24 @@ console owner multiplexes complete service packets with keyboard traffic.
 [operator guide](https://github.com/bgates747/agon-extender/blob/main/docs/mainboard-sd.md)
 own invocation, checked/fast semantics, sessions and recovery.
 
-## Resident text qualification service
+## External text diagnostic (INTEG-017 development source)
 
-`edu.text-probe` is a bounded diagnostic, not ordinary application printf.
-Request and input must lie wholly in ordinary application RAM
-`0x040000..0x0AFFFF`; input length is 1..1024. Output pointer, capacity and length
-must be zero. EMOS requires Legacy and an idle resident dispatcher, validates
-the complete text command grammar, and owns UART setup/exchange/cleanup.
+`EMOS VDPTEXT` loads `/emos/vdptext.bin` through the ordinary utility dispatcher.
+The utility owns text grammar, the fixed A6 text/poll sequence, waits and
+reporting. It uses the existing `ext.uartdiag` v1 service, which admits only
+Legacy MOSlet callers and retains UART/pin ownership and exit cleanup. The
+utility never writes UART/GPIO directly and refuses an occupied keyboard UART.
+See the [diagnostic utility guide](../projects/uartprobe/README.md).
 
-The accepted grammar is printable ASCII, VDU 8..13, 30 and 31,x,y. It does not
-change ordinary VDU routing, committed mode or canonical VDP sysvars. The
-legacy-named VDPTEXT diagnostic command has a separate fixed exchange.
-Source: [emos_uart_probe.c](../src/emos_uart_probe.c). Profile-gated telemetry
-and transport probes are diagnostic contracts, not universally available APIs.
+The development source retires `edu.text-probe`; ordinary application calls now
+return the normal service-not-found result with no output. Applications use
+ordinary MOS VDU output under EMOS's committed route. Historical visible-text
+and browser-typing fixtures require their original matched firmware and are not
+current candidate qualification tools. The fake adapter and `EMOS FAKE` mode
+scaffolding are also removed; the retired command returns unavailable.
+
+These changes are offline candidates. The retained installed v0.1.27 image
+still contains the older resident diagnostics; no deployment is implied.
 
 ## Limits and validation
 

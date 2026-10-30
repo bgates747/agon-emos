@@ -335,32 +335,6 @@ BYTE emos_keyboard_layout(BYTE value) {
     return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
 }
 
-/* One foreground writer, one IRQ receiver. Keep keyboard packets flowing while
- * the retained P4 renderer consumes text. A failed partial transaction poisons
- * this stream; only the IRQ may release held keys and latch the fault. */
-BYTE emos_keyboard_text(const BYTE *text, UINT16 length) {
-    BYTE irq = emos_keyboard_lock(), ok = 1;
-    UINT16 n;
-    Deadline d;
-    if (transitioning || !irq || preparing || emos_key_faulted ||
-        emos_key_source != EMOS_KEY_BROWSER || !uart1_keyboard_owned) {
-        emos_keyboard_unlock(irq); return EMOS_KEY_BUSY;
-    }
-    transitioning = 1; text_pending = 1; ++token;
-    emos_keyboard_unlock(irq);
-    deadline_start(&d);
-    for (n = 0; n < length && ok; ++n) ok = transmit(text[n], &d);
-    /* Retained drawing flush, followed by an ordered stock General Poll. */
-    if (ok) ok = transmit(23,&d) && transmit(0,&d) && transmit(0xCA,&d) &&
-                 transmit(23,&d) && transmit(0,&d) && transmit(0x80,&d) && transmit(token,&d);
-    while (ok && text_pending && !emos_key_faulted && emos_keyboard_deadline_step(&d)) { }
-    irq = emos_keyboard_lock();
-    if (!ok || text_pending || emos_key_faulted) { ok = 0; fault_requested = 1; }
-    text_pending = transitioning = 0;
-    emos_keyboard_unlock(irq);
-    return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
-}
-
 /* Shared resident UART owner. Console lease is separate from keyboard source;
  * no application is allowed to call this private transport boundary. */
 BYTE emos_keyboard_transport_claim(void) {

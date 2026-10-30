@@ -317,36 +317,14 @@ def verify_source(source: Path) -> None:
         "result=emos_uartdiag_gateway(request);")):
         raise ParallelError("Diagnostic MOSlet gateway lost its caller/Legacy/busy guard")
     checked_core = core
-    text_branch = re.search(
-        r'if \(strcasecmp\(operation, "vdptext"\) == 0\) \{(.*?)'
-        r'\n    \}', checked_core, re.DOTALL)
-    if text_branch:
-        branch = text_branch.group(0)
-        call = "return emos_visible_text() ? FR_OK : FR_TIMEOUT;"
-        if branch.count(call) != 1 or "emosModeState.mode != EMOS_MODE_LEGACY" not in branch:
-            raise ParallelError("Visible text diagnostic lost its Core/Legacy guard")
-        checked_core = checked_core[:text_branch.start()] + branch.replace(call, "") + checked_core[text_branch.end():]
-    # Only the resident, Legacy-guarded diagnostic gateway may submit text.
-    probe_branch = re.search(
-        r'if \(strcmp\(namespaceName, "edu"\) == 0 && strcmp\(providerName, "text-probe"\) == 0\) \{(.*?)'
-        r'(?=\s*if \(strcmp\(namespaceName,"ext"\) == 0\))', checked_core, re.DOTALL)
-    if probe_branch:
-        branch = probe_branch.group(0)
-        for required in ("emosModeState.mode != EMOS_MODE_LEGACY", "if (emosBusy) return EMOS_BUSY;",
-                         "length > EMOS_TEXT_LIMIT", "length > 0x0B0000 - address",
-                         "address < 0x040000", "address >= 0x0B0000",
-                         "!emos_zero(request->output, 9)", "emosBusy = TRUE;", "emosBusy = FALSE;"):
-            if required not in branch:
-                raise ParallelError("Text gateway lost guard: " + required)
-        call = "emos_text_probe((const BYTE *)address, (UINT16)length)"
-        if branch.count(call) != 1:
-            raise ParallelError("Text gateway lost its single Core call")
-        checked_core = checked_core[:probe_branch.start()] + branch.replace(call, "") + checked_core[probe_branch.end():]
     for forbidden in (
         "EMOS_PORT008_FORWARD",
         "general_poll",
         "visible_text",
         "emos_text_probe",
+        "EMOS_ADAPTER_FAKE",
+        "emos_select_fake",
+        "text-probe",
         "PORT008_",
         "_port008_",
         "_emos_port008_",
@@ -447,6 +425,10 @@ def verify_linked(
     allow_native_payload: bool = False, allow_exext_stream: bool = False
 ) -> None:
     symbols = linked_symbols(nm, elf)
+    retired = ("_emos_visible_text", "_emos_text_probe", "_emos_text_valid",
+               "_emos_keyboard_text", "_emos_select_fake")
+    if any(name in symbols for name in retired):
+        raise ParallelError("ordinary firmware contains retired resident diagnostics")
     required=REQUIRED_SYMBOLS
     if allow_exext_stream:
         retired={"_emos_parallel_generation_next", "_emos_parallel_init",
