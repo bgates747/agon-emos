@@ -176,19 +176,40 @@ remain outside that result. Selected production is unchanged.
 
 ## Development controller candidate: `ext.controller`
 
-The separately selected controller candidate also adds `ext.controller` through
-this existing gateway. It is not in ordinary/production selection. Input
-operations0–3 open, read a resident96-byte cache, request one bounded refresh,
-and close. Installed v0.1.27 retains the checksum-free correction introduced in
-v0.1.26, replacing the earlier CRC-bearing98-byte candidate. Matching P4 and
-application updates are required.
-READ returns busy during a refresh and copies with interrupts enabled.
-Application/IRQ/mode/UART-owner bounds, VBlank-enforced expiry and
-post-copy transition acknowledgement remain EMOS-owned. The
-[controller task](tasks/INPUT-001.md) and
-[paired development contract](../../agon-extender/docs/protocols/controller-emos.md)
-own its exact candidate semantics and physical review limits. This allocates no
-global MOS/getfunction number and supplies no application UART bypass.
+The separately selected `port/controller-candidate.mk` adds this fixed endpoint
+through the existing gateway. Ordinary/production selection excludes it. The
+current offline source uses operations 4–7 and requires the matching application
+include from Extender. The earlier installed v0.1.27/viewer uses operations 0–3;
+those old/new application and EMOS combinations must not be mixed. Physical
+CI2 requests and 96-byte CIS2 replies on P4 UART remain unchanged.
+
+| Input operation | Input length, bytes | Output length, bytes | EMOS responsibility |
+|---:|---:|---:|---|
+| 4 OPEN | 1 | 4 | Allocate nonzero boot-local24-bit token encoded as u32; refuse exhaustion |
+| 5 RECEIVE | 1 | 98 | Consume one untouched96-byte reply plus raw round-trip/cache tick deltas |
+| 6 SEND | 20 | 0 | Admit and serialize the application's complete fixed19-byte CI request |
+| 7 CLOSE | 1 | 0 | Revoke local admission, including after transport or mode loss |
+
+EMOS admits only ordinary foreground applications with request/buffers wholly
+inside0x040000..0x0AFFFF, interrupts enabled and healthy pre-existing Extender
+keyboard/UART ownership in Legacy or ExCom. Local CLOSE retains caller/buffer/
+interrupt checks but precedes transport/mode checks. The endpoint keeps one
+outstanding request or unread reply, token/query correlation and 30 nominal-tick
+expiry enforced by VBlank. RECEIVE copies with interrupts enabled, then
+revalidates lifetime/health before publishing its length. No application pointer
+is retained by the ISR; failed sends are never replayed automatically.
+
+The application include owns request encoding, full reply/transition validation,
+source/count/acknowledgement state, age interpretation and neutralization. EMOS
+retains no controller semantic decoder or application policy. The application
+never takes UART/GPIO ownership or borrows the SD lease. No new global MOS API,
+checksum, MOSlet or dynamically loaded provider is introduced.
+
+The [paired development contract](../../agon-extender/docs/protocols/controller-emos.md)
+owns exact bytes; [application usage](../../agon-extender/docs/controller-api.md)
+describes the single public include. [INTEG-018](tasks/INTEG-018.md) records
+measured costs and offline validation. The new source is uninstalled, with
+physical review and deployment/version gates still pending.
 
 ## Development diagnostic service: `ext.uartdiag` v1
 

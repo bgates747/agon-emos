@@ -59,21 +59,21 @@ their named checkpoints, not this build.
 
 ## Development candidate
 
-The separate `port/controller-candidate.mk` builds the experimental
-[controller read service](tasks/INPUT-001.md) for Extender's mode20 viewer. It
-uses the existing resident gateway and EMOS-owned UART, with cached READ and
-bounded REQUEST operations. Native service/pipeline and full-ROM/linked checks
-pass; no physical controller, UART, display or coexistence qualification is
-claimed. Default firmware selection excludes it. The Author-approved v0.1.26
-correction is retained by installed v0.1.27 with complete ROM readback; ordinary selection still
-excludes it. The earlier viewer review lost controller and keyboard input.
-That masked-read UART failure is reproduced by a linked instruction test;
-the correction removes controller CRCs, returns busy during a pending refresh
-and copies96-byte snapshots with interrupts enabled. Native/linked checks and
-the identified full-ROM build pass. P4r13, sdserve-v0.3.0 and viewer-r03 are
-installed. The Author reported successful controller operation and deferred
-latency work; broader controller qualification remains open.
-The profile also retains explicit unversioned builds.
+The separate `port/controller-candidate.mk` now supplies the reduced
+[controller transport](tasks/INTEG-018.md) for Extender's reusable
+[application include](../../agon-extender/docs/controller-api.md). Applications
+own controller interpretation; EMOS retains admitted fixed-endpoint delivery.
+Like-for-like full builds recover 991 ROM bytes and 29 static RAM bytes:
+126,826 ROM /4,246 free, with 4,160 static RAM. The controller object is 1,208 ROM
+and 102 RAM bytes. Ordinary EMOS remains byte-identical at 125,520 /5,552 free.
+
+The new gateway uses operations 4–7 and must be paired with the new application
+include/viewer. P4's CI2/CIS2 physical wire is unchanged. All 145 EMOS host checks,
+43 Extender controller checks and linked receive/Escape/diagnostic/reservation
+checks pass. These are offline results, not a new installation or latency pass.
+The earlier installed v0.1.27/viewer-r03 uses operations 0–3; retain that matched
+pair until separately authorized identification, deployment and physical review.
+Default firmware/production selection excludes the controller candidate.
 
 The Author-approved v0.1.27 extension retains that controller composition and
 adds only bounded mainboard `VDPL` replies alongside `P3DR` to the existing

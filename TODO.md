@@ -1,6 +1,6 @@
 # EMOS TODO
 
-- [ ] **[INTEG-018 — Minimal resident controller endpoint](docs/tasks/INTEG-018.md)** — Author-authorized extraction to a reusable application include, no MOSlet. Minimize ROM, preserve admitted delivery and measure full builds; offline tranche.
+- [ ] **[INTEG-018 — Minimal resident controller endpoint](docs/tasks/INTEG-018.md)** — Offline extraction complete: 991 ROM bytes and 29 static RAM bytes recovered; full controller image 126,826 /4,246 free. Reusable application include owns interpretation; transport/ownership and full host/linked checks pass. Matched app/EMOS deployment identity, physical review and acceptance remain; installed firmware unchanged.
 
 - [ ] **[INTEG-017 — External text diagnostics and resident scaffold removal](docs/tasks/INTEG-017.md)** — Offline implementation complete: 2,947 ROM bytes recovered; ordinary/controller wrappers, 145 host tests and linked checks pass. VDPTEXT is external; admitted UART transport retained. Physical review/deployment identity and acceptance pending; installed firmware unchanged.
 

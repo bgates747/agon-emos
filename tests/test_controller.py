@@ -12,7 +12,7 @@ class ControllerTests(unittest.TestCase):
             (Path(temp)/'ff.h').write_text('enum {FR_OK=0,FR_TIMEOUT=15,FR_INVALID_PARAMETER=19};\n')
             subprocess.run(['cc','-std=c17','-Wall','-Wextra','-Werror','-Wno-endif-labels',
                             '-Wno-pointer-to-int-cast','-Wno-int-to-pointer-cast',
-                            '-fsanitize=address,undefined','-DMOS_DEFINES_H',
+                            '-fsanitize=address,undefined','-DMOS_DEFINES_H','-Dmemcpy=controller_test_copy','-fno-builtin-memcpy',
                             '-DEMOS_BUSY=31','-DEMOS_UNSAFE_CALLER=32','-DEMOS_UNAVAILABLE=35',
                             '-include',str(ROOT/'tests/host/defines.h'),'-I'+temp,
                             '-I'+str(ROOT/'tests/host'),'-I'+str(ROOT/'src'),

@@ -28,19 +28,19 @@ contract. This component owns the smallest correct resident delivery endpoint.
 
 ## Work and validation
 
-1. [ ] Publish/freeze plan and exact baseline before source edits.
-2. [ ] Agree the concrete gateway layout with Extender's application include
+1. [x] Publish/freeze plan and exact baseline before source edits.
+2. [x] Agree the concrete gateway layout with Extender's application include
    before parallel edits; document fixed endpoint/admission and old-ABI refusal.
-3. [ ] Remove resident semantic validation, source/edge tracking, request body
+3. [x] Remove resident semantic validation, source/edge tracking, request body
    policy and neutralization. Retain only required bounded correlation, copy,
    age metadata and expiry. Measure smaller alternatives before keeping them.
-4. [ ] Update the actual resident harness and linked controller regression for
+4. [x] Update the actual resident harness and linked controller regression for
    new operations, invalid buffers/callers, pending/busy state, failed sends,
    clock wrap, delayed replies, expiration and keyboard/Escape interleaving.
-5. [ ] Build full ordinary/controller images through maintained wrappers and
+5. [x] Build full ordinary/controller images through maintained wrappers and
    mandatory link checks. Compare identical identities/configuration against
    the frozen DIAG-003 baseline; report complete ROM/RAM change and object cost.
-6. [ ] Preserve source/artifacts/evidence, update current contracts/logs, and
+6. [x] Preserve source/artifacts/evidence, update current contracts/logs, and
    report the offline result with physical/version/promotion gates remaining.
 
 ## Research boundary
@@ -52,3 +52,29 @@ application work. Stock VDU/sysvar queries do not supply an equivalent generic
 96-byte UART1 reply. SD transport has different memory admission/ownership and
 an interrupt-masked read pattern unsuitable for controller reuse. Extender's
 INPUT-005 detail/audit pins the relevant source and current wire contract.
+
+## Offline result — 2026-10-30
+
+Plan/freeze commits were Extender `b9c844aa` and EMOS `379bf34`. The resident
+controller object falls from 2,199 to 1,208 ROM bytes (45.07% smaller), and 131 to 102
+static RAM bytes. Complete controller EMOS falls 127,817 to 126,826 bytes, leaving
+4,246 of 131,072 bytes free; static RAM falls 4,189 to 4,160. Ordinary EMOS remains
+byte-identical at 125,520 ROM /5,552 free. Equal unversioned identities exclude
+string-length differences from these savings. Initial extraction saved 988 bytes;
+selective lock/copy placement measured and recovered another 3 without removing
+any guard. Both complete profiles pass all wrapper-owned linked checks.
+
+All 145 EMOS host tests and 43 Extender controller tests pass. The final linked
+controller model watches all 96 output stores with interrupts enabled and delivers
+Escape through the actual IRQ; correlation, one-shot reply, expiry/wrap, late
+reply, old-operation refusal, caller/buffer/mode and failure cleanup pass.
+Another 298 diagnostic and 21 UART-reservation cases pass on the same linked image.
+No physical timing is inferred from instruction counts.
+
+The application include and mode20 viewer build on AgonDev. Extender's
+[INPUT-005 results](../../../agon-extender/docs/tasks/INPUT-005/RESULTS.md) retain
+portable metrics, exact artifact hashes, application cost and compatibility
+limits. Existing P4 CI2/CIS2 bytes are unchanged; new EMOS operations 4–7 refuse
+old 0–3 clients. Deployment/version selection, physical review and production
+acceptance remain pending. No hardware, SD/startup, emulator profile/snapshot or
+production selection was changed.
