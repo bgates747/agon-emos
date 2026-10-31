@@ -23,10 +23,14 @@ executable formats, VDP packets, or hardware contracts. Record deviations,
 workarounds, and inherited defects beside affected code and in the active task.
 Every emulator-coupled change requires Author validation before commit or push.
 
-For test fixtures, select the video mode only in `/autoexec.txt`, before the
-fixture runs; never switch modes inside the fixture program. Use the MOS
-command `VDU 22 n` with spaces. The ordinary boot smoke selects mode 3 using
-`VDU 22 3`; keep that setup in the generated boot script.
+Test runners, fixtures and deployment helpers must never modify `/autoexec.txt`
+or launch tests through reset. Use explicit CLI invocation. Appliances query the
+active mode, switch only when needed, allow at least one full second after a
+confirmed switch, and restore entry mode and a visible CLI. Pi runners own any
+preselection and restoration of earlier route/mode state. Use `VDU 22 n` with
+spaces. Read the maintained Extender [test-appliance lifecycle](../agon-extender/docs/procedures/test-appliances.md)
+before designing, deploying or running tests in the Agon workspace. Historical
+boot-script recipes require deliberate migration before reuse.
 
 Build EMOS only through its repository wrappers or the `mos-agondev`
 repository-root targets with an EMOS source profile. Those paths must execute

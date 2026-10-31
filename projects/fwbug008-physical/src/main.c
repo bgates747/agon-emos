@@ -21,14 +21,6 @@ extern control_write_t fwbug008_control_write(void);
 
 static uint8_t mbr[512], before[512], pattern[512], observed[512], restored[512];
 static char completion_token[17];
-static const char recovery_startup[] =
-    "SET KEYBOARD 1\r\n"
-    "EMOS KEYINPUT extender\r\n"
-    /* The P4 can retain ExCom across an eZ80 reset. VDU 22 selects geometry;
-     * it does not return EMOS transport ownership to Legacy. */
-    "EMOS LEGACY\r\n"
-    "VDU 22 3\r\n";
-
 /* An ordinary application cannot recursively launch an EMOS utility: EMOS
  * correctly returns EMOS_BUSY while the application owns the foreground.
  * Instead, print a per-run token only after raw I/O has ended. The host waits
@@ -95,17 +87,6 @@ static int save_result(const char *status, unsigned test_rc, unsigned restore_rc
   return okay ? 0 : 19;
 }
 
-static int arm_recovery(void) {
-  FIL file = {0};
-  if (ffs_fopen(&file, "/autoexec.txt", FA_WRITE | FA_CREATE_ALWAYS))
-    return 0;
-  uint24_t size = (uint24_t)(sizeof recovery_startup - 1);
-  int okay = ffs_fwrite(&file, recovery_startup, size) == size;
-  okay = ffs_fsync(&file) == 0 && okay;
-  okay = ffs_fclose(&file) == 0 && okay;
-  return okay;
-}
-
 int main(int argc, char **argv) {
   const uint32_t sector = 2;
   uint24_t unlock;
@@ -120,12 +101,9 @@ int main(int argc, char **argv) {
     return 19;
   }
   printf("A10-RP04 physical raw-SD test %s starting.\r\n", completion_token);
-  if (!arm_recovery()) {
-    (void)save_result("infrastructure-error", 255, 255, 255, 0, 0, 0, 0,
-                      "recovery-arm-failed", first_partition_lba, 0);
-    puts("FAIL: could not disarm the one-shot startup; no raw write attempted.");
-    return finish(19);
-  }
+  /* RELEASE-001: invoked explicitly from the CLI. Startup is never written;
+   * a reset must remain normal boot rather than launching this destructive test.
+   * This fixture stays in its entry mode; the Pi owns any preselection/restore. */
   fwbug008_get_unlock(&unlock);
   restore_write = fwbug008_control_write();
   unsigned init_rc = unlock ? fwbug008_init(&unlock) : 255;

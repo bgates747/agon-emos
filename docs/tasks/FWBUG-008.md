@@ -179,3 +179,16 @@ its focused source contracts pass. Fresh physical validation remains.
 
 Close only after the Author accepts the candidate. The passing physical result
 is hardware proof for this bounded repair, not production promotion.
+
+## Canonical-suite lifecycle correction — 2026-10-30
+
+Extender RELEASE-001 owns offline preparation for the combined native release.
+The maintained physical fixture no longer calls arm_recovery or writes startup.
+The Pi invokes LOAD/RUN explicitly at a verified CLI, after mode confirmation
+and at least one second of settling; the fixture stays in its entry mode.
+The historical one-shot-boot evidence is frozen, not a deployment recipe.
+The current Author lifecycle instruction supersedes this checkout's obsolete
+AGENTS test-mode-in-autoexec paragraph for this work. No resident EMOS change,
+firmware rebuild, installation, emulator invocation or bench execution occurs.
+The new fixture must be independently pinned/built and physically revalidated;
+using installed v27's older source snapshot would reintroduce the startup write.
