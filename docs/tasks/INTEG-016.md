@@ -1,5 +1,20 @@
 # INTEG-016 — Bidirectional ExExt parallel transport
 
+## Current boundary-latency diagnosis — 2026-11-01
+
+The Author authorizes Extender's bounded PORT-008 block-boundary timing task.
+The matched current format4 comparison and exact incoming-pair restoration are
+complete. `port/exext-controller-phase.mk` composes existing RAM phase hooks with
+unchanged controller options; current source has fourteen live phase calls after
+software COMPLETE/ACK removal. No CRC, new packet, scheduling fix or native-byte
+loop probe is introduced. Rebuild through every owner/link/ROM/baud check; bind
+the exact new ELF/ROM and verify register/IFF/overflow and linked callsites.
+Ordinary profiles preprocess the phase calls out. Cross-component measurements,
+source identity, controls and restoration remain owned by the Extender
+[boundary-latency task](../../../agon-extender/docs/tasks/PORT-008/BOUNDARY-LATENCY.md).
+Stop before a fix or architectural cut; production selection remains unchanged.
+
+
 ## Executive summary
 
 Author authorized bench-free EMOS/EDP development on 2026-10-08. Extender
