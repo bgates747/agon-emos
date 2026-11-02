@@ -52,7 +52,8 @@ def verify_native(source, elf, nm, objdump, *, qualification=False, stream=False
     control = symbols.get("native_control", [])
     if len(control) != 1 or control[0][1] != "t":
         raise ParallelError("native Port D helper must remain local text")
-    # Three level changes plus four paired pulse sites: preamble, TX, RX, tail.
+    # Three level changes; only preamble/tail use the shared pulse helper.
+    # Payload uses four exact inline loops specialized on entry IFF.
     if direct_transfer_count(whole, control[0][0]) != 3 or direct_transfer_count(raw, control[0][0]) != 3:
         raise ParallelError("native Port D helper caller inventory changed")
     helper = disassemble_global_extent(objdump, elf, "native_control")
@@ -66,7 +67,7 @@ def verify_native(source, elf, nm, objdump, *, qualification=False, stream=False
     pulse = symbols.get("native_pulse", [])
     if len(pulse) != 1 or pulse[0][1] != "t":
         raise ParallelError("native pulse helper must remain local text")
-    if direct_transfer_count(whole,pulse[0][0]) != 4 or direct_transfer_count(raw,pulse[0][0]) != 4:
+    if direct_transfer_count(whole,pulse[0][0]) != 2 or direct_transfer_count(raw,pulse[0][0]) != 2:
         raise ParallelError("native pulse helper caller inventory changed")
     pulse_body = disassemble_global_extent(objdump,elf,"native_pulse")
     following = re.search(r"(?m)^\s*[0-9a-f]+\s+<native_control>:$",pulse_body)
@@ -78,8 +79,38 @@ def verify_native(source, elf, nm, objdump, *, qualification=False, stream=False
     pulse_expected = expected[:7]+[("or","a,0x20"),("out0","(0xa2),a"),("pop","af")]
     if pulse_ops[:10] != pulse_expected or len(pulse_ops) != 13 or pulse_ops[-1] != ("ret",""):
         raise ParallelError("native pulse masked RMW instruction sequence changed")
+    # Exact linked inline paths, including DI/EI and fresh per-byte Port D
+    # reads. Conditional-target formatting differs in this binutils eZ80 JR
+    # disassembler; actual target bytes are executed by parallel_native.rs.
+    def loop_ops(begin, end):
+        for label in (begin, end):
+            if len(symbols.get(label, [])) != 1 or symbols[label][0][1] != "t":
+                raise ParallelError("native inline loop label changed: " + label)
+        lo, hi = symbols[begin][0][0], symbols[end][0][0]
+        result = []
+        for address, op, args in instructions(raw):
+            if lo <= address < hi:
+                if op in ("jp", "jr", "djnz"):
+                    args = args.split(",", 1)[0] if "," in args else "target"
+                result.append((op, args))
+        return result
+    ready = [("in0", "a,(0xa2)"), ("bit", "4,a"), ("jp", "nz")]
+    clock = [("in0", "a,(0xa2)"), ("and", "a,0x4f"), ("or", "a,c"),
+             ("out0", "(0xa2),a"), ("or", "a,0x20"), ("out0", "(0xa2),a")]
+    count = [("inc", "hl"), ("djnz", "target"), ("dec", "d"), ("jr", "nz")]
+    tx = [("ld", "a,(hl)"), ("out0", "(0x9e),a")]
+    rx = [("in0", "a,(0x9e)"), ("ld", "(hl),a")]
+    variants = (
+        ("native_send", "native_send_masked", ready + tx + [("di", "")] + clock + [("ei", "")] + count + [("jr", "target")]),
+        ("native_send_masked", "native_send_done", ready + tx + clock + count),
+        ("native_receive", "native_receive_masked", ready + [("di", "")] + clock + [("ei", "")] + rx + count + [("jp", "target")]),
+        ("native_receive_masked", "native_success", ready + clock + rx + count),
+    )
+    for begin, end, expected_loop in variants:
+        if loop_ops(begin, end) != expected_loop:
+            raise ParallelError("native inline IFF/count/clock sequence changed: " + begin)
     raw_ops = [row[1:] for row in instructions(raw)]
-    if raw_ops.count(("out0", "(0xa2),a")) != 3 or raw_ops.count(("in0", "a,(0x9e)")) != 1:
+    if raw_ops.count(("out0", "(0xa2),a")) != 11 or raw_ops.count(("in0", "a,(0x9e)")) != 2:
         raise ParallelError("native control-write/data-read inventory changed")
     body = (source / "src/emos_parallel_native.c").read_text()
     # This source fingerprint supplements, rather than replaces, execution of

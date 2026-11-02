@@ -528,6 +528,7 @@ def verify_linked(
         rts_portc_writes.update({
             "native_start_clocks": [0x9F],
             "native_send": [0x9E],
+            "native_send_masked": [0x9E],
             "native_finish": [0x9F],
         })
     observed_rts_writes = {name: [] for name in rts_portc_writes}

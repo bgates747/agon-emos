@@ -1,7 +1,7 @@
 //! PORT-008: actual C guard/assembly in a full firmware or RAM-only image.
 //! Fake only I/O registers. No physical PARLIO timing/throughput claim.
 use ez80::{Cpu,Machine,Reg16};
-use std::{collections::HashMap,env,fs,path::Path};
+use std::{collections::HashMap,env,fs,path::Path,time::{Instant,SystemTime,UNIX_EPOCH}};
 const RAM_BASE:usize=0x40000;const SP:u32=0xaff00;const EXIT:u32=0xa0000;
 const H:u32=0x70000;const BUFFER:u32=0x71000;
 struct Board{mem:Vec<u8>,sym:HashMap<String,u32>,ports:[u8;256],iff:bool,
@@ -13,7 +13,9 @@ impl Machine for Board{
  fn poke(&mut self,a:u32,v:u8){self.mem[a as usize]=v;}
  fn use_cycles(&self,_:i32){}
  fn port_in(&mut self,a:u16)->u8{
-  if a==0xa2 {return (self.ports[0xa2]&!0x10)|if self.lose_after.is_some_and(|n|self.falls>=n){0x10}else{0};}
+  // Inject READY loss only after VALID asserts: initial loss tests the first
+  // payload boundary after the C guard has already admitted the parked pins.
+  if a==0xa2 {return (self.ports[0xa2]&!0x10)|if self.began&&self.lose_after.is_some_and(|n|self.falls>=n){0x10}else{0};}
   if a==0x9e{
    assert!(self.reverse&&self.began&&!self.ended&&self.ports[0x9f]==255);
    assert_eq!(self.falls,self.reads+1);assert_eq!(self.rises,self.reads+1);
@@ -113,9 +115,10 @@ impl Board{
  }
  fn args(&self)->[u32;6]{[H,1,u32::from(self.reverse),BUFFER,self.n as u32,0]}
 }
-fn main(){let a:Vec<_>=env::args().collect();assert_eq!(a.len(),2,"full firmware or RAM-only linked-image directory");let mut cases=0;
+fn main(){let started=SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis();let elapsed=Instant::now();
+ println!("START host_unix_ms={started} scope=linked_instruction_model");let a:Vec<_>=env::args().collect();assert!((2..=3).contains(&a.len()),"linked-image directory [--exhaustive]");let exhaustive=a.get(2).is_some_and(|v|v=="--exhaustive");let mut cases=0;
  for iff in [false,true]{for reverse in [false,true]{
-  for n in [1,2,3,7,255,256,257,1024,4095,4096]{
+  for n in if exhaustive {(1..=4096).collect::<Vec<_>>()}else{vec![1,2,3,7,255,256,257,1024,4095,4096]}{
    let mut b=Board::new(&a[1],n,reverse);assert_eq!(b.run(iff,&b.args()),0);
    if let Some(&address)=b.sym.get("_emos_stream_timing_last_raw") {
     assert_eq!(b.timer_reads,if reverse {0}else{2});
@@ -135,8 +138,12 @@ fn main(){let a:Vec<_>=env::args().collect();assert_eq!(a.len(),2,"full firmware
   let mut raw=Board::new(&a[1],8,reverse);
   assert_eq!(raw.execute("_emos_parallel_native_bytes",iff,&[BUFFER,8,u32::from(reverse)]),0);
   assert_eq!(raw.falls,8);assert_eq!(raw.pre_falls,if reverse{0}else{16});assert_eq!(raw.pre_rises,raw.pre_falls);assert_eq!(raw.idle_falls,16);assert_eq!(raw.idle_rises,16);cases+=1;
-  let mut b=Board::new(&a[1],8,reverse);b.lose_after=Some(3);assert_eq!(b.run(iff,&b.args()),0xe5);
-  assert_eq!(b.falls,3);assert_eq!(b.rises,3);assert_eq!(b.pre_falls,if reverse{0}else{16});assert_eq!(b.pre_rises,b.pre_falls);assert_eq!(b.idle_falls,16);assert_eq!(b.idle_rises,16);assert!(b.ended);assert_eq!(b.peek(H+3),1);assert_eq!(b.ports[0x9f],255);cases+=1;
+  for lost in [0,1,3,255,256,257,4095] {
+   let mut b=Board::new(&a[1],4096,reverse);b.lose_after=Some(lost);assert_eq!(b.run(iff,&b.args()),0xe5);
+   assert_eq!(b.falls,lost);assert_eq!(b.rises,lost);assert_eq!(b.pre_falls,if reverse{0}else{16});assert_eq!(b.pre_rises,b.pre_falls);assert_eq!(b.idle_falls,16);assert_eq!(b.idle_rises,16);assert!(b.ended);assert_eq!(b.peek(H+3),1);assert_eq!(b.ports[0x9f],255);
+   assert_eq!(b.timer_reads,0);if reverse{assert_eq!(b.reads,lost);}else{assert_eq!(b.tx,(0..lost).map(pixel).collect::<Vec<_>>());}
+   assert_eq!(b.peek(BUFFER+lost as u32),if reverse{0xa5}else{pixel(lost)});cases+=1;
+  }
   for (index,value) in [(0,0),(3,0),(4,0),(4,4097),(2,2)]{
    let mut b=Board::new(&a[1],8,reverse);let mut args=b.args();args[index]=value;
    assert_eq!(b.run(iff,&args),0xe0);assert_eq!(b.writes,0);cases+=1;
@@ -153,4 +160,5 @@ fn main(){let a:Vec<_>=env::args().collect();assert_eq!(a.len(),2,"full firmware
   assert_eq!(b.run(iff,&args),0xe1);assert_eq!(b.writes,0);cases+=1;
  }}
  println!("PASS {cases} linked native eZ80 cases: actual C guard/assembly, both directions, bytes/edges, forward-only16-clock preamble and16-clock tail, bounds, READY loss, Port D ISR interleavings, IX/SP/IFF and raw BC/DE/HL/IY; no bench timing");
+ println!("END host_unix_ms={} elapsed_host_ms={} scope=linked_instruction_model",SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_millis(),elapsed.elapsed().as_millis());
 }

@@ -1,5 +1,41 @@
 # INTEG-016 — Bidirectional ExExt parallel transport
 
+## Native byte-clock optimization — 2026-11-02
+
+The Author permits Extender implementation after agreement with the UART0
+project. The agreed semantic contract is in the canonical
+`agon-dev-env/cross-agent/parallel_uart_async/contract.md`; the complete bounded
+implementation/validation contract is Extender's
+[BYTE-CLOCK-COST](../../../agon-extender/docs/tasks/PORT-008/BYTE-CLOCK-COST.md).
+Both directions are already eZ80-clocked with a READY abort-level check, not
+per-byte request/ACK. Optimize the actual repeated CPU work before changing
+wire semantics or introducing a public async API.
+
+1. [x] I16-BC01 — Specialize payload loops once on caller IFF, inline each short
+   atomic Port D clock pair, and reduce repeated length arithmetic. Preserve
+   all actual byte/edge ordering, guard/abort/cleanup, fresh unrelated Port D
+   bits and interrupt availability. No whole-block interrupt mask.
+2. [x] I16-BC02 — Update actual linked ownership checks for the intentional
+   exact writer sites, retain negative controls, and execute both directions/
+   IFF states for every 1..4096 length, initial/partial READY withdrawal and
+   ABI/stack/buffer bounds. Compare baseline/changed instruction counts.
+3. [x] I16-BC03 — Complete same-profile/timing and ordinary-wrapper builds
+   with all ROM/baud/linked guards; record full image/static RAM differences
+   and limits. This offline increment does not install firmware or claim
+   hardware speed, new callback support or whole-request burst admission.
+
+[Offline results](../../../agon-extender/docs/tasks/PORT-008/BYTE-CLOCK-COST-RESULTS.md)
+retain 16,492 actual-instruction cases, 148 non-timing cases, twelve rejected
+actual-ELF negative controls, ten host checks and five complete wrapper builds.
+Enabled 4096-byte C-guard/native calls drop from 103084/102820 instructions to
+62164/61900 (forward/reverse), about 40% fewer. Both matched native profiles grow
+128 ROM bytes, with unchanged data/BSS. No hardware throughput claim or install.
+
+Later async integration must follow explicit accepted/BUSY ownership,
+SOURCE_RELEASED versus drain/execution, and session-scoped foreground events.
+Do not import UART0's experimental UTX1 namespace or callback/copy ABI into EMOS.
+
+
 ## Current boundary-latency diagnosis — 2026-11-01
 
 The Author authorizes Extender's bounded PORT-008 block-boundary timing task.

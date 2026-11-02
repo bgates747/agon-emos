@@ -8,6 +8,7 @@ No target execution or hardware access occurs.
 import argparse
 from datetime import datetime, timezone
 import json
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -63,6 +64,20 @@ def main():
         target.write_bytes(damaged)
         check(target, True, False, 'exact IFF2 save/DI/restore sequence')
 
+        # Payload no longer calls the IFF-saving helper. Reject loss of the
+        # exact inline mask and page counter in either enabled byte loop.
+        for label in ('native_send', 'native_receive'):
+            start = symbols[label] + delta
+            pulse = original.index(bytes.fromhex('f3ed38a2e64fb1ed39a2f620ed39a2fb'), start)
+            damaged = bytearray(original); damaged[pulse] = 0
+            target.write_bytes(damaged)
+            check(target, True, False, 'native inline IFF/count/clock sequence changed')
+            counter = re.search(bytes.fromhex('2310') + b'.' + bytes.fromhex('1520') + b'.', original[start:])
+            assert counter is not None
+            damaged = bytearray(original); damaged[start + counter.start() + 3] = 0x14
+            target.write_bytes(damaged)
+            check(target, True, False, 'native inline IFF/count/clock sequence changed')
+
         output = original.index(bytes.fromhex('ed399e'), symbols['native_send'] + delta)
         damaged = bytearray(original); damaged[output + 2] = 0x9f
         target.write_bytes(damaged)
@@ -90,7 +105,7 @@ def main():
         damaged[offset + 1:offset + 4] = (symbols['_emos_parallel_native_payload'] + 1).to_bytes(3, 'little')
         target.write_bytes(damaged)
         check(target, True, False, 'native guard is not called solely by the coordinator')
-    print('PASS 10 actual-ELF profile/negative-control cases; no hardware claims')
+    print('PASS actual-ELF profile/negative controls including inline IFF/page counts; no hardware claims')
 
 def elf_offset(path, name):
     with path.open('rb') as f:

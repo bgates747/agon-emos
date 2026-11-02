@@ -6,7 +6,7 @@
 
 - [ ] **[INPUT-001 — Resident controller read candidate](docs/tasks/INPUT-001.md)** — v0.1.26 checksum-free96-byte correction installed/full-ROM readback verified at130786bytes/286free. Paired P4r13/sdserve-v0.3.0 and viewer-r03 RAM are verified; viewer stopped for Author axis/button/Escape review. Wider qualification/acceptance remains.
 
-- [ ] **[INTEG-016 — Bidirectional ExExt parallel transport](docs/tasks/INTEG-016.md)** — Current matched format4 comparison and exact restoration complete under Extender PORT-008. Author authorizes block-boundary latency attribution; compose existing phase hooks with unchanged controller endpoint, rebuild through all guards and verify the exact-bound recorder. No CRC, software COMPLETE/ACK or speculative scheduling fix. Remaining architecture, warm-reset readiness and production qualification stay open.
+- [ ] **[INTEG-016 — Bidirectional ExExt parallel transport](docs/tasks/INTEG-016.md)** — Shared async semantics agreed with UART; Author permits Extender implementation. Offline native byte-clock optimization removes repeated call/IFF/count work while preserving guards, pin ordering and interrupt availability; actual linked tests and matched full builds required. Public async admission, hardware performance, warm-reset readiness and production remain open.
 
 - [ ] **[INTEG-015 — Pingo/VDPlet callback compatibility](docs/tasks/INTEG-015.md)** — v0.1.27 installed/full-ROM verified; 1594 linked cases and real discovery/Escape pass modes0/20 with unchanged keyboard state. Mode20 clock supports nominal120units/s. Bench handed back; Author acceptance and wider consumer/visual qualification remain. Production unchanged.
 

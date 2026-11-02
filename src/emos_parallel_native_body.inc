@@ -12,6 +12,11 @@
 ; exercise the external-clock RX reset/alignment boundary. Reverse must not
 ; preclock because P4 TX has no VALID input and would consume payload bytes.
 ; Critical sections cover ONLY Port D RMW; byte loops preserve caller IFF2.
+; PORT-008 byte-clock cost: choose enabled/masked payload loops once, not once
+; per byte. Each edge pair is inline and reads CURRENT non-owned Port D bits.
+; B counts a first partial page then 256-byte pages; D counts remaining pages.
+; Both directions remain CPU-clocked; this is not autonomous/async payload TX.
+; READY is an abort LEVEL check, not a per-byte receiver acknowledgement.
 ;
             INCLUDE "equs.inc"
             .ASSUME ADL = 1
@@ -32,7 +37,7 @@ _emos_parallel_native_bytes:
             LD DE, (IY+9)
             LD A, (IY+12)
             OR A, A
-            JR NZ, native_receive_start
+            JP NZ, native_receive_start
             ; PARLIO RX async FIFO reset crosses the external Core domain;
             ; pinned IDF's LL documents two synchronization clock cycles.
             ; PRX-06 supplied inactive clocks before admission. Probe the same
@@ -48,19 +53,55 @@ native_start_clocks:
             OUT0 (PC_DDR), A
             LD C, 030h
             CALL native_control
+            ; Guarded length is 1..4096. First B=0 means a full 256-byte
+            ; page; otherwise count that partial page before the full pages.
+            LD C, 010h
+            LD B, E
+            LD A, E
+            OR A, A
+            JR Z, native_send_pages
+            INC D
+native_send_pages:
+            LD A, I
+            JP PO, native_send_masked
 native_send:
             IN0 A, (PD_DR)
             BIT 4, A
-            JR NZ, native_fault
+            JP NZ, native_fault
             LD A, (HL)
             OUT0 (PC_DR), A
-            LD C, 010h
-            CALL native_pulse
+            ; Only seven instructions masked, with a fresh PD read after DI.
+            ; EI admits interrupts again between bytes; no epoch-cached latch.
+            DI
+            IN0 A, (PD_DR)
+            AND 04Fh
+            OR A, C
+            OUT0 (PD_DR), A
+            OR A, 020h
+            OUT0 (PD_DR), A
+            EI
             INC HL
-            DEC DE
-            LD A, D
-            OR A, E
+            DJNZ native_send
+            DEC D
             JR NZ, native_send
+            JR native_send_done
+native_send_masked:
+            IN0 A, (PD_DR)
+            BIT 4, A
+            JP NZ, native_fault
+            LD A, (HL)
+            OUT0 (PC_DR), A
+            IN0 A, (PD_DR)
+            AND 04Fh
+            OR A, C
+            OUT0 (PD_DR), A
+            OR A, 020h
+            OUT0 (PD_DR), A
+            INC HL
+            DJNZ native_send_masked
+            DEC D
+            JR NZ, native_send_masked
+native_send_done:
             IF EMOS_STREAM_TIMING_IO
             ; Timing profile only: final forward payload edge has passed.
             ; Low read latches high. Never probe each byte, and never replace
@@ -70,23 +111,54 @@ native_send:
             IN0 A, (085h)
             LD (_emos_stream_timing_last_raw+1), A
             ENDIF
-            JR native_success
+            JP native_success
 native_receive_start:
             LD C, 030h
             CALL native_control
+            LD C, 010h
+            LD B, E
+            LD A, E
+            OR A, A
+            JR Z, native_receive_pages
+            INC D
+native_receive_pages:
+            LD A, I
+            JP PO, native_receive_masked
 native_receive:
             IN0 A, (PD_DR)
             BIT 4, A
-            JR NZ, native_fault
-            LD C, 010h
-            CALL native_pulse
+            JP NZ, native_fault
+            DI
+            IN0 A, (PD_DR)
+            AND 04Fh
+            OR A, C
+            OUT0 (PD_DR), A
+            OR A, 020h
+            OUT0 (PD_DR), A
+            EI
             IN0 A, (PC_DR)
             LD (HL), A
             INC HL
-            DEC DE
-            LD A, D
-            OR A, E
+            DJNZ native_receive
+            DEC D
             JR NZ, native_receive
+            JP native_success
+native_receive_masked:
+            IN0 A, (PD_DR)
+            BIT 4, A
+            JP NZ, native_fault
+            IN0 A, (PD_DR)
+            AND 04Fh
+            OR A, C
+            OUT0 (PD_DR), A
+            OR A, 020h
+            OUT0 (PD_DR), A
+            IN0 A, (PC_DR)
+            LD (HL), A
+            INC HL
+            DJNZ native_receive_masked
+            DEC D
+            JR NZ, native_receive_masked
 native_success:
             LD B, 0
             JR native_finish
