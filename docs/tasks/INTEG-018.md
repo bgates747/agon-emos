@@ -78,3 +78,16 @@ limits. Existing P4 CI2/CIS2 bytes are unchanged; new EMOS operations 4–7 refu
 old 0–3 clients. Deployment/version selection, physical review and production
 acceptance remain pending. No hardware, SD/startup, emulator profile/snapshot or
 production selection was changed.
+
+## Parallel comparison composition — 2026-11-01
+
+The Author resumes Extender PORT-008 with the bench available. Its resumption
+contract owns the paired comparison and exact restoration, independently of
+this endpoint's physical acceptance. `port/controller-options.mk` factors the
+existing candidate identity checks and source selection without changing their
+values. `port/exext-controller-timing.mk` composes that endpoint with existing
+format4 transport/timing. All ordinary and profile-owned link/ROM checks remain.
+This is an experimental build composition, not production promotion, controller
+ABI acceptance or permission to run applications expecting the old operations.
+P4 must retain its working dual USB-host selection; old on-card viewers are not
+part of the transport workload.
