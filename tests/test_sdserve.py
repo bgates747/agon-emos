@@ -48,7 +48,7 @@ void __attribute__((no_instrument_function)) test_crc_reset(void) {crc_calls=0;}
         self.assertEqual(self.lib.service_init_mode(b'/test',101,self.FAST),1)
         self.lib.test_crc_reset();self.seq=0;self.sid=19;self.rpc(1)
     def tearDown(self):
-        self.lib.service_stop();self.temp.cleanup()
+        self.lib.service_stop();self.assertEqual(self.lib.fs_live_files(),0);self.temp.cleanup()
         if self.FAST:self.assertEqual(self.lib.test_crc_calls(),0,'Fast engine performed CRC work')
         else:self.assertGreater(self.lib.test_crc_calls(),0,'Instrumentation must see checked CRC work')
     def wire(self,*args):return wire(*args,fast=self.FAST)
@@ -72,6 +72,74 @@ void __attribute__((no_instrument_function)) test_crc_reset(void) {crc_calls=0;}
         return S.pack('<BBHHH',6,0,len(a),len(b),0)+a+b
     def move_frag(self,d,offset=0,count=184,status=0,crc=None):
         return self.rpc(14,S.pack('<HHI',len(d),offset,(0 if self.FAST else zlib.crc32(d)) if crc is None else crc)+d[offset:offset+count],status)
+    def read(self,name,at,count,status=0):
+        return self.rpc(4,S.pack('<IH',at,count)+path(name),status)
+    def counts(self):
+        return tuple(self.lib.fs_calls(op) for op in (1,10,9,2,4))
+    def test_sequential_download_filesystem_cost_and_eof_replay(self):
+        data=random.Random(31).randbytes(1000);(self.disk/'test/read.bin').write_bytes(data)
+        self.lib.fs_counts_reset()
+        for at in range(0,len(data),216):
+            self.assertEqual(self.read('/test/read.bin',at,216),S.pack('<I',len(data))+data[at:at+216])
+        self.assertEqual(self.counts(),(1,1,0,5,1) if self.FAST else (5,5,5,5,5))
+        before=self.counts();self.assertEqual(self.send(self.last),(0,S.pack('<I',1000)+data[864:]))
+        self.assertEqual(self.counts(),before);self.assertEqual(self.lib.fs_live_files(),0)
+    def test_random_offsets_path_switch_and_metadata(self):
+        a=bytes(range(200));b=b'different source';(self.disk/'test/a').write_bytes(a);(self.disk/'test/b').write_bytes(b)
+        self.lib.fs_counts_reset()
+        for at in (80,100,20):
+            self.assertEqual(self.read('/test/a',at,20),S.pack('<I',200)+a[at:at+20])
+        self.assertEqual(self.counts(),(1,1,2,3,0) if self.FAST else (3,3,3,3,3))
+        self.assertEqual(self.read('/test/b',0,1),S.pack('<I',len(b))+b[:1])
+        self.assertEqual(self.lib.fs_live_files(),1 if self.FAST else 0)
+        self.rpc(2,path('/test/a'));self.assertEqual(self.lib.fs_live_files(),0)
+        self.assertEqual(self.counts(),(2,2,2,4,2) if self.FAST else (4,4,4,4,4))
+    def test_empty_zero_count_and_eof(self):
+        (self.disk/'test/empty').write_bytes(b'');(self.disk/'test/data').write_bytes(b'abc')
+        for name,at,count,want in [('empty',0,216,b''),('data',0,0,b''),('data',3,0,b''),('data',2,216,b'c')]:
+            size=0 if name=='empty' else 3
+            self.assertEqual(self.read('/test/'+name,at,count),S.pack('<I',size)+want)
+        self.assertEqual(self.lib.fs_live_files(),0)
+    def test_reader_closes_on_request_and_filesystem_failures(self):
+        (self.disk/'test/data').write_bytes(b'abcdef')
+        for fault in (1,2,4,9,10):
+            with self.subTest(fault=fault):
+                self.lib.service_stop();self.lib.fs_fault(fault,1)
+                # at1 requires a seek; count216 reaches EOF and requires close.
+                self.assertEqual(self.read('/test/data',1,216,6),b'\x01')
+                self.assertEqual(self.lib.fs_live_files(),0)
+                self.assertEqual(self.read('/test/data',0,216),S.pack('<I',6)+b'abcdef')
+        for payload in (S.pack('<IH',0,217)+path('/test/data'),S.pack('<IH',0,1)+path('/outside'),b'',S.pack('<IH',7,1)+path('/test/data')):
+            self.read('/test/data',0,1)
+            self.rpc(4,payload,1);self.assertEqual(self.lib.fs_live_files(),0)
+    def test_reader_replay_stale_and_session_change(self):
+        (self.disk/'test/data').write_bytes(b'abcdef');self.read('/test/data',0,1)
+        before=self.counts();last=self.last
+        self.assertEqual(self.send(last),(0,S.pack('<I',6)+b'a'))
+        self.assertEqual(self.send(self.wire(self.sid,self.seq,4,b'conflict'))[0],5)
+        self.assertEqual(self.send(self.wire(self.sid+1,1,4,b''))[0],4)
+        self.assertEqual(self.counts(),before)
+        self.sid+=1;self.seq=0;self.rpc(1)
+        self.assertEqual(self.lib.fs_live_files(),0)
+        self.read('/test/data',1,1);self.lib.service_stop();self.assertEqual(self.lib.fs_live_files(),0)
+        self.assertEqual(self.lib.service_init_mode(b'/test',102,self.FAST),1)
+        self.seq=0;self.rpc(1);self.read('/test/data',0,1)
+        self.assertEqual(self.lib.service_init_mode(b'/test',103,self.FAST),1)
+        self.assertEqual(self.lib.fs_live_files(),0)
+    def test_reader_close_failure_blocks_mutation_and_exit(self):
+        if not self.FAST:self.skipTest('Persistent reader is fast-only')
+        source=self.disk/'test/data';source.write_bytes(b'abcdef')
+        for op,payload in ((13,b'\0'+path('/test/data')),(11,b'')):
+            self.read('/test/data',0,1);self.lib.fs_fault(4,1)
+            self.assertEqual(self.rpc(op,payload,6),b'\x01')
+            self.assertTrue(source.exists());self.assertEqual(self.lib.service_exiting(),0)
+            self.assertEqual(self.lib.fs_live_files(),0)
+        self.rpc(11);self.assertEqual(self.lib.service_exiting(),1)
+    def test_reader_closes_before_source_replacement(self):
+        source=self.disk/'test/game.bin';source.write_bytes(b'abcdef');self.read('/test/game.bin',0,1)
+        self.stage(b'new');self.rpc(8,S.pack('<I',73))
+        self.assertEqual(self.read('/test/game.bin',0,216),S.pack('<I',3)+b'new')
+        self.rpc(13,b'\0'+path('/test/game.bin'));self.assertFalse(source.exists())
     def test_root_metadata_uses_directory_api(self):
         self.lib.service_stop()
         self.assertEqual(self.lib.service_init_mode(b'/',101,self.FAST),1)

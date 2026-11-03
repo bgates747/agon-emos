@@ -180,3 +180,37 @@ installation-record upload/readback pass. One legacy bootstrap session closed;
 no continuing checked fallback. Resident source was unchanged by this listener
 correction; the separately prepared controller EMOSv26 is installed/ROM-verified.
 No emulator or viewer invocation; broader physical qualification is pending.
+## R05-12 — Fast sequential reader reuse, 2026-11-03
+
+Extender's self-assigned REMOTE-009 download-speed tranche asks this foreground
+utility to remove repeated filesystem setup for consecutive 216-byte READs.
+Work from accepted listener source 9a92d811 in an isolated owner branch; resident
+EMOS, the P4 worker, wire format and production selection remain unchanged.
+
+1. Retain one read-only FIL/path/initial size/current position in fast mode.
+   Seek only for a nonconsecutive offset. Checked mode keeps its existing calls.
+2. Close before any executed non-READ operation, path change, reinitialization,
+   stop, EOF or read/size/seek/request error. Preserve exact duplicate-response
+   replay without I/O. Reject stale/conflicting requests without execution.
+3. Preserve close/read errors and source-mutation ordering. No concurrent
+   external media mutation, read-ahead, new buffering, CRC or resident hook.
+4. Instrument actual host filesystem calls and validate sequential call counts,
+   random reads, EOF/empty, replay, session/stop/path/mutation boundaries and
+   fault cleanup. All fast cases retain zero actual CRC-function calls.
+5. Build an identified experimental MOSlet below32KiB after source checks. A
+   separate finite Extender lease owns temporary distinct-name installation,
+   baseline/candidate byte equality and matched timing. No speedup or acceptance
+   follows from host checks. Restore accepted listener/CLI at handback.
+
+Research: official agon-docs f9806bd3 MOS API FatFS0x80-0x82 and seek0xA6 allow
+caller-owned FIL reuse until ffs_fclose; official MOSv3.0.2/83364093 stays read-only.
+P4 fast/engine.hpp issues sequential READs after one session and STAT. Cross-
+component scope/research/evidence remain in Extender REMOTE-009/DOWNLOAD-R01.md.
+
+Host implementation passes61 engine tests (58 executed/three explicit skips),
+direct codec equality and seven application-helper checks. Actual fast calls
+for five sequential reads are1open/1size/0seek/5read/1close, versus checked5each.
+Unversioned maintained MOSlet target compiles to24755bytes below32KiB. Identified
+packaging and physical timing remain; the existing approved v0.3.0 identity is
+retained with a distinct UTC build/source commit, without promotion or version
+increment. No benchmark or installed firmware changed during implementation.

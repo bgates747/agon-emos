@@ -15,6 +15,13 @@ static char root[121],target[121],part[130],meta[130],backup[130];
 static uint32_t boot_id,session,sequence,transfer,expected_size,expected_crc,offset;
 static uint8_t active,finished,exiting,fast_mode;
 static FIL stage;
+/* R05-12: only foreground fast READs share this handle. Non-READ operations
+ * close it before metadata/mutations; external concurrent file mutation is not
+ * supported. This removes per-record filesystem setup without a wire change. */
+static FIL reader;
+static char reader_path[121];
+static uint32_t reader_size,reader_at;
+static uint8_t reader_open;
 static uint8_t previous[SD_MAX_RECORD],cached[SD_MAX_RECORD];
 static unsigned previous_size,cached_size;
 static uint8_t scratch[256],fs_error;
@@ -90,6 +97,27 @@ static int exists(const char *path,FILINFO *info) {
 static int close_file(FIL *f,int status) {
     uint8_t r=ffs_fclose(f);return status?status:(r?fail(r):SD_OK);
 }
+static int reader_close(int status) {
+    if(!reader_open)return status;
+    reader_open=0;return close_file(&reader,status);
+}
+static int fast_read(const char *path,uint32_t at,unsigned count,uint8_t *out,unsigned *out_n) {
+    uint8_t r;unsigned actual;int result;
+    if(!reader_open || strcmp(path,reader_path)) {
+        result=reader_close(SD_OK);if(result)return result;
+        r=ffs_fopen(&reader,path,FA_READ);if(r)return fail(r);
+        reader_open=1;strcpy(reader_path,path);reader_at=0;
+        r=ffs_fsize(&reader,&reader_size);if(r)return reader_close(fail(r));
+    }
+    if(at>reader_size)return reader_close(SD_BAD_REQUEST);
+    if(at!=reader_at && (r=ffs_flseek_p(&reader,&at)))return reader_close(fail(r));
+    actual=ffs_fread(&reader,(char *)out+4,count);r=ffs_ferror(&reader);
+    if(r)return reader_close(fail(r));
+    if(actual!=(reader_size-at<count?reader_size-at:count))return reader_close(fail(FR_DISK_ERR));
+    reader_at=at+actual;
+    if(reader_at==reader_size && (result=reader_close(SD_OK)))return result;
+    sd_put32(out,reader_size);*out_n=4+actual;return SD_OK;
+}
 static int read_exact(FIL *f,uint8_t *p,unsigned n) {
     unsigned got=ffs_fread(f,(char *)p,n);
     uint8_t r=ffs_ferror(f);
@@ -159,6 +187,7 @@ static int remove_if_present(const char *p) {
 static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *out_n) {
     char path[121];FILINFO info;uint8_t r,bits,metadata[20];int result;uint32_t tid;
     *out_n=0;
+    if(op!=SD_READ && (result=reader_close(SD_OK)))return result;
     if(op!=SD_MOVE)move_total=move_at=0;
     switch(op) {
     case SD_HELLO:
@@ -180,8 +209,9 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
     }
     case SD_READ: {
         FIL f;uint32_t size;unsigned count,actual;uint32_t at;
-        if(n<8 || (count=sd_u16(p+4))>216 || !path_read(p+6,n-6,path)) return SD_BAD_REQUEST;
-        at=sd_u32(p);r=ffs_fopen(&f,path,FA_READ);if(r) return fail(r);
+        if(n<8 || (count=sd_u16(p+4))>216 || !path_read(p+6,n-6,path)) return reader_close(SD_BAD_REQUEST);
+        at=sd_u32(p);if(fast_mode)return fast_read(path,at,count,out,out_n);
+        r=ffs_fopen(&f,path,FA_READ);if(r) return fail(r);
         r=ffs_fsize(&f,&size);result=r?fail(r):at>size?SD_BAD_REQUEST:SD_OK;
         if(!result && (r=ffs_flseek_p(&f,&at))) result=fail(r);
         actual=0;
@@ -333,6 +363,7 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
 int service_init_mode(const char *scope,uint32_t boot,int fast) {
     if(strlen(scope)>120) return 0;
     strcpy(root,"/");if(!path_ok(scope)) return 0;
+    if(reader_close(SD_OK))return 0;
     strcpy(root,scope);boot_id=boot?boot:1;session=sequence=0;
     move_total=move_at=0;active=finished=exiting=0;fast_mode=fast!=0;previous_size=cached_size=0;return 1;
 }
@@ -359,6 +390,7 @@ unsigned service_request(const uint8_t *in,unsigned n,uint8_t *out) {
 }
 int service_exiting(void) { return exiting; }
 void service_stop(void) {
+    (void)reader_close(SD_OK);
     if(active && !finished) (void)ffs_fclose(&stage);
     // Preserve an interrupted transfer and journal for explicit recovery.
     active=finished=0;move_total=move_at=0;

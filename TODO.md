@@ -12,7 +12,7 @@
 
 - [ ] **[FWBUG-008 — Correct raw SD API write dispatch](docs/tasks/FWBUG-008.md)** — A10-RP04 candidate: replace the inherited API `0x73` read-driver call with the write driver, preserve wrapper ABI/status behavior, reuse `mos-tests` raw-image controls, and retain the separately authorized physical destructive-sector gate.
 
-- [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — R05-11 checksum-free fast listener-v0.3.0 installed/readback verified with P4r13;128KiB downloads and551-byte install-record upload/readback pass. Legacy bootstrap closed; broader physical qualification/acceptance pending. Earlier admission scope retains its separate gates.
+- [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — Accepted sequential-reader listener installed; retain its source and rollback while preparing the separately authorized parallel upload prototype. Broader service/production gates remain in the task.
 
 - [ ] **[AUDIT-008](docs/tasks/AUDIT-008.md)** — Retire cancelled provider machinery and validate minimal foreground /emos dispatch; deployed with bounded physical checks passing; broader acceptance pending.
 
