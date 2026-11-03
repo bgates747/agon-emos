@@ -8,7 +8,7 @@
 
 - [ ] **[FWBUG-008 — Correct raw SD API write dispatch](docs/tasks/FWBUG-008.md)** — A10-RP04 candidate: replace the inherited API `0x73` read-driver call with the write driver, preserve wrapper ABI/status behavior, reuse `mos-tests` raw-image controls, and retain the separately authorized physical destructive-sector gate.
 
-- [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — Isolated R05-12 fast sequential reader candidate: reuse filesystem setup in the foreground utility; host lifecycle/error checks and experimental build precede separate Extender timing/handback. R05-11 historical evidence and other gates remain in the task.
+- [ ] **[REMOTE-005](docs/tasks/REMOTE-005.md)** — Isolated R05-12 fast reader passes host checks and finite matched downloads:1.1MB250.920→43.573s, exact bytes and clean handback. Author acceptance/promotion remains; installed listener unchanged. Other task gates remain recorded.
 
 - [ ] **[AUDIT-008](docs/tasks/AUDIT-008.md)** — Retire cancelled provider machinery and validate minimal foreground /emos dispatch; deployed with bounded physical checks passing; broader acceptance pending.
 

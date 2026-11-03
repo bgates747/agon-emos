@@ -204,3 +204,18 @@ Unversioned maintained MOSlet target compiles to24755bytes below32KiB. Identifie
 packaging and physical timing remain; the existing approved v0.3.0 identity is
 retained with a distinct UTC build/source commit, without promotion or version
 increment. No benchmark or installed firmware changed during implementation.
+
+The separate Extender finite physical comparison now passes with identified
+`sdserve-v0.3.0-b2026-11-03-08-07-19Z`/24753B candidate
+SHA256`0566e17f18747c2e625d2450ce5324a2b1097bce323a5e4d70fad6dcb41cdff2`,
+compiled from b8e72c9. Control22968B comes from accepted9a92d811 with the same
+compiler, and matches installed bytes apart from one build-ID string. Short
+65537B elapsed13.728→3.029s clears the predeclared worker-time gate;1.1MB elapsed
+250.920→43.573s (5.759×;82.63percent less). All four files match exact bytes.
+P4 worker scope includes spool/UART/eZ80; records remain306/5095 per size in
+both variants. Temporary aliases are removed, canonical startup/listener and
+all firmware preserved, CLI/input/resources verified and central custody released.
+Extender REMOTE-009/DOWNLOAD-RESULTS.md and DOWNLOAD-EVIDENCE.json own cross-
+component numbers, provenance and limits. No runtime stack high-water, optical,
+durability or checked-mode hardware qualification; Author acceptance/promotion
+remains pending and the installed accepted listener remains unchanged.

@@ -52,9 +52,11 @@ offsets, and closes on EOF, error, path change, stop/reinitialization or before
 any executed non-READ operation. Duplicate replies still use the existing packet
 cache without filesystem I/O. Checked-mode reads are unchanged. The foreground
 listener excludes concurrent external file mutation; no read-ahead or extra
-resident API is introduced. Host checks establish behavior and filesystem call
-counts only; physical download performance and temporary installation/handback
-remain separate Extender gates. The selected production package is unchanged.
+resident API is introduced. Host checks and one finite physical matched pair
+per size pass:65537B host elapsed13.728→3.029s and1.1MB250.920→43.573s, exact
+bytes in all four downloads. Extender restores the canonical listener/CLI and
+releases custody. Acceptance/promotion and broader qualification remain open;
+the selected production package is unchanged. REMOTE-005 R05-12 owns details.
 Do not replace running or held-open files, including an EXEC/autoexec batch
 whose child is this listener. `FF_FS_LOCK=0` is not a global open-file monitor.
 
