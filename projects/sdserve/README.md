@@ -43,6 +43,18 @@ Network EXIT requires no active transfer. Neither operation proves an idle CLI.
 synchronized. Compilation does not require a sibling checkout. EMOS owns UART
 admission and bounded mailboxes; the listener owns foreground MOS/FatFS calls.
 It does not install callbacks, take over UART, launch games or reset hardware.
+
+## Sequential fast-read candidate
+
+The isolated R05-12 candidate keeps one source file open across consecutive fast
+READ requests. It retains initial size and current position, seeks for random
+offsets, and closes on EOF, error, path change, stop/reinitialization or before
+any executed non-READ operation. Duplicate replies still use the existing packet
+cache without filesystem I/O. Checked-mode reads are unchanged. The foreground
+listener excludes concurrent external file mutation; no read-ahead or extra
+resident API is introduced. Host checks establish behavior and filesystem call
+counts only; physical download performance and temporary installation/handback
+remain separate Extender gates. The selected production package is unchanged.
 Do not replace running or held-open files, including an EXEC/autoexec batch
 whose child is this listener. `FF_FS_LOCK=0` is not a global open-file monitor.
 
