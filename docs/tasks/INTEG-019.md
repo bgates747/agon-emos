@@ -49,6 +49,19 @@ No physical operation, performance claim or production change follows from code.
 4. Boot handover intentionally retains a historical failure flag after recovery;
    begin clears it. New admission checks actual UART phase and current ownership
    before begin, preserving active fault guards and unrecovered-phase refusal.
-5. Identified builds, MOSlet memory headroom and matched physical comparison
-   remain required. Extender retains the bench; canonical utilities, production
-   selection and normal startup are unchanged by this implementation.
+5. Identified EMOS `agon-emos-v0.1.27-b2026-11-03-22-15-34Z`, source `6ececd56`,
+   uses128918 ROM bytes with2154 free. Its private MOSlet
+   `sdserve-v0.3.0-b2026-11-03-22-15-36Z` is26449 bytes; BSS end0xB7404 leaves
+   3068 shared heap/stack bytes, not a measured runtime high-water mark.
+6. Final matched P4 source `b1a64b20` passes ten complete Legacy file proofs
+   across UART and parallel-selected0/1/257/65537/1100000-byte uploads. Nonempty
+   parallel files have one admission, exact CLOCK count, VALID count2 and full
+   independent byte readback. The1.1MB host upload is44.630/14.346 seconds
+   UART/parallel; file/control/SD work remains included, not raw wire speed.
+7. Physical investigation corrects P4-only internal-descriptor exhaustion and
+   a terminal sampling race; this EMOS source/build remains unchanged. Exact
+   incoming P4 and full EMOS are restored, canonical utility/startup unchanged,
+   temporary MOSlet removed and actual CLI/input/idle resources verified.
+   Extender retains the bench. Author acceptance, production selection and
+   broader qualification remain open; the cross-component owner task retains
+   precise timings, component identities and bounded evidence.
