@@ -61,3 +61,6 @@ three firmware selections/runs and our returned-report analysis.
 
 Final evidence: [performance-r02.md](performance-r02.md). MI-005 is complete;
 TM-005 remains open for manual Console8 measurements. No SD card was written.
+
+Physical follow-up is complete: [hardware-r01.md](hardware-r01.md). All three
+requested selections passed; TM-005 is closed. Application validation is next.

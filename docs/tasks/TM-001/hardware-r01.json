@@ -1,0 +1,534 @@
+{
+  "physical": true,
+  "board": "Heber Agon Console8",
+  "passed": true,
+  "missing_requested_runs": [],
+  "completed_reports": [
+    "R0042.log",
+    "R0043.log",
+    "R0044.log"
+  ],
+  "timed_trials": 18,
+  "receiver_payload_verified": 147456,
+  "fixture_build": "1ad95f651c6e017d",
+  "all_immutable_deployment_files_match": true,
+  "next_report": 45,
+  "card_UUID": "8658-1C23",
+  "reports": [
+    {
+      "file": "R0042.log",
+      "mode": 0,
+      "build": "1ad95f651c6e017d",
+      "mos_bytes": 100660,
+      "mos_crc32": 3028718950,
+      "calibration": {
+        "ticks": 214865,
+        "wall": 13431,
+        "work": 229,
+        "state": 3079604188
+      },
+      "trials": [
+        {
+          "rep": 1,
+          "paced": 0,
+          "ticks": 87892,
+          "wall": 5496,
+          "call": 87772,
+          "source_observed": 87843,
+          "fence": 340,
+          "work": 0,
+          "state": 305419896,
+          "late": 0,
+          "missed": 0,
+          "callbacks": 0,
+          "payload_Bps": 107372.50261684795,
+          "wire_Bps": 110727.89332362445,
+          "foreground_capacity_fraction": 0.0
+        },
+        {
+          "rep": 1,
+          "paced": 1,
+          "ticks": 214791,
+          "wall": 13427,
+          "call": 87796,
+          "source_observed": 210660,
+          "fence": 333,
+          "work": 121,
+          "state": 4164218186,
+          "late": 932,
+          "missed": 0,
+          "callbacks": 0,
+          "payload_Bps": 43936.58952190734,
+          "wire_Bps": 45309.607944466945,
+          "foreground_capacity_fraction": 0.5285663189314589
+        },
+        {
+          "rep": 2,
+          "paced": 1,
+          "ticks": 214800,
+          "wall": 13428,
+          "call": 87804,
+          "source_observed": 210669,
+          "fence": 325,
+          "work": 121,
+          "state": 4164218186,
+          "late": 943,
+          "missed": 0,
+          "callbacks": 0,
+          "payload_Bps": 43934.74860335195,
+          "wire_Bps": 45307.709497206706,
+          "foreground_capacity_fraction": 0.5285441722979841
+        },
+        {
+          "rep": 2,
+          "paced": 0,
+          "ticks": 89620,
+          "wall": 5604,
+          "call": 89499,
+          "source_observed": 89571,
+          "fence": 325,
+          "work": 0,
+          "state": 305419896,
+          "late": 0,
+          "missed": 0,
+          "callbacks": 0,
+          "payload_Bps": 105302.20932827494,
+          "wire_Bps": 108592.90336978353,
+          "foreground_capacity_fraction": 0.0
+        },
+        {
+          "rep": 3,
+          "paced": 0,
+          "ticks": 87860,
+          "wall": 5493,
+          "call": 87739,
+          "source_observed": 87812,
+          "fence": 348,
+          "work": 0,
+          "state": 305419896,
+          "late": 0,
+          "missed": 0,
+          "callbacks": 0,
+          "payload_Bps": 107411.6093785568,
+          "wire_Bps": 110768.22217163669,
+          "foreground_capacity_fraction": 0.0
+        },
+        {
+          "rep": 3,
+          "paced": 1,
+          "ticks": 214828,
+          "wall": 13429,
+          "call": 87835,
+          "source_observed": 210693,
+          "fence": 317,
+          "work": 121,
+          "state": 4164218186,
+          "late": 955,
+          "missed": 0,
+          "callbacks": 0,
+          "payload_Bps": 43929.02228759752,
+          "wire_Bps": 45301.80423408494,
+          "foreground_capacity_fraction": 0.5284752835273195
+        }
+      ]
+    },
+    {
+      "file": "R0043.log",
+      "mode": 1,
+      "build": "1ad95f651c6e017d",
+      "mos_bytes": 101163,
+      "mos_crc32": 288017343,
+      "calibration": {
+        "ticks": 214858,
+        "wall": 13431,
+        "work": 229,
+        "state": 3079604188
+      },
+      "trials": [
+        {
+          "rep": 1,
+          "paced": 0,
+          "ticks": 90165,
+          "wall": 5638,
+          "call": 131,
+          "source_observed": 89996,
+          "fence": 340,
+          "work": 0,
+          "state": 305419896,
+          "late": 0,
+          "missed": 0,
+          "callbacks": 1,
+          "payload_Bps": 104665.71285975711,
+          "wire_Bps": 107936.51638662453,
+          "foreground_capacity_fraction": 0.0
+        },
+        {
+          "rep": 1,
+          "paced": 1,
+          "ticks": 214713,
+          "wall": 13423,
+          "call": 4044,
+          "source_observed": 211478,
+          "fence": 356,
+          "work": 193,
+          "state": 4028213248,
+          "late": 950,
+          "missed": 0,
+          "callbacks": 32,
+          "payload_Bps": 43952.55061407553,
+          "wire_Bps": 45326.06782076539,
+          "foreground_capacity_fraction": 0.8433639160486333
+        },
+        {
+          "rep": 2,
+          "paced": 1,
+          "ticks": 214713,
+          "wall": 13422,
+          "call": 4042,
+          "source_observed": 211474,
+          "fence": 324,
+          "work": 193,
+          "state": 4028213248,
+          "late": 951,
+          "missed": 0,
+          "callbacks": 32,
+          "payload_Bps": 43952.55061407553,
+          "wire_Bps": 45326.06782076539,
+          "foreground_capacity_fraction": 0.8433639160486333
+        },
+        {
+          "rep": 2,
+          "paced": 0,
+          "ticks": 89579,
+          "wall": 5601,
+          "call": 130,
+          "source_observed": 89410,
+          "fence": 333,
+          "work": 0,
+          "state": 305419896,
+          "late": 0,
+          "missed": 0,
+          "callbacks": 1,
+          "payload_Bps": 105350.40578707063,
+          "wire_Bps": 108642.60596791659,
+          "foreground_capacity_fraction": 0.0
+        },
+        {
+          "rep": 3,
+          "paced": 0,
+          "ticks": 89023,
+          "wall": 5566,
+          "call": 131,
+          "source_observed": 88854,
+          "fence": 348,
+          "work": 0,
+          "state": 305419896,
+          "late": 0,
+          "missed": 0,
+          "callbacks": 1,
+          "payload_Bps": 106008.37985689091,
+          "wire_Bps": 109321.14172741876,
+          "foreground_capacity_fraction": 0.0
+        },
+        {
+          "rep": 3,
+          "paced": 1,
+          "ticks": 214713,
+          "wall": 13422,
+          "call": 4042,
+          "source_observed": 211479,
+          "fence": 371,
+          "work": 193,
+          "state": 4028213248,
+          "late": 951,
+          "missed": 0,
+          "callbacks": 32,
+          "payload_Bps": 43952.55061407553,
+          "wire_Bps": 45326.06782076539,
+          "foreground_capacity_fraction": 0.8433639160486333
+        }
+      ]
+    },
+    {
+      "file": "R0044.log",
+      "mode": 2,
+      "build": "1ad95f651c6e017d",
+      "mos_bytes": 101155,
+      "mos_crc32": 2986459812,
+      "calibration": {
+        "ticks": 214866,
+        "wall": 13432,
+        "work": 229,
+        "state": 3079604188
+      },
+      "trials": [
+        {
+          "rep": 1,
+          "paced": 0,
+          "ticks": 89129,
+          "wall": 5573,
+          "call": 119,
+          "source_observed": 88960,
+          "fence": 325,
+          "work": 0,
+          "state": 305419896,
+          "late": 0,
+          "missed": 0,
+          "callbacks": 1,
+          "payload_Bps": 105882.30542247753,
+          "wire_Bps": 109191.12746692996,
+          "foreground_capacity_fraction": 0.0
+        },
+        {
+          "rep": 1,
+          "paced": 1,
+          "ticks": 214668,
+          "wall": 13420,
+          "call": 3699,
+          "source_observed": 211434,
+          "fence": 332,
+          "work": 199,
+          "state": 1996567657,
+          "late": 808,
+          "missed": 0,
+          "callbacks": 32,
+          "payload_Bps": 43961.764212644644,
+          "wire_Bps": 45335.56934428979,
+          "foreground_capacity_fraction": 0.8697971552375018
+        },
+        {
+          "rep": 2,
+          "paced": 1,
+          "ticks": 214671,
+          "wall": 13420,
+          "call": 3701,
+          "source_observed": 211429,
+          "fence": 325,
+          "work": 199,
+          "state": 1996567657,
+          "late": 808,
+          "missed": 0,
+          "callbacks": 32,
+          "payload_Bps": 43961.14985256509,
+          "wire_Bps": 45334.93578545775,
+          "foreground_capacity_fraction": 0.8697849999325667
+        },
+        {
+          "rep": 2,
+          "paced": 0,
+          "ticks": 88978,
+          "wall": 5563,
+          "call": 119,
+          "source_observed": 88809,
+          "fence": 332,
+          "work": 0,
+          "state": 305419896,
+          "late": 0,
+          "missed": 0,
+          "callbacks": 1,
+          "payload_Bps": 106061.9928521657,
+          "wire_Bps": 109376.43012879588,
+          "foreground_capacity_fraction": 0.0
+        },
+        {
+          "rep": 3,
+          "paced": 0,
+          "ticks": 88942,
+          "wall": 5562,
+          "call": 119,
+          "source_observed": 88733,
+          "fence": 325,
+          "work": 0,
+          "state": 305419896,
+          "late": 0,
+          "missed": 0,
+          "callbacks": 1,
+          "payload_Bps": 106104.92230892042,
+          "wire_Bps": 109420.70113107418,
+          "foreground_capacity_fraction": 0.0
+        },
+        {
+          "rep": 3,
+          "paced": 1,
+          "ticks": 214669,
+          "wall": 13419,
+          "call": 3706,
+          "source_observed": 211434,
+          "fence": 309,
+          "work": 199,
+          "state": 1996567657,
+          "late": 808,
+          "missed": 0,
+          "callbacks": 32,
+          "payload_Bps": 43961.559424043524,
+          "wire_Bps": 45335.35815604489,
+          "foreground_capacity_fraction": 0.8697931034314411
+        }
+      ]
+    }
+  ],
+  "comparison": {
+    "kind": "hardware",
+    "build": "1ad95f651c6e017d",
+    "runs": [
+      {
+        "file": "R0042.log",
+        "mode": 0
+      },
+      {
+        "file": "R0043.log",
+        "mode": 1
+      },
+      {
+        "file": "R0044.log",
+        "mode": 2
+      }
+    ],
+    "rows": [
+      {
+        "mode": 0,
+        "name": "Pristine Eirene",
+        "bulk_payload_Bps": 107372.50261684795,
+        "bulk_wire_Bps": 110727.89332362445,
+        "paced_work_per_second": 648.9385474860335,
+        "foreground_capacity_fraction": 0.5285441722979841,
+        "missed_deadlines": 0,
+        "max_lateness_ticks": 955,
+        "samples": 6,
+        "bulk_gain_percent": 0.0,
+        "work_gain_percent": 0.0
+      },
+      {
+        "mode": 1,
+        "name": "Tom-derived scalar",
+        "bulk_payload_Bps": 105350.40578707063,
+        "bulk_wire_Bps": 108642.60596791659,
+        "paced_work_per_second": 1035.5032066060276,
+        "foreground_capacity_fraction": 0.8433639160486333,
+        "missed_deadlines": 0,
+        "max_lateness_ticks": 951,
+        "samples": 6,
+        "bulk_gain_percent": -1.8832538876299099,
+        "work_gain_percent": 59.56876203725805
+      },
+      {
+        "mode": 2,
+        "name": "OTIRX",
+        "bulk_payload_Bps": 106061.9928521657,
+        "bulk_wire_Bps": 109376.43012879588,
+        "paced_work_per_second": 1067.9138580791823,
+        "foreground_capacity_fraction": 0.8697931034314411,
+        "missed_deadlines": 0,
+        "max_lateness_ticks": 808,
+        "samples": 6,
+        "bulk_gain_percent": -1.2205264222616807,
+        "work_gain_percent": 64.5631720008382
+      }
+    ]
+  },
+  "files": {
+    "CREDITS.txt": {
+      "bytes": 1400,
+      "sha256": "b8edb70f8f0bbde603f3a5dfb748a970b5c54d3af16dd08d349fed19f0dee1bc"
+    },
+    "DIAGNOSTIC-VDP-LICENSE.txt": {
+      "bytes": 1069,
+      "sha256": "fae2cacdc47dc5ed8efbd052201834108167942f0b524b8238327e9fbe13fd25"
+    },
+    "ESP-IDF-LICENSE": {
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "MOS-LICENSE.txt": {
+      "bytes": 1069,
+      "sha256": "fae2cacdc47dc5ed8efbd052201834108167942f0b524b8238327e9fbe13fd25"
+    },
+    "R0042.log": {
+      "bytes": 2529,
+      "sha256": "31e30e2b6641576b2275ff6d7b4ff483cf1cec2db39e4c22786b5f0628fe02f9"
+    },
+    "R0043.log": {
+      "bytes": 2523,
+      "sha256": "5a4176c158d1c051884015fff925ae57bea2ae8ac7d718dd310b4ca44c50dd72"
+    },
+    "R0044.log": {
+      "bytes": 2523,
+      "sha256": "48fc87e7920bb1fa61c7d58c0db31893d972fb46933833550934b44fa13f8e64"
+    },
+    "RX-FIX-CREDITS.txt": {
+      "bytes": 817,
+      "sha256": "b236bf837922ae619bcb7d124c5fce2b204e3f32c234887641bbd52169ca744d"
+    },
+    "SHA256SUMS": {
+      "bytes": 1686,
+      "sha256": "88d5fed68890945b90bbdf1d2c66a656566c05843c1ac6f839bca4403f8b7b70"
+    },
+    "TEST-LICENSE.txt": {
+      "bytes": 1065,
+      "sha256": "0db98d06c58378ac21408c94149b1b675c44a8ebff8a32cb8fb875c9ed033bf3"
+    },
+    "VDP-LICENSE.txt": {
+      "bytes": 1069,
+      "sha256": "fae2cacdc47dc5ed8efbd052201834108167942f0b524b8238327e9fbe13fd25"
+    },
+    "appliance.json": {
+      "bytes": 155,
+      "sha256": "cf8f8d6dcbe48617c872a1bfea3220bba802c527617c4cc3a5ecb99028b08bc1"
+    },
+    "checks.bin": {
+      "bytes": 122880,
+      "sha256": "e1e9fccd360487bb18f6efbc66c944aaa3ba081e7b4676cbb6d95cbd7c89ad34"
+    },
+    "deployment.json": {
+      "bytes": 806,
+      "sha256": "44d4569ce58e55b81124b7f869575471bc5951a07ff23a0e1444d7a933eab87d"
+    },
+    "mos-eirene.bin": {
+      "bytes": 100660,
+      "sha256": "2110243ec967b16426933f8ffbd411649e51eb47dea780a49f1644e5421e2a64"
+    },
+    "mos-otirx.bin": {
+      "bytes": 101155,
+      "sha256": "7db662439e33badd561cefe26e7a7a643d9f932da1031bce20d60217cd1e03af"
+    },
+    "mos-scalar.bin": {
+      "bytes": 101163,
+      "sha256": "383167c7ae6220472378b366c63c81b9df5e3e63fe5d827233d4c2276c287965"
+    },
+    "mos-stock.bin": {
+      "bytes": 108490,
+      "sha256": "d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae"
+    },
+    "next.txt": {
+      "bytes": 4,
+      "sha256": "e603e189a414673bc741df635271cd1b1ef25d8e3a1131dd0e847b632bbd4869"
+    },
+    "readme.txt": {
+      "bytes": 2394,
+      "sha256": "af8f4f80187908464179f2270cfe7567e78019d86e292f8d55671478321fb3d3"
+    },
+    "runs.log": {
+      "bytes": 344,
+      "sha256": "18869c52cdf1dd82601c8fdab0d63fe8e756d4793fcf2b59cc9e41fb246eccab"
+    },
+    "source.json": {
+      "bytes": 1287,
+      "sha256": "b505395578287bf4c525964399a973b4e05af95c6a2d6c33e103c6411f0ea15b"
+    },
+    "test.bin": {
+      "bytes": 24920,
+      "sha256": "0f817a364acd229d48fac395f81aec486a7f64963523d6ee4b4d01cc14583490"
+    },
+    "vdp-stock.bin": {
+      "bytes": 1077840,
+      "sha256": "b807beef35823b13a0a056f11b7464cd1b1c6356dce0e4098b78ebe059ded35f"
+    },
+    "vdp-test.bin": {
+      "bytes": 1080608,
+      "sha256": "201ad8ab4af807c261cb92634286b2fbaedcf3879f140e820b60ab54cf707e2a"
+    }
+  },
+  "VDP_identity": "Matched VDP staged and requested; report format does not independently identify installed VDP",
+  "installed_MOS_at_last_test": "OTIRX experimental, CRC32 B201C2A4; no subsequent restore reported",
+  "card_written_during_inspection": false
+}

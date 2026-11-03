@@ -25,13 +25,13 @@ to SET KEYBOARD 1 plus CD /test/mos-uart0. Flush the volume, verify all 22 deplo
 files by SHA256/readback and verify no old UART subdirectories remain. Do not
 unmount/remount the card; the Author handles ejection.
 
-DP-004 [ ] Author: flash vdp-test.bin once, then run each MOS selection in order:
+DP-004 [x] Author: flash vdp-test.bin once, then run each MOS selection in order:
 mos-eirene.bin with `run . 0`, mos-scalar.bin with `run . 1`, and mos-otirx.bin
 with `run . 2`. After each MOS flash/reboot, load test.bin afresh in
 /test/mos-uart0.
 Allow two minutes per run; require PERF1 PASS and return to the prompt. Leave
 all Rnnnn.log/next.txt/runs.log files together for returned-card analysis.
-TM-005 remains open until physical results are inspected.
+TM-005 closed after inspection of R0042..R0044; see hardware-r01.md.
 
 The JSON companion records every deployed file hash, source commit, archived
 state and card identity. The fixed deployment has 22 files, including next.txt,

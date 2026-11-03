@@ -66,7 +66,7 @@ receiver verification and normal-return checks. Preserve any failing original
 case and identify each fix. Old reservation `c469951ff727` was cancelled during
 the repository transition; no reservation is currently held by this task.
 
-TM-005 [ ] Prepare and run matched Console8 paced/useful-work and bulk benchmarks.
+TM-005 [x] Prepare and run matched Console8 paced/useful-work and bulk benchmarks.
 Physical timing decides CPU/headroom and throughput claims. Include receiver
 byte verification, repeatable inputs and sequential reports. Physical firmware
 flashing remains an Author action; reserve no hardware test or SD deployment
@@ -135,7 +135,7 @@ The experimental banner reuses the existing variant string, adding no startup
 call or transport activation. The complete image is101155B versus100660B:
 495B additional ROM including branding; scalar control is8B larger.
 
-**MI-005 complete; next is TM-005.** The controlled paced/useful-work and bulk
+**MI-005 and TM-005 complete.** The controlled paced/useful-work and bulk
 fixture passed all six final actual-firmware Flexe cells. See
 [the protocol](performance.md) and [final evidence](performance-r02.md).
 The matched manual Console8 appliance is prepared in the project workspace;
@@ -147,3 +147,11 @@ only the new active UART appliance at `/test/mos-uart0`, including firmware;
 see [deployment-r01.md](deployment-r01.md). Old files were archived off-card,
 checksums read back successfully and the next report is R0042. Manual execution
 and returned-report inspection remain TM-005's next steps.
+
+The returned Console8 reports R0042..R0044 passed all requested selections;
+see [hardware-r01.md](hardware-r01.md). Physical paced calculation capacity
+increased59.6% with scalar and64.6% with OTIRX over ordinary Eirene output,
+without a demonstrated bulk speed gain. All18trials and147456receiver bytes
+passed. No requested test or required stock restoration was missed. The next
+application step is adapting the balls demo to the small Eirene interface;
+release and EMOS compatibility remain unapproved.
