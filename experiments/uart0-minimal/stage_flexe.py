@@ -1,7 +1,12 @@
 """Oryx-only: create stopped, guarded, private profiles. Does not run firmware."""
 from pathlib import Path
-import hashlib,importlib.util,json,shutil,subprocess,sys
-root=Path(__file__).resolve().parents[2];b=root/'build/tm001';out=b/sys.argv[1];out.mkdir(exist_ok=False)
+import argparse,hashlib,importlib.util,json,shutil,subprocess,sys
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('name');parser.add_argument('--suite',choices=('functional','performance'),default='functional')
+parser.add_argument('--fixture',default='fixture003');args=parser.parse_args()
+root=Path(__file__).resolve().parents[2];b=root/'build/tm001';out=b/args.name;out.mkdir(exist_ok=False)
+fixture=b/args.fixture/'fixture';performance=args.suite=='performance'
+
 old=root.parent/'agon-mos';base=old/'.emulator/uart0-completion-jit-final';common=out/'runtime';common.mkdir()
 h=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 files={'flexe-agon-emulator.bin':old/'build/uart0-balls/runtime-maintained/flexe-agon-emulator.bin','flexe-vdp.so':old/'build/uart0-balls/runtime-maintained/flexe-vdp.so','esp32-firmware.bin':base/'esp32-firmware.bin','esp32-firmware.elf':base/'esp32-firmware.elf'}
@@ -25,12 +30,13 @@ for variant in ('baseline','scalar003','otirx003'):
   with card.open('xb') as f:f.truncate(32*1024*1024)
   subprocess.run(['mkfs.fat','-F','16',str(card)],check=True,stdout=subprocess.DEVNULL);subprocess.run(['mmd','-i',str(card),'::/uart0'],check=True)
   def put(src,dst):subprocess.run(['mcopy','-i',str(card),str(src),'::/'+dst],check=True)
-  put(b/'fixture003/fixture/bin/fixture.bin','uart0/test.bin');put(b/'fixture003/fixture/checks.bin','uart0/checks.bin')
-  a=p/'autoexec.txt';a.write_bytes(('CD /uart0\r\nLOAD test.bin\r\nRUN . '+('0' if variant=='baseline' else '1')+'\r\nDIR\r\nECHO TM001 CLI RETURN\r\n').encode());put(a,'autoexec.txt')
+  put(fixture/'bin'/('test.bin' if performance else 'fixture.bin'),'uart0/test.bin');put(fixture/'checks.bin','uart0/checks.bin')
+  mode=str(('baseline','scalar003','otirx003').index(variant)) if performance else ('0' if variant=='baseline' else '1')
+  a=p/'autoexec.txt';a.write_bytes(('CD /uart0\r\nLOAD test.bin\r\nRUN . '+mode+'\r\nDIR\r\nECHO TM001 CLI RETURN\r\n').encode());put(a,'autoexec.txt')
   (p/'sdcard.img').symlink_to('card.img');factory.name_flexe_profile(p)
   names=[*files,'mos_platform.bin','mos_platform.map','flexe-agon-emulator'];(p/'.runtime.sha256').write_text(''.join(h(p/n)+'  '+n+'\n' for n in names))
   for pin in ('.mos-release.sha256','.runtime.sha256'):subprocess.run(['sha256sum','--check','--status',pin],cwd=p,check=True)
   subprocess.run(['bash','-n','flexe-agon-emulator'],cwd=p,check=True)
   rows.append(dict(path=str(p),variant=variant,engine=engine,MOS_sha256=h(p/'mos_platform.bin'),map_sha256=h(p/'mos_platform.map'),stopped=True))
-(out/'profiles.json').write_text(json.dumps(dict(profiles=rows,runtime={n:h(common/n) for n in files},fixture_sha256=h(b/'fixture003/fixture/bin/fixture.bin')),indent=2)+'\n')
+(out/'profiles.json').write_text(json.dumps(dict(suite=args.suite,fixture=args.fixture,profiles=rows,runtime={n:h(common/n) for n in files},fixture_sha256=h(fixture/'bin'/('test.bin' if performance else 'fixture.bin'))),indent=2)+'\n')
 print(out)

@@ -42,7 +42,7 @@ wrapper; retain host-library, MOS/map, backend and runtime identity guards.
 
 `run_flexe.py NAME` EXECUTES profiles. It requires UART0_ORYX_LEASE, asserts the
 shared Pi checkout immediately before every emulator process, caps each cell
-at180seconds, preserves raw output and stops at the first failure. Follow the
+at300seconds, preserves raw output and stops at the first failure. Follow the
 shared FIFO checkout/release and notify-next procedure; source/build permission
 is not an emulator lease. Only owned processes are stopped. `analyze.py` checks
 all emitted payload/comparator bytes and all boundary no-op bytes independently

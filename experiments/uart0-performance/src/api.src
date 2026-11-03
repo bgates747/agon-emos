@@ -1,0 +1,119 @@
+.assume adl=1
+.text
+.global _tm_write,_tm_finish
+.extern _tm_source,_tm_length,_tm_callback
+_tm_write:
+ ld hl,(_tm_source)
+ ld bc,(_tm_length)
+ ld de,(_tm_callback)
+ ld a,042h
+ rst.lil 08h
+ ret
+_tm_finish:
+ ld a,043h
+ rst.lil 08h
+ ret
+.global _rom_byte0
+_rom_byte0:
+ ld a,(0)
+ ret
+
+.global _perf_timer1_isr,_perf_capture_clock
+.extern _perf_timer1_wraps,_perf_clock_wrap,_perf_clock_count
+_perf_timer1_isr:
+ di
+ push af
+ push hl
+ in0 a,(131)
+ bit 7,a
+ jr z,perf_timer1_done
+ ld hl,(_perf_timer1_wraps)
+ inc hl
+ ld (_perf_timer1_wraps),hl
+perf_timer1_done:
+ pop hl
+ pop af
+ ei
+ reti.l
+_perf_capture_clock:
+ ld a,i
+ push af
+ di
+ in0 a,(131)
+ bit 7,a
+ jr z,perf_clock_read
+ ld hl,(_perf_timer1_wraps)
+ inc hl
+ ld (_perf_timer1_wraps),hl
+perf_clock_read:
+ ld de,0
+ in0 e,(132)
+ in0 d,(133)
+ in0 a,(131)
+ bit 7,a
+ jr z,perf_clock_save
+ ld hl,(_perf_timer1_wraps)
+ inc hl
+ ld (_perf_timer1_wraps),hl
+ in0 e,(132)
+ in0 d,(133)
+perf_clock_save:
+ ld (_perf_clock_count),de
+ ld hl,(_perf_timer1_wraps)
+ ld (_perf_clock_wrap),hl
+ pop af
+ jp po,perf_clock_masked
+ ei
+ ret
+perf_clock_masked:
+ ret
+
+.global _perf_timer2_isr,_perf_capture_wall
+.extern _perf_timer2_wraps,_perf_wall_wrap,_perf_wall_count
+_perf_timer2_isr:
+ di
+ push af
+ push hl
+ in0 a,(134)
+ bit 7,a
+ jr z,perf_timer2_done
+ ld hl,(_perf_timer2_wraps)
+ inc hl
+ ld (_perf_timer2_wraps),hl
+perf_timer2_done:
+ pop hl
+ pop af
+ ei
+ reti.l
+_perf_capture_wall:
+ ld a,i
+ push af
+ di
+ in0 a,(134)
+ bit 7,a
+ jr z,perf_wall_read
+ ld hl,(_perf_timer2_wraps)
+ inc hl
+ ld (_perf_timer2_wraps),hl
+perf_wall_read:
+ ld de,0
+ in0 e,(135)
+ in0 d,(136)
+ in0 a,(134)
+ bit 7,a
+ jr z,perf_wall_save
+ ld hl,(_perf_timer2_wraps)
+ inc hl
+ ld (_perf_timer2_wraps),hl
+ in0 e,(135)
+ in0 d,(136)
+perf_wall_save:
+ ld (_perf_wall_count),de
+ ld hl,(_perf_timer2_wraps)
+ ld (_perf_wall_wrap),hl
+ pop af
+ jp po,perf_wall_masked
+ ei
+ ret
+perf_wall_masked:
+ ret
