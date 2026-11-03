@@ -6,10 +6,11 @@ its correctness issues with the lightest practical changes, and add bounded
 16-byte OTIRX refills. Do not port the larger experimental implementation as
 the starting point. Its refinements and evidence remain available for later use.
 
-**Status: plan updated for Author review; implementation paused.**
-The Author chose this direction on 2026-11-03 and requested a pause after this
-update. No implementation, emulator execution, SD deployment or flashing is
-part of this planning update.
+**Status: Author authorized the first implementation tranche on 2026-11-03.**
+The plan/references were committed and pushed as1b8aab4 before implementation.
+The previous MOS handoffs/comparison were committed and pushed in their own
+repository as a290cea and c9bbbd4. This tranche implements and checks the small
+Eirene sender; physical flashing remains a separate manual step.
 
 ## Repository and interface decisions
 
@@ -59,7 +60,7 @@ only: its app and six stopped Flexe profiles are preserved under the old
 workload/comparator code to the new Eirene design rather than treating them as
 qualified new-branch binaries.
 
-TM-004 [ ] Run the revised finite comparison in Flexe on both engines after the
+TM-004 [x] Run the revised finite comparison in Flexe on both engines after the
 minimal implementation and fixture are ready. Follow the shared Oryx FIFO,
 receiver verification and normal-return checks. Preserve any failing original
 case and identify each fix. Old reservation `c469951ff727` was cancelled during
@@ -75,14 +76,14 @@ TM-006 [x] Record the selected delivery direction: Tom-first, light fixes,
 minimal OTIRX, explicit new syscall, unchanged RST18. Wider refinements remain
 available but are not requirements for the first implementation.
 
-## Minimal implementation tranche — pending review
+## Minimal implementation tranche — authorized
 
-MI-001 [ ] Inspect Eirene's current UART ISR, RX injection/parser facilities,
+MI-001 [x] Inspect Eirene's current UART ISR, RX injection/parser facilities,
 vector installation and syscall allocation. Reuse what it already supplies;
 do not reproduce the old MOS adapter or assume its keyboard-hook restrictions
 necessarily apply to Eirene. Write the small single-transfer calling contract.
 
-MI-002 [ ] Adapt Tom's sender with narrowly justified fixes: arm the example's
+MI-002 [x] Adapt Tom's sender with narrowly justified fixes: arm the example's
 completion flag before submission; reject zero length and overlapping sends;
 close the interrupt-vector installation race; define callback register/context
 requirements and a small save/restore boundary; finish accepted traffic before
@@ -91,14 +92,14 @@ correct deferral/wakeup mechanism that keeps normal receive service alive.
 These are normal-use correctness fixes, not a request for an expanded framework.
 Record the source delta and justify each addition.
 
-MI-003 [ ] Replace the scalar FIFO-copy loop with OTIRX, clamping the positive
+MI-003 [x] Replace the scalar FIFO-copy loop with OTIRX, clamping the positive
 count to remaining bytes and the 16-byte FIFO capacity. Account source/count
 once per block. Preserve the before-block CTS check; do not silently reintroduce
 per-byte CTS polling. Treat receiver reserve as a qualification question, not a
 promise made by the instruction. Keep the lightly fixed scalar version as a
 matched control to isolate OTIRX from other changes.
 
-MI-004 [ ] Integrate through the new opt-in Eirene syscall, preserving startup
+MI-004 [x] Integrate through the new opt-in Eirene syscall, preserving startup
 and ordinary RST18 behavior. Keep source-release, local wire drain and remote
 execution distinct. Report source/ROM/RAM size and hot-path changes; do not
 invent a target line count as a substitute for correctness or speed.
@@ -120,5 +121,22 @@ in the first version. They are not abandoned: reconsider each only when a
 consumer or measurement justifies its cost. Preserve the old sources, qualified
 binaries and reports without claiming their qualification transfers to Eirene.
 
-Review the plan before beginning MI-001. No implementation has started on this
-branch as part of this update.
+The source audit and calling contract are recorded in [contract.md](contract.md).
+The first implementation tranche passed six real-firmware Flexe functional
+cells; see [functional-r02.md](functional-r02.md). Runtime reservation202 was
+released with fresh empty-host evidence; no next agent was waiting. There is
+no active reservation. Original r01 failed before CPU execution because a
+staged wrapper lacked its executable bit; fresh r02 profiles passed.
+
+The implemented module is476ROM bytes and11RAM bytes (253 source lines,
+including comments/macros/control variant). Ordinary startup, reset, RST18,
+serial and RX parser sources are byte-identical to the pinned Eirene base.
+The experimental banner reuses the existing variant string, adding no startup
+call or transport activation. The complete image is101155B versus100660B:
+495B additional ROM including branding; scalar control is8B larger.
+
+**Next tranche: MI-005, then TM-005.** Build matched paced/useful-work and bulk
+performance measurements against pristine Eirene, lightly fixed scalar and
+OTIRX. No speedup is inferred from emulator wall time. Physical qualification
+and app performance remain open; neither a release nor EMOS compatibility is
+approved by the functional pass.

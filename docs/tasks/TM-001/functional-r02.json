@@ -1,0 +1,132 @@
+{
+  "async_post_boot_streams_identical": true,
+  "passed": true,
+  "cells": [
+    {
+      "boot_probes": 61,
+      "post_boot_wire_sha256": "777928f512592a0810c50bd62645c9fc17edb05bd4900bf1346695eba7796749",
+      "variant": "baseline",
+      "engine": "jit",
+      "passed": true,
+      "receiver_payload": 8192,
+      "command_bytes": 8452,
+      "boundary_bytes": 0,
+      "uart": {
+        "tx_irqs": 0,
+        "modem_irqs": 0,
+        "rx_irqs": 0,
+        "tx_drops": 0,
+        "rx_overruns": 0,
+        "cts_edges": 0
+      },
+      "wire_bytes": 179579,
+      "wire_sha256": "b6e48f5ff37781a2773e58a361b56fbf6418d237ed1d521a4dbe7468b283f0b9"
+    },
+    {
+      "boot_probes": 61,
+      "post_boot_wire_sha256": "777928f512592a0810c50bd62645c9fc17edb05bd4900bf1346695eba7796749",
+      "variant": "baseline",
+      "engine": "interp",
+      "passed": true,
+      "receiver_payload": 8192,
+      "command_bytes": 8452,
+      "boundary_bytes": 0,
+      "uart": {
+        "tx_irqs": 0,
+        "modem_irqs": 0,
+        "rx_irqs": 0,
+        "tx_drops": 0,
+        "rx_overruns": 0,
+        "cts_edges": 0
+      },
+      "wire_bytes": 179579,
+      "wire_sha256": "b6e48f5ff37781a2773e58a361b56fbf6418d237ed1d521a4dbe7468b283f0b9"
+    },
+    {
+      "boot_probes": 61,
+      "post_boot_wire_sha256": "96b73f4e577e93d2804bdd12bdad66b425af8d6aa56a90285e44ff8623f5aca8",
+      "variant": "scalar003",
+      "engine": "jit",
+      "passed": true,
+      "receiver_payload": 8192,
+      "command_bytes": 8452,
+      "boundary_bytes": 1842,
+      "uart": {
+        "tx_irqs": 648,
+        "modem_irqs": 33,
+        "rx_irqs": 3,
+        "tx_drops": 0,
+        "rx_overruns": 0,
+        "cts_edges": 53
+      },
+      "wire_bytes": 181604,
+      "wire_sha256": "c085b610ef594d9002c2f77d897a6eaa29a7c5255845af2369ebff4cc8235320"
+    },
+    {
+      "boot_probes": 60,
+      "post_boot_wire_sha256": "96b73f4e577e93d2804bdd12bdad66b425af8d6aa56a90285e44ff8623f5aca8",
+      "variant": "scalar003",
+      "engine": "interp",
+      "passed": true,
+      "receiver_payload": 8192,
+      "command_bytes": 8452,
+      "boundary_bytes": 1842,
+      "uart": {
+        "tx_irqs": 648,
+        "modem_irqs": 29,
+        "rx_irqs": 3,
+        "tx_drops": 0,
+        "rx_overruns": 0,
+        "cts_edges": 45
+      },
+      "wire_bytes": 181600,
+      "wire_sha256": "3f3253cbd1601beb5ae08535c4c6e9169dc286a9bded76c2e0fb14355889f685"
+    },
+    {
+      "boot_probes": 61,
+      "post_boot_wire_sha256": "96b73f4e577e93d2804bdd12bdad66b425af8d6aa56a90285e44ff8623f5aca8",
+      "variant": "otirx003",
+      "engine": "jit",
+      "passed": true,
+      "receiver_payload": 8192,
+      "command_bytes": 8452,
+      "boundary_bytes": 1842,
+      "uart": {
+        "tx_irqs": 648,
+        "modem_irqs": 54,
+        "rx_irqs": 3,
+        "tx_drops": 0,
+        "rx_overruns": 0,
+        "cts_edges": 83
+      },
+      "wire_bytes": 181604,
+      "wire_sha256": "c085b610ef594d9002c2f77d897a6eaa29a7c5255845af2369ebff4cc8235320"
+    },
+    {
+      "boot_probes": 61,
+      "post_boot_wire_sha256": "96b73f4e577e93d2804bdd12bdad66b425af8d6aa56a90285e44ff8623f5aca8",
+      "variant": "otirx003",
+      "engine": "interp",
+      "passed": true,
+      "receiver_payload": 8192,
+      "command_bytes": 8452,
+      "boundary_bytes": 1842,
+      "uart": {
+        "tx_irqs": 648,
+        "modem_irqs": 34,
+        "rx_irqs": 3,
+        "tx_drops": 0,
+        "rx_overruns": 0,
+        "cts_edges": 51
+      },
+      "wire_bytes": 181604,
+      "wire_sha256": "c085b610ef594d9002c2f77d897a6eaa29a7c5255845af2369ebff4cc8235320"
+    }
+  ],
+  "receiver_bytes": 49152,
+  "async_cells": 4,
+  "physical": false,
+  "keyboard_traffic_tested": false,
+  "forced_CTS_stall_tested": false,
+  "performance_claim": false
+}
