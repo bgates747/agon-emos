@@ -158,16 +158,21 @@ release and EMOS compatibility remain unapproved.
 
 ## Extended matched comparison — Author authorized
 
-XC-001 [ ] Add official stock MOS3.0.2 and the previously hardware-qualified
+XC-001 [x] Add official stock MOS3.0.2 and the previously hardware-qualified
 full OTIRX candidate to the same PERF1 workload, preserving its timed C helpers,
 PRT code, payloads, pacing and receiver checks. Use a small adapter for the old
 UTX1 borrowed/direct-callback API, with batch16 and copying mode disabled.
 Re-use pinned firmware; no MOS compiler or firmware changes are needed.
 
-XC-002 [ ] Qualify both added apps against their exact firmware, preserve original
+XC-002 [x] Qualify both added apps against their exact firmware, preserve original
 Eirene test.bin and R0042..R0044 unchanged, and support combined five-case analysis
 across explicit build identities. Report adapter cost as part of each API path.
 
-XC-003 [ ] Deploy the two additions directly into the existing Console8 appliance,
+XC-003 [x] Deploy the two additions directly into the existing Console8 appliance,
 including firmware and concise instructions. Keep prior binaries, reports and
 sequential history. Author runs ONLY the two new cases, then we analyze all five.
+
+The two additions are qualified and deployed; see
+[extended-deployment.md](extended-deployment.md). Only official stock MOS and
+the previous full OTIRX case need hardware execution now. All three Eirene
+cases and R0042..R0044 remain unchanged in the same appliance. Next report45.
