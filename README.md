@@ -1,5 +1,10 @@
 # agon-mos
 
+This fork's `codex/uart0-async` branch develops an opt-in, single-buffer UART0
+sender based on Tom Morton's candidate. Normal RST18 stays synchronous. See the
+[task](docs/tasks/TM-001/README.md) and [experimental syscall contract](docs/tasks/TM-001/contract.md).
+The first functional emulator proof is not physical-hardware or release approval.
+
 This is a port in progress from the proprietary Zilog ZDS-II toolchain
 to the open source Clang-based AgonAdev toolchain. We run on real
 hardware, but it's not ready for release.  It also runs on

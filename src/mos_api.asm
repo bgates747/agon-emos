@@ -30,6 +30,7 @@
 
 			.text
 			XDEF	mos_api
+			XREF	uart0_async_write,uart0_async_finish
 
 			XREF	SWITCH_A		; In misc.asm
 			XREF	SET_AHL24
@@ -227,8 +228,8 @@ mos_api_block1_start:	DW	mos_api_getkey		; 0x00
 
 			DW	mos_api_clear_vdp_flags	; 0x40
 			DW	mos_api_wait_vdp_flags	; 0x41
-			DW	mos_api_not_implemented	; 0x42
-			DW	mos_api_not_implemented	; 0x43
+			DW	uart0_async_write	; 0x42 experimental UART0
+			DW	uart0_async_finish	; 0x43 experimental UART0
 			DW	mos_api_not_implemented	; 0x44
 			DW	mos_api_not_implemented	; 0x45
 			DW	mos_api_not_implemented	; 0x46

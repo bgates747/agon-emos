@@ -7,7 +7,7 @@
 #define		VERSION_CANDIDATE	1			// Optional
 #define		VERSION_TYPE		"Beta "     // RC, Alpha, Beta, etc.
 
-#define		VERSION_VARIANT		"Eirene"
+#define		VERSION_VARIANT		"Eirene UART0 EXPERIMENTAL"
 //#define     VERSION_SUBTITLE    "Arthur"
 
 #endif /* VERSION_H */
