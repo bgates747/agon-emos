@@ -47,14 +47,17 @@ fence before each interval prevents prior printed text from contaminating it.
 Use create-new Rnnnn.log files, next.txt and an append-only runs.log; never infer
 run order from Agon's clock. Do not free or exit with an uncertain live source.
 
-PF-006 [ ] Run the6finite actual-firmware Flexe cells (three images ×JIT/interpreter)
+PF-006 [x] Run the6finite actual-firmware Flexe cells (three images ×JIT/interpreter)
 through the shared Oryx lease. Check report counts, deterministic work states,
 clock agreement, replayed payloads/comparisons and runtime/UART health. Preserve
 all attempts; fail-stop the cohort, release before offline analysis. Emulator
 numbers validate the fixture only; physical Console8 decides speed claims.
 
-PF-007 [ ] Prepare the matched manual Console8 appliance, with the same test.bin,
+PF-007 [x] Prepare the matched manual Console8 appliance, with the same test.bin,
 checks.bin, all three clearly named MOS images, matched VDP, stock restoration
 files, short readme.txt and provenance. No SD write, physical flash or claimed
 hardware result is part of this preparation. TM-005 remains open for the Author's
 three firmware selections/runs and our returned-report analysis.
+
+Final evidence: [performance-r02.md](performance-r02.md). MI-005 is complete;
+TM-005 remains open for manual Console8 measurements. No SD card was written.

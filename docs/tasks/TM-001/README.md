@@ -104,7 +104,7 @@ and ordinary RST18 behavior. Keep source-release, local wire drain and remote
 execution distinct. Report source/ROM/RAM size and hot-path changes; do not
 invent a target line count as a substitute for correctness or speed.
 
-MI-005 [ ] Adapt the controlled benchmark to compare Eirene's ordinary output,
+MI-005 [x] Adapt the controlled benchmark to compare Eirene's ordinary output,
 Tom-derived lightly fixed scalar sending and the same sender with OTIRX, using
 identical bytes, submission boundaries, callback work and receiver checks.
 Measure useful foreground work under pacing and maximum sustainable bulk rate.
@@ -135,8 +135,9 @@ The experimental banner reuses the existing variant string, adding no startup
 call or transport activation. The complete image is101155B versus100660B:
 495B additional ROM including branding; scalar control is8B larger.
 
-**Next tranche: MI-005, then TM-005.** Build matched paced/useful-work and bulk
-performance measurements against pristine Eirene, lightly fixed scalar and
-OTIRX. No speedup is inferred from emulator wall time. Physical qualification
-and app performance remain open; neither a release nor EMOS compatibility is
-approved by the functional pass.
+**MI-005 complete; next is TM-005.** The controlled paced/useful-work and bulk
+fixture passed all six final actual-firmware Flexe cells. See
+[the protocol](performance.md) and [final evidence](performance-r02.md).
+The matched manual Console8 appliance is prepared in the project workspace;
+no SD card or physical firmware was changed. Physical timing remains open;
+no release, hardware speedup or EMOS compatibility is inferred from the model.
