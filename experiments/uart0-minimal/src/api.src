@@ -1,0 +1,20 @@
+.assume adl=1
+.text
+.global _tm_write,_tm_finish,_tm_masked_probe
+.extern _tm_source,_tm_length,_tm_callback
+_tm_write:
+ ld hl,(_tm_source)
+ ld bc,(_tm_length)
+ ld de,(_tm_callback)
+ ld a,042h
+ rst.lil 08h
+ ret
+_tm_finish:
+ ld a,043h
+ rst.lil 08h
+ ret
+_tm_masked_probe:
+ di
+ call _tm_write
+ ei
+ ret
