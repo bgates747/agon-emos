@@ -24,7 +24,11 @@ def main():
     p.add_argument("--toolchain", type=Path, required=True)
     p.add_argument("--utility", choices=("sdserve", "sdjob"), default="sdserve")
     p.add_argument("--moslet", action="store_true", help="Build for /emos at B0000 within32KiB")
+    p.add_argument("--parallel-upload-candidate", action="store_true",
+                   help="private PORT-008 whole-file carrier; matched EMOS/P4 required")
     a = p.parse_args()
+    if a.parallel_upload_candidate and (a.utility!="sdserve" or not a.moslet):
+        p.error("parallel upload candidate requires the sdserve MOSlet")
     app = ROOT / "projects" / a.utility
     prefix = a.utility.upper()
     output = a.output.absolute()
@@ -47,7 +51,7 @@ def main():
         for target in ("clean", "all"):
             layout = ["RAM_START=0xB0000", "RAM_SIZE=0x8000"] if a.moslet else []
             subprocess.run(["make", f"AGONDEV_TOOLCHAIN={toolchain}",
-                            f"{prefix}_IDENTIFIED_BUILD=1", *layout, target], cwd=app,
+                            f"{prefix}_IDENTIFIED_BUILD=1", *(["SDSERVE_PARALLEL_UPLOAD=1"] if a.parallel_upload_candidate else []), *layout, target], cwd=app,
                            stdout=log, stderr=subprocess.STDOUT, check=True)
     if git("status", "--porcelain") or git("rev-parse", "HEAD") != commit:
         raise RuntimeError("source changed during candidate build")
@@ -60,6 +64,7 @@ def main():
                 "build": dict(identity, build_id=build_id, created_at=now.isoformat(),
                               layout="moslet" if a.moslet else "application",
                               load_address="0xB0000" if a.moslet else "0x40000"),
+                "parallel_upload_candidate": a.parallel_upload_candidate,
                 "provenance": {"commit": commit, "dirty": False, "source_sha256": sources,
                                "compiler_sha256": sha(toolchain/"bin/ez80-none-elf-clang")},
                 "outputs": [{"filename": target.name, "role": "emoslet" if a.moslet else "application",

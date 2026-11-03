@@ -422,7 +422,8 @@ def verify_source(source: Path) -> None:
 
 def verify_linked(
     elf: Path, nm: Path, objdump: Path, *, allow_fixed_qualification: bool = False,
-    allow_native_payload: bool = False, allow_exext_stream: bool = False
+    allow_native_payload: bool = False, allow_exext_stream: bool = False,
+    allow_upload_payload: bool = False
 ) -> None:
     symbols = linked_symbols(nm, elf)
     retired = ("_emos_visible_text", "_emos_text_probe", "_emos_text_valid",
@@ -495,6 +496,9 @@ def verify_linked(
     if not allow_native_payload and any(name in symbols for name in (
             "_emos_parallel_native_payload", "_emos_parallel_native_bytes")):
         raise ParallelError("ordinary image links private native payload symbols")
+
+    if not allow_upload_payload and "_emos_parallel_upload_bytes" in symbols:
+        raise ParallelError("ordinary image links private upload leaf")
 
     # INTEG-005: Core-owned RTS adds only PC_DR/PC_DDR writes. Keep the
     # whole-image owner inventory and bound each new writer to its exact
@@ -587,7 +591,7 @@ def verify_linked(
         raise ParallelError("runtime release tick has an unreviewed caller")
     if candidate:
         start_callers = {"_init_UART1": 1, "_emos_parallel_boot_tick": 1}
-        if allow_native_payload:
+        if allow_native_payload or allow_upload_payload:
             start_callers["_emos_parallel_boot_block_end"] = 1
         if direct_transfer_count(whole_image, addresses["_emos_parallel_boot_start"]) != sum(start_callers.values()):
             raise ParallelError("runtime fence start has an unreviewed caller")

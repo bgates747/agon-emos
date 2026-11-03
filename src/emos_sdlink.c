@@ -8,6 +8,9 @@
 #include "emos_admission.h"
 #include "emos_keyboard.h"
 #include "uart.h"
+#if defined(EMOS_PARALLEL_UPLOAD)
+#include "emos_parallel_upload.h"
+#endif
 
 static volatile BYTE active, ready, application_owned, second_ready;
 /* A finite job can receive a control ACK followed immediately by its first
@@ -25,6 +28,9 @@ static BYTE range(UINT24 address, UINT24 length) {
 }
 void emos_sdlink_reset(void) {
     BYTE irq = emos_keyboard_lock();
+#if defined(EMOS_PARALLEL_UPLOAD)
+    emos_parallel_upload_abandon();
+#endif
     active = ready = application_owned = second_ready = 0;
     emos_keyboard_unlock(irq);
 }
@@ -50,6 +56,32 @@ UINT24 emos_sdlink_gateway(t_emosGatewayRequest *r) {
         (capacity ? !range(output,capacity) : output != 0)) return FR_INVALID_PARAMETER;
     memset(r->outputLength, 0, 3);
     operation = *(BYTE *)input;
+#if defined(EMOS_PARALLEL_UPLOAD)
+    if(operation>=7 && operation<=9) {
+        BYTE *p=(BYTE *)input;
+        UINT24 count;
+        if(!active || application_owned || emos_get_mode()!=EMOS_MODE_LEGACY ||
+            emos_key_source!=EMOS_KEY_EXTENDER || emos_key_faulted)return EMOS_UNAVAILABLE;
+        if(operation==7) {
+            if(length!=5 || capacity)return FR_INVALID_PARAMETER;
+            /* Zero length queries candidate support without acquiring pins. */
+            if(!(p[1]|p[2]|p[3]|p[4]))return emos_parallel_upload_owned()?EMOS_BUSY:FR_OK;
+            return emos_parallel_upload_begin((UINT32)p[1]|((UINT32)p[2]<<8)|
+                ((UINT32)p[3]<<16)|((UINT32)p[4]<<24));
+        }
+        if(operation==9) {
+            if(length!=2 || capacity)return FR_INVALID_PARAMETER;
+            return emos_parallel_upload_end(p[1]);
+        }
+        if(length!=4)return FR_INVALID_PARAMETER;
+        count=emos_read24(p+1);
+        if(!count || count>512 || capacity!=count)return FR_INVALID_PARAMETER;
+        result=emos_parallel_upload_read((BYTE *)output,count);
+        if(!result)memcpy(r->outputLength,p+1,3);
+        return result;
+    }
+    if(emos_parallel_upload_owned())return EMOS_BUSY;
+#endif
     if (operation > 6 || (operation != 2 && operation != 6 && length != 1) || (operation == 6 && length != 6) ||
         (operation == 2 && (length < 21 || length > EMOS_SDLINK_LIMIT+1)) ||
         (operation == 1 ? capacity < EMOS_SDLINK_LIMIT : operation == 4 ? capacity != 4 : operation == 5 ? capacity != 36 : capacity != 0))
