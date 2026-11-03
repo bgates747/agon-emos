@@ -1,0 +1,112 @@
+{
+  "deployed_utc": "2026-11-03T20:34:14.054444+00:00",
+  "mount": {
+    "target": "/run/media/smith/AGONC8",
+    "source": "/dev/sda1",
+    "uuid": "8658-1C23",
+    "label": "AGONC8",
+    "fstype": "vfat"
+  },
+  "path": "/test/mos-uart0",
+  "fixture_build": "1ad95f651c6e017d",
+  "source_commit": "b4bde8d3a76e8fb0686bd656feaa642966ce7ec1",
+  "first_report": 42,
+  "previous_archive_sha256": "9c5ccaa0f4a26ac0d9c90f7e53ac20965c08766ab98056004e17ae9742db848b",
+  "root_MOS_bin": "Unchanged stock restoration image; use explicit firmware filenames inside the appliance",
+  "root_MOS_sha256": "d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae",
+  "autoexec_sha256": "1c6bab969312fd976cc5248898dd6196e12ddf2367de9e6da518fef442f4fb43",
+  "firmware_flashed": false,
+  "physical_tested": false,
+  "readback_verified": true,
+  "old_UART_subdirectories_removed": true,
+  "files": {
+    "CREDITS.txt": {
+      "bytes": 1400,
+      "sha256": "b8edb70f8f0bbde603f3a5dfb748a970b5c54d3af16dd08d349fed19f0dee1bc"
+    },
+    "DIAGNOSTIC-VDP-LICENSE.txt": {
+      "bytes": 1069,
+      "sha256": "fae2cacdc47dc5ed8efbd052201834108167942f0b524b8238327e9fbe13fd25"
+    },
+    "ESP-IDF-LICENSE": {
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "MOS-LICENSE.txt": {
+      "bytes": 1069,
+      "sha256": "fae2cacdc47dc5ed8efbd052201834108167942f0b524b8238327e9fbe13fd25"
+    },
+    "RX-FIX-CREDITS.txt": {
+      "bytes": 817,
+      "sha256": "b236bf837922ae619bcb7d124c5fce2b204e3f32c234887641bbd52169ca744d"
+    },
+    "SHA256SUMS": {
+      "bytes": 1686,
+      "sha256": "88d5fed68890945b90bbdf1d2c66a656566c05843c1ac6f839bca4403f8b7b70"
+    },
+    "TEST-LICENSE.txt": {
+      "bytes": 1065,
+      "sha256": "0db98d06c58378ac21408c94149b1b675c44a8ebff8a32cb8fb875c9ed033bf3"
+    },
+    "VDP-LICENSE.txt": {
+      "bytes": 1069,
+      "sha256": "fae2cacdc47dc5ed8efbd052201834108167942f0b524b8238327e9fbe13fd25"
+    },
+    "appliance.json": {
+      "bytes": 155,
+      "sha256": "cf8f8d6dcbe48617c872a1bfea3220bba802c527617c4cc3a5ecb99028b08bc1"
+    },
+    "checks.bin": {
+      "bytes": 122880,
+      "sha256": "e1e9fccd360487bb18f6efbc66c944aaa3ba081e7b4676cbb6d95cbd7c89ad34"
+    },
+    "deployment.json": {
+      "bytes": 806,
+      "sha256": "44d4569ce58e55b81124b7f869575471bc5951a07ff23a0e1444d7a933eab87d"
+    },
+    "mos-eirene.bin": {
+      "bytes": 100660,
+      "sha256": "2110243ec967b16426933f8ffbd411649e51eb47dea780a49f1644e5421e2a64"
+    },
+    "mos-otirx.bin": {
+      "bytes": 101155,
+      "sha256": "7db662439e33badd561cefe26e7a7a643d9f932da1031bce20d60217cd1e03af"
+    },
+    "mos-scalar.bin": {
+      "bytes": 101163,
+      "sha256": "383167c7ae6220472378b366c63c81b9df5e3e63fe5d827233d4c2276c287965"
+    },
+    "mos-stock.bin": {
+      "bytes": 108490,
+      "sha256": "d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae"
+    },
+    "next.txt": {
+      "bytes": 4,
+      "sha256": "9e4c59bb9e5ca6ca840eb57555c3f45692474ff6c1379d3579eec60e18667cbe"
+    },
+    "readme.txt": {
+      "bytes": 2394,
+      "sha256": "af8f4f80187908464179f2270cfe7567e78019d86e292f8d55671478321fb3d3"
+    },
+    "runs.log": {
+      "bytes": 89,
+      "sha256": "750ed5771750aec62bb099c8e0cd32f2405b9b2f0218abccb435582f973c1469"
+    },
+    "source.json": {
+      "bytes": 1287,
+      "sha256": "b505395578287bf4c525964399a973b4e05af95c6a2d6c33e103c6411f0ea15b"
+    },
+    "test.bin": {
+      "bytes": 24920,
+      "sha256": "0f817a364acd229d48fac395f81aec486a7f64963523d6ee4b4d01cc14583490"
+    },
+    "vdp-stock.bin": {
+      "bytes": 1077840,
+      "sha256": "b807beef35823b13a0a056f11b7464cd1b1c6356dce0e4098b78ebe059ded35f"
+    },
+    "vdp-test.bin": {
+      "bytes": 1080608,
+      "sha256": "201ad8ab4af807c261cb92634286b2fbaedcf3879f140e820b60ab54cf707e2a"
+    }
+  }
+}

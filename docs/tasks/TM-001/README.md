@@ -141,3 +141,9 @@ fixture passed all six final actual-firmware Flexe cells. See
 The matched manual Console8 appliance is prepared in the project workspace;
 no SD card or physical firmware was changed. Physical timing remains open;
 no release, hardware speedup or EMOS compatibility is inferred from the model.
+
+The Author subsequently requested deployment. The Console8 card now contains
+only the new active UART appliance at `/test/mos-uart0`, including firmware;
+see [deployment-r01.md](deployment-r01.md). Old files were archived off-card,
+checksums read back successfully and the next report is R0042. Manual execution
+and returned-report inspection remain TM-005's next steps.
