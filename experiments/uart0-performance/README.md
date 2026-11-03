@@ -53,3 +53,17 @@ and report missed deadlines alongside gains.
 appliance on Oryx with matching images, stock restoration and concise readme.txt.
 It does not access or write an SD card. Physical flashing/execution remain
 manual Author actions. Firmware and third-party licenses/credits are retained.
+
+For returned-card analysis, archive/copy the complete appliance and its reports
+into the project workspace first. Then use:
+
+```
+python3 experiments/uart0-performance/summarize.py /absolute/path/to/archived-appliance --kind hardware
+```
+
+This checks the build, installed-ROM pins, checksums, timer consistency and six
+trials per run before writing a derived comparison.json. It combines complete
+matched reports for all three modes, reports median rates, percentage change
+from pristine ordinary output, and missed deadlines. The same tool defaults to
+`emulator` labeling for model reports; do not relabel model data as hardware.
+Raw reports remain unchanged. Preserve the complete Rnnnn/next/runs history.
