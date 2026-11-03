@@ -176,3 +176,10 @@ The two additions are qualified and deployed; see
 [extended-deployment.md](extended-deployment.md). Only official stock MOS and
 the previous full OTIRX case need hardware execution now. All three Eirene
 cases and R0042..R0044 remain unchanged in the same appliance. Next report45.
+
+The extended physical comparison is now complete: R0045 and R0046 passed,
+joining unchanged R0042..R0044. See [hardware-five-r01.md](hardware-five-r01.md).
+Official MOS and unmodified Eirene are essentially equal here. Minimal Eirene
+OTIRX provides64.51% more paced foreground calculation than official stock,
+versus51.15% for the earlier full implementation; none improves bulk rate over
+stock in this matched fixture. No requested cases remain missing. Next report47.
