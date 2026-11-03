@@ -155,3 +155,19 @@ without a demonstrated bulk speed gain. All18trials and147456receiver bytes
 passed. No requested test or required stock restoration was missed. The next
 application step is adapting the balls demo to the small Eirene interface;
 release and EMOS compatibility remain unapproved.
+
+## Extended matched comparison — Author authorized
+
+XC-001 [ ] Add official stock MOS3.0.2 and the previously hardware-qualified
+full OTIRX candidate to the same PERF1 workload, preserving its timed C helpers,
+PRT code, payloads, pacing and receiver checks. Use a small adapter for the old
+UTX1 borrowed/direct-callback API, with batch16 and copying mode disabled.
+Re-use pinned firmware; no MOS compiler or firmware changes are needed.
+
+XC-002 [ ] Qualify both added apps against their exact firmware, preserve original
+Eirene test.bin and R0042..R0044 unchanged, and support combined five-case analysis
+across explicit build identities. Report adapter cost as part of each API path.
+
+XC-003 [ ] Deploy the two additions directly into the existing Console8 appliance,
+including firmware and concise instructions. Keep prior binaries, reports and
+sequential history. Author runs ONLY the two new cases, then we analyze all five.

@@ -1,0 +1,40 @@
+.assume adl=1
+.text
+.global _old_discover,_old_call,_old_notify
+.extern _old_function,_old_hl,_old_bc,_old_de,_old_result,_old_bad,_tm_callback
+_old_discover:
+ ld bc,01300h
+ ld a,050h
+ rst.lil 08h
+ or a
+ jr nz,old_missing
+ ld de,0
+ or a
+ sbc hl,de
+ jr z,old_missing
+ jp (hl)
+old_missing:
+ ld hl,0
+ ret
+_old_call:
+ push ix
+ ld ix,(_old_function)
+ ld hl,(_old_hl)
+ ld bc,(_old_bc)
+ ld de,(_old_de)
+ call old_indirect
+ ld (_old_result),hl
+ pop ix
+ ret
+old_indirect:
+ jp (ix)
+_old_notify:
+ cp a,4
+ jr z,old_released
+ ld a,1
+ ld (_old_bad),a
+old_released:
+ ; Reuse the SAME flag/count callback body as the Eirene fixture. The old
+ ; firmware saves registers around this ABI adapter; no payload copy occurs.
+ ld hl,(_tm_callback)
+ jp (hl)

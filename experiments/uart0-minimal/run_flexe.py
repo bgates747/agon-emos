@@ -44,7 +44,8 @@ for row in profiles['profiles']:
   if performance:
    assert report.count('VERIFY8192 PASS')==6 and report.count('DATA rep=')==6
    assert 'START' in (reports/'runs.log').read_text() and 'PASS' in (reports/'runs.log').read_text()
-   assert 'MODE '+str(('baseline','scalar003','otirx003').index(row['variant']))+';' in report
+   expected_mode=row['mode'] if 'mode' in row else ('baseline','scalar003','otirx003').index(row['variant'])
+   assert 'MODE '+str(expected_mode)+';' in report
   else:
    assert ('MODE standard' if row['variant']=='baseline' else 'MODE async') in report
   if not performance and row['variant']!='baseline':assert 'RX-during-TX PASS' in report and 'NULL callback PASS' in report and 'masked-context refusal PASS' in report
