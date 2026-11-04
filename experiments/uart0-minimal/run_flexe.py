@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,os,shlex,shutil,signal,subprocess,sys,time
 root=Path(__file__).resolve().parents[2];out=root/'build/tm001'/sys.argv[1]
-profiles=json.loads((out/'profiles.json').read_text());results=[];performance2=profiles.get('suite')=='performance2';performance=performance2 or profiles.get('suite')=='performance'
+profiles=json.loads((out/'profiles.json').read_text());results=[];releasecandidate=profiles.get('suite')=='releasecandidate';performance2=profiles.get('suite')=='performance2';performance=performance2 or profiles.get('suite')=='performance'
 def lease():
  token=os.environ['UART0_ORYX_LEASE'];env=root.parent/'agon-dev-env'
  args=[str(env/'.venv/bin/python'),str(env/'cross-agent/vdplet-rollout/oryx_lease.py'),'assert-owner','--owner','agon-mos','--lease',token]
@@ -40,7 +40,11 @@ for row in profiles['profiles']:
  try:
   assert error is None,error
   report=(reports/'R0001.log').read_text();assert ('PERF2 PASS' if performance2 else ('PERF1 PASS' if performance else 'TM001 MINIMAL PASS')) in report and 'VERIFY8192 PASS' in report
-  assert int((reports/'next.txt').read_text())==2
+  assert int((reports/'next.txt').read_text())==(3 if releasecandidate else 2)
+  if releasecandidate:
+   for number in (1,2):
+    rc_report=(reports/f'R{number:04}.log').read_text();assert 'RC1 PASS' in rc_report and 'Ordinary RST18 after finish PASS' in rc_report
+   assert 'RC1 EXAMPLE PASS' in (r/'raw/mos-to-vdp.bin').read_bytes().decode('latin1')
   if performance2:
    assert report.count('VERIFY8192 PASS')==9 and report.count('DATA rep=')==9
    assert 'case='+row['case'] in report and 'CONFIG transport='+str(row['transport']) in report
@@ -58,6 +62,6 @@ for row in profiles['profiles']:
   assert uart['tx_drops']==uart['rx_overruns']==0
  except Exception as exc:
   if error is None:error=repr(exc)
- result=dict(**row,passed=error is None,error=error,elapsed=time.monotonic()-start,physical=False,keyboard_input_injected=False,receiver_bytes=8192*(9 if performance2 else (6 if performance else 1)) if error is None else 0)
+ result=dict(**row,passed=error is None,error=error,elapsed=time.monotonic()-start,physical=False,keyboard_input_injected=False,receiver_bytes=8192*(2 if releasecandidate else (9 if performance2 else (6 if performance else 1))) if error is None else 0)
  (r/'receipt.json').write_text(json.dumps(result,indent=2)+'\n');results.append(result);(out/'results.json').write_text(json.dumps(results,indent=2)+'\n');print(json.dumps(result),flush=True)
  if error:raise SystemExit('Campaign stopped at first failed cell')

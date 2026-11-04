@@ -1,14 +1,32 @@
-# agon-mos
+# Eirene MOS — UART0 release candidate
 
-This fork's `codex/uart0-async` branch develops an opt-in, single-buffer UART0
-sender based on Tom Morton's candidate. Normal RST18 stays synchronous. See the
-[task](docs/tasks/TM-001/README.md) and [experimental syscall contract](docs/tasks/TM-001/contract.md).
-The first functional emulator proof is not physical-hardware or release approval.
+This fork adds an opt-in asynchronous VDP sender based on Tom Morton's small
+candidate, with interrupt-driven16-byte OTIRX refills. An aware application can
+calculate while MOS transmits its borrowed buffer. Ordinary startup and RST18
+remain upstream Eirene paths; legacy applications retain synchronous output.
 
-This is a port in progress from the proprietary Zilog ZDS-II toolchain
-to the open source Clang-based AgonAdev toolchain. We run on real
-hardware, but it's not ready for release.  It also runs on
-fab-agon-emulator.
+**Candidate: Eirene MOS3.1.0 UART0 RC1**, based on upstream3.1.0_beta_1.
+This is a candidate in bgates747's fork, not an upstream Eirene release.
+Development and candidate tags stay on `codex/uart0-async`; `main` tracks upstream.
+Exact branded-image hardware qualification and publication status:
+[RC task](docs/tasks/RC-001/README.md).
+
+The pre-branding implementation passed the five-MOS Console8 comparison:
+[physical results](docs/tasks/TM-001/hardware-perf2-r01.md). It kept85.5% of the
+fixture's no-traffic foreground calculation rate while sending flat out, at
+essentially stock payload throughput. This is useful calculation overlap, not
+an exclusive CPU-utilization measurement or a bulk-speed improvement claim.
+Three short repeats per scenario do not establish indefinite sustained rates.
+
+[Caller contract](docs/uart0-async.md), [original C example](examples/uart0-async/)
+and [no-argument regression fixture](experiments/uart0-release/).
+The async syscall is fork-local; no upstream ABI allocation is implied.
+Only Console8 and the documented Flexe configurations are covered by our
+qualification. EMOS, other boards and real application audio deadlines remain
+separate work. The transport uses ordinary VDP commands; its sender adds no
+VDP protocol extension. Receiver checks/performance used the matched2.16.0 VDP
+with the independently proposed receive-recovery fix; qualification of stock
+VDP under identical stress is not implied. That fix is separate from the sender.
 
 Part of the official Agon Platform organisation firmware for all Agon computers.
 
@@ -48,19 +66,23 @@ A Contributing guide will be added in due course.
 
 ### Build
 
-The MOS is built using the Zilog Developer Studio II (ZDS II - eZ80Acclaim! version 5.3.5) tools.
+Eirene uses **AgonDev**, an open-source LLVM/Clang eZ80 toolchain. The inherited
+ZDS II instructions described the older official MOS and do not build this
+Eirene tree. Install the AgonDev toolchain and its matching Agon libraries;
+then build from the repository root:
 
-You can download the ZDS II tools for free via the following link. The software contains an IDE, Debugger, C Compiler and eZ80 Assembler.
+```sh
+make AGONDEV_TOOLCHAIN=/absolute/path/to/agondev
+```
 
-- [Zilog ZDS II Tools version 5.3.5](https://zilog.com/index.php?option=com_zcm&task=view&soft_id=54&Itemid=74)
+If `agondev-config` is installed, plain `make` uses its configured prefix.
+Outputs are `bin/mos.bin` and `bin/mos.map`. No HEX conversion is required.
+The RC package records the exact source commit, compiler/library identities,
+commands and artifact checksums. The developer release-preparation recipe is
+[here](experiments/uart0-release/README.md).
 
-ZDS II is a Windows application.  Development of Agon Platform MOS releases has been conducted on a MacBook Pro with an M1Max CPU running Windows 10 for ARM in a Parallels VM.  Other developers have used differing combinations of Windows, Linux and OSX, using VMs or Wine to run the ZDS II tools.
-
-#### Creating a .bin file
-
-The ZDS II tooling will compile the firmware and produce a `MOS.hex` file.  Unless you are programming the eZ80 on your Agon directly using ZDS II (see below), you will need to convert this to a `.bin` file to flash to the eZ80.
-
-To convert the `.hex` file to a `.bin` file, use the [Hex2Bin utility](https://sourceforge.net/projects/hex2bin/).
+For the original ZDS II upstream MOS, continue using its original compiler;
+this Eirene build does not migrate or replace that separate project.
 
 ### Testing the MOS
 

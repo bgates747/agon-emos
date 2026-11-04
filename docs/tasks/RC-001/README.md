@@ -7,7 +7,7 @@ ordinary startup and synchronous RST18 stay unchanged. Retain Eirene's existing
 AgonDev toolchain. Do not modify the old official-MOS ZDS II project.
 
 Release title: Eirene MOS 3.1.0 UART0 RC1. Proposed tag:3.1.0_uart0_rc_1.
-Banner: Eirene UART0 MOS Version3.1.0 RC1 (the existing formatter inserts spaces).
+Banner: Eirene UART0 MOS Version 3.1.0 RC 1.
 Retain upstream major/minor/patch3.1.0; change its existing candidate type to RC
 and candidate number to1. This is our fork's UART0 candidate, not an upstream
 promotion of Tom's3.1.0_beta_1. Keep commits and the eventual tag on

@@ -1,0 +1,18 @@
+.assume adl=1
+.text
+.global _u0_write_call,_u0_finish,_rom_byte0
+.extern _u0_source,_u0_count,_u0_callback
+_u0_write_call:
+ ld hl,(_u0_source)
+ ld bc,(_u0_count)
+ ld de,(_u0_callback)
+ ld a,042h
+ rst.lil 08h
+ ret
+_u0_finish:
+ ld a,043h
+ rst.lil 08h
+ ret
+_rom_byte0:
+ ld a,(0)
+ ret
