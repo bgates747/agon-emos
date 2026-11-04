@@ -10,7 +10,7 @@ def extract(dst):
  dst.mkdir()
  with tarfile.open(fileobj=io.BytesIO(archive)) as t:t.extractall(dst,filter='data')
 def make(dst,log):
- with log.open('w') as f:subprocess.run(['make','-j4','AGONDEV_TOOLCHAIN='+str(tool)],cwd=dst,stdout=f,stderr=subprocess.STDOUT,check=True)
+ with log.open('w') as f:subprocess.run(['make','AGONDEV_TOOLCHAIN='+str(tool)],cwd=dst,stdout=f,stderr=subprocess.STDOUT,check=True)
 firmware=out/'firmware';repeat=out/'firmware-repeat';extract(firmware);extract(repeat)
 make(firmware,out/'firmware-build.log');make(repeat,out/'repeat-build.log');assert h(firmware/'bin/mos.bin')==h(repeat/'bin/mos.bin')
 prior=root/'build/tm001/otirx003';sources={str(f.relative_to(firmware/'src')):h(f) for f in sorted((firmware/'src').rglob('*')) if f.is_file()}
