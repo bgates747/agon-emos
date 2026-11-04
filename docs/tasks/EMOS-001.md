@@ -51,3 +51,13 @@ displacement validator adaptations. Binary128098B SHA749ff6a8e0696d10e9efad62314
 Eirene RAM jump slots; old carrier total4174B includes its separate192B table.
 No hardware/emulator or runtime compatibility pass is claimed. Exact complete
 evidence remains in the cross-component EMOS-001 result/task-local archive.
+
+## Installation preparation
+
+Author requests first flash. Build a new identified experimental image with the
+native owner wrapper and all mandatory checks; leave P4/native/startup unchanged.
+The existing version1 ExCom control framing is retained byte-for-byte from the
+incoming pair, not redesigned in this migration. Its active header dependency
+was initially misclassified as unused during packaging, then restored before
+any identified build or deployment. Parallel payloads and SD fast traffic remain
+unchanged and checksum-free. Do not silently change paired framing in one ROM.
