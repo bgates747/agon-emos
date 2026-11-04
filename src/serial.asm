@@ -15,30 +15,40 @@
 			INCLUDE	"equs.inc"
 
 			.ASSUME	ADL = 1
-			
+
 			.text
-			
+
 			XDEF	UART0_serial_TX
 			XDEF	UART0_serial_RX
 			XDEF	UART0_serial_GETCH
-			XDEF	UART0_serial_PUTCH 
+			XDEF	UART0_serial_PUTCH
 
 			XDEF	UART1_serial_TX
 			XDEF	UART1_serial_RX
 			XDEF	UART1_serial_GETCH
-			XDEF	UART1_serial_PUTCH 
+			XDEF	UART1_serial_PUTCH
+			XDEF	EMOS_vdu_PUTCH
+			XDEF	EMOS_vdu_WRITE
+			XDEF	EMOS_vdu_parallel_PUTCH
+			XDEF	EMOS_vdu_parallel_WRITE
 
 			XDEF	_putch
-			XDEF	_getch 
-			
-			XDEF	putch 		
-			XDEF	getch 
+			XDEF	_getch
 
+			XDEF	putch
+			XDEF	getch
+
+			XREF	_uart1_keyboard_owned
 			XREF	_serialFlags	; In globals.asm
-				
+			XREF	_emosVduBackend	; Core-owned committed VDU route
+			XREF	_emos_console_write_byte
+			XREF	_emos_console_write_stream
+			XREF	_emos_parallel_route_write_byte
+			XREF	_emos_parallel_route_write_stream
+
 UART0_PORT		EQU	0xC0		; UART0
 UART1_PORT		EQU	0xD0		; UART1
-				
+
 UART0_REG_RBR:		EQU	UART0_PORT+0	; Receive buffer
 UART0_REG_THR:		EQU	UART0_PORT+0	; Transmitter holding
 UART0_REG_DLL:		EQU	UART0_PORT+0	; Divisor latch low
@@ -66,6 +76,8 @@ UART1_REG_MSR:		EQU	UART1_PORT+6	; Modem status
 UART1_REG_SCR:		EQU 	UART1_PORT+7	; Scratch
 
 TX_WAIT			EQU	16384 		; Count before a TX times out
+
+EMOS_VDU_EDP_EXTENDED	EQU	2
 
 UART_LSR_ERR		EQU 	0x80		; Error
 UART_LSR_ETX		EQU 	0x40		; Transmit empty
@@ -103,12 +115,12 @@ UART0_serial_TX1:	IN0		A,(UART0_REG_LSR)	; Get the line status register
 			POP		AF			; We've timed out at this point so
 			POP		BC			; Restore the stack
 			OR		A			; Clear the carry flag and preserve A
-			RET	
+			RET
 UART0_serial_TX2:	POP		AF			; Good to send at this point, so
 			OUT0		(UART0_REG_THR),A	; Write the character to the UART transmit buffer
 			POP		BC			; Restore BC
 			SCF					; Set the carry flag
-			RET 
+			RET
 
 ; Write a character to UART1
 ; Parameters:
@@ -117,7 +129,13 @@ UART0_serial_TX2:	POP		AF			; Good to send at this point, so
 ; - F: C if written
 ; - F: NC if timed out
 ;
-UART1_serial_TX:	PUSH		BC			; Stack BC
+UART1_serial_TX:
+            PUSH AF
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            JP NZ, UART_keyboard_busy
+            POP AF
+            PUSH		BC			; Stack BC
 			PUSH		AF 			; Stack AF
 			LD		BC,TX_WAIT		; Set CB to the transmit timeout
 UART1_serial_TX1:	IN0		A,(UART1_REG_LSR)	; Get the line status register
@@ -130,12 +148,12 @@ UART1_serial_TX1:	IN0		A,(UART1_REG_LSR)	; Get the line status register
 			POP		AF			; We've timed out at this point so
 			POP		BC			; Restore the stack
 			OR		A			; Clear the carry flag and preserve A
-			RET	
+			RET
 UART1_serial_TX2:	POP		AF			; Good to send at this point, so
 			OUT0		(UART1_REG_THR),A	; Write the character to the UART transmit buffer
 			POP		BC			; Restore BC
 			SCF					; Set the carry flag
-			RET 
+			RET
 
 ; Read a character from UART0
 ; Returns:
@@ -156,7 +174,13 @@ UART0_serial_RX:	IN0		A,(UART0_REG_LSR)	; Get the line status register
 ; - F: C if character read
 ; - F: NC if no character read
 ;
-UART1_serial_RX:	IN0		A,(UART1_REG_LSR)	; Get the line status register
+UART1_serial_RX:
+            PUSH AF
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            JP NZ, UART_keyboard_busy
+            POP AF
+            IN0		A,(UART1_REG_LSR)	; Get the line status register
 			AND 		UART_LSR_RDY		; Check for characters in buffer
 			RET		Z			; Just ret (with carry clear) if no characters
 			IN0		A,(UART1_REG_RBR)	; Read the character from the UART receive buffer
@@ -169,14 +193,14 @@ UART1_serial_RX:	IN0		A,(UART1_REG_LSR)	; Get the line status register
 ; - F: C if read
 ; - F: NC if UART not enabled
 ;
-UART0_serial_GETCH:	PUSH		AF 
+UART0_serial_GETCH:	PUSH		AF
 			LD		A, (_serialFlags)
-			TST		01h
+			TST		0x01
 			JR		Z, UART_serial_NE
 			POP		AF
 1:			CALL 		UART0_serial_RX
 			JR		NC,1b
-			RET 
+			RET
 
 ; Read a character from UART1 (blocking)
 ; Returns:
@@ -184,14 +208,18 @@ UART0_serial_GETCH:	PUSH		AF
 ; - F: C if read
 ; - F: NC if UART not enabled
 ;
-UART1_serial_GETCH:	PUSH		AF 
+UART1_serial_GETCH:
+            PUSH AF
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            JP NZ, UART_keyboard_busy
 			LD		A, (_serialFlags)
-			TST		10h
+			TST		0x10
 			JR		Z, UART_serial_NE
 			POP		AF
 1:			CALL 		UART1_serial_RX
 			JR		NC,1b
-			RET 
+			RET
 
 ; Write a character to UART0 (blocking)
 ; Parameters:
@@ -202,9 +230,9 @@ UART1_serial_GETCH:	PUSH		AF
 ;
 UART0_serial_PUTCH:	PUSH	AF
 			LD	A, (_serialFlags)		; Get the serial flags
-			TST	01h				; Check UART is enabled
+			TST	0x01				; Check UART is enabled
 			JR	Z, UART_serial_NE		; If not, then skip
-			TST	02h				; If hardware flow control enabled then
+			TST	0x02				; If hardware flow control enabled then
 			CALL	NZ, UART0_wait_CTS		; Wait for clear to send signal
 			POP	AF
 1:			CALL	UART0_serial_TX			; Send the character
@@ -218,23 +246,207 @@ UART0_serial_PUTCH:	PUSH	AF
 ; - F: C if written
 ; - F: NC if UART not enabled
 ;
-UART1_serial_PUTCH:	PUSH	AF
+UART_keyboard_busy:
+            POP AF
+            OR A
+            RET
+UART1_serial_PUTCH:
+            PUSH AF
+            LD A, (_uart1_keyboard_owned)
+            OR A
+            JP NZ, UART_keyboard_busy
 			LD	A, (_serialFlags)		; Get the serial flags
-			TST	10h				; Check UART is enabled
+			TST	0x10				; Check UART is enabled
 			JR	Z, UART_serial_NE		; If not, then skip (reuses UART0 routine here)
-			TST	20h				; If hardware flow control enabled then
+			TST	0x20				; If hardware flow control enabled then
 			CALL	NZ, UART1_wait_CTS		; Wait for clear to send signal
-			POP	AF			
+			POP	AF
 1:			CALL	UART1_serial_TX			; Send the character
 			JR	NC, 1b				; Repeat until sent
 			RET
 
-; Called by UART0 and UART1 PUTCH and GETCH if the UART is not enabled
+; Core EMOS semantic VDU dispatcher. Snapshot the committed backend once
+; for each call. Backend 0 retains the stock onboard VDP path. Backend 2 enters
+; the common production route, whose private epoch lease is published only by
+; the EMOS coordinator. Every other value fails closed without UART fallback.
+;
+; Called by UART0 and UART1 PUTCH and GETCH if the UART is not enabled. Keep
+; this stock helper before the semantic dispatcher so the original short
+; branches and raw UART routines remain byte-for-byte unchanged.
 ;
 UART_serial_NE:		POP	AF				; Tidy up the stack
 			OR	A 				; Clear the carry flag
 			RET
+
+EMOS_vdu_PUTCH:	PUSH	AF
+			LD	A, (_emosVduBackend)
+			OR	A, A
+			JR	Z, EMOS_vdu_onboard
+            CP 1
+            JR Z, EMOS_vdu_console
+			CP	EMOS_VDU_EDP_EXTENDED
+			JR	Z, EMOS_vdu_parallel
+			POP	AF
+			OR	A, A				; Unsupported backend: clear carry
+			RET
+EMOS_vdu_console:
+            POP AF
+            JP EMOS_vdu_console_PUTCH
+EMOS_vdu_parallel:
+			POP	AF
+			JP	EMOS_vdu_parallel_PUTCH
+EMOS_vdu_onboard:
+			POP	AF
+			JP	UART0_serial_PUTCH
+
+; Route one ordinary VDU byte through the production lease bridge. Preserve the
+; stock PUTCH register contract, including HLU: _putch preloads its return value
+; there before entering the semantic dispatcher. The internal status remains
+; available through emos_parallel_last_fault(); the public byte path preserves
+; the input byte and reports success/failure only through carry.
 ;
+EMOS_vdu_console_PUTCH:
+			PUSH	BC
+			PUSH	DE
+			PUSH	HL
+			PUSH	IX
+			PUSH	IY
+			PUSH	AF
+			LD	HL, 0
+			LD	L, A
+			PUSH	HL				; BYTE uses one 3-byte ADL ABI slot
+			CALL	_emos_console_write_byte
+			POP	HL				; Discard argument slot
+			OR	A, A
+			JR	NZ, EMOS_vdu_console_PUTCH_failed
+			POP	AF
+			POP	IY
+			POP	IX
+			POP	HL
+			POP	DE
+			POP	BC
+			SCF
+			RET
+EMOS_vdu_console_PUTCH_failed:
+			POP	AF
+			POP	IY
+			POP	IX
+			POP	HL
+			POP	DE
+			POP	BC
+			OR	A, A				; Preserve byte, report not written
+			RET
+
+EMOS_vdu_parallel_PUTCH:
+			PUSH	BC
+			PUSH	DE
+			PUSH	HL
+			PUSH	IX
+			PUSH	IY
+			PUSH	AF
+			LD	HL, 0
+			LD	L, A
+			PUSH	HL				; BYTE uses one 3-byte ADL ABI slot
+			CALL	_emos_parallel_route_write_byte
+			POP	HL				; Discard argument slot
+			OR	A, A
+			JR	NZ, EMOS_vdu_parallel_PUTCH_failed
+			POP	AF
+			POP	IY
+			POP	IX
+			POP	HL
+			POP	DE
+			POP	BC
+			SCF
+			RET
+EMOS_vdu_parallel_PUTCH_failed:
+			POP	AF
+			POP	IY
+			POP	IX
+			POP	HL
+			POP	DE
+			POP	BC
+			OR	A, A				; Preserve byte, report not written
+			RET
+
+; Write one ordinary bounded VDU block. The onboard route deliberately retains
+; the stock byte-at-a-time UART behavior. Backend 2 passes the complete 16-bit
+; stream to the production engine, which performs transparent physical-record
+; chunking below the VDU grammar. On every result, HL advances by the documented
+; low 16 bits of BC, BC becomes zero, and E retains the entry value. Successful
+; A=0 preserves the current upstream implementation rather than the divergent
+; documented "last byte" result.
+;
+EMOS_vdu_WRITE:	LD	A, (_emosVduBackend)
+			OR	A, A
+			JR	Z, EMOS_vdu_WRITE_onboard
+            CP 1
+            JP Z, EMOS_vdu_console_WRITE
+			CP	EMOS_VDU_EDP_EXTENDED
+			JR	Z, EMOS_vdu_parallel_WRITE
+			OR	A, A				; Unsupported backend: clear carry
+			RET
+EMOS_vdu_WRITE_onboard:
+			LD	A, (HL)
+			CALL	UART0_serial_PUTCH
+			INC	HL
+			DEC	BC
+			LD	A, B
+			OR	C
+			JR	NZ, EMOS_vdu_WRITE_onboard
+			RET
+EMOS_vdu_parallel_WRITE:
+			PUSH	DE				; Preserve documented entry E
+			PUSH	IX
+			PUSH	IY
+			PUSH	HL				; Original pointer
+			PUSH	BC				; Original bounded count
+			PUSH	BC				; UINT16 uses one 3-byte ADL ABI slot
+			PUSH	HL				; Pointer argument
+			CALL	_emos_parallel_route_write_stream
+			POP	DE				; Discard pointer argument
+			POP	DE				; Discard length argument
+			POP	DE				; Original BC; ignore undocumented BCU
+			POP	HL				; Original pointer
+			LD	BC, 0
+			LD	B, D
+			LD	C, E
+			ADD	HL, BC
+			LD	BC, 0
+			POP	IY
+			POP	IX
+			POP	DE
+			OR	A, A
+			RET	NZ
+			SCF
+			RET
+
+EMOS_vdu_console_WRITE:
+			PUSH	DE				; Preserve documented entry E
+			PUSH	IX
+			PUSH	IY
+			PUSH	HL				; Original pointer
+			PUSH	BC				; Original bounded count
+			PUSH	BC				; UINT16 uses one 3-byte ADL ABI slot
+			PUSH	HL				; Pointer argument
+			CALL	_emos_console_write_stream
+			POP	DE				; Discard pointer argument
+			POP	DE				; Discard length argument
+			POP	DE				; Original BC; ignore undocumented BCU
+			POP	HL				; Original pointer
+			LD	BC, 0
+			LD	B, D
+			LD	C, E
+			ADD	HL, BC
+			LD	BC, 0
+			POP	IY
+			POP	IX
+			POP	DE
+			OR	A, A
+			RET	NZ
+			SCF
+			RET
+
 ; The C wrappers
 ;
 
@@ -249,12 +461,12 @@ UART_serial_NE:		POP	AF				; Tidy up the stack
 _putch:
 putch:			PUSH	IY				; Standard C prologue
 			LD	IY, 0
-			ADD	IY, SP	
+			ADD	IY, SP
 
 			LD	A, (IY+6)			; INT ch (least significant byte)
 			LD	HL, 0				; HLU: The return value
-			LD	L, A 
-			CALL	UART0_serial_PUTCH		; Output the character
+			LD	L, A
+			CALL	EMOS_vdu_PUTCH			; Output through Core semantic dispatcher
 
 			LD 	SP, IY				; Standard epilogue
 			POP	IY
@@ -269,7 +481,7 @@ putch:			PUSH	IY				; Standard C prologue
 _getch:
 getch:			PUSH	IY				; Standard C prologue
 			LD	IY, 0
-			ADD	IY, SP	
+			ADD	IY, SP
 
 			CALL	UART0_serial_GETCH		; Read the character
 			LD	HL, 0				; HLU: The return value

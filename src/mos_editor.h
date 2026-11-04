@@ -3,7 +3,7 @@
  * Author:			Dean Belfield
  * Created:			18/09/2022
  * Last Updated:	22/03/2023
- * 
+ *
  * Modinfo:
  * 28/09/2022:		Added clear parameter to mos_EDITLINE
  * 22/03/2023:		Added defines for command history
@@ -16,6 +16,7 @@
 #define cmd_historyDepth	16
 
 UINT24	mos_EDITLINE(char * buffer, int bufferLength, UINT16 flags);
+UINT24 emos_cli_editline(char *buffer, int length);
 void getModeInformation();
 void readPalette(BYTE entry, BOOL wait);
 

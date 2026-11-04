@@ -3,7 +3,7 @@
  * Author:			Dean Belfield
  * Created:			06/07/2022
  * Last Updated:	16/05/2023
- * 
+ *
  * Modinfo:
  * 22/03/2023:		Moved putch and getch to serial.asm
  * 23/03/2023:		Fixed maths overflow in init_UART0 to work with bigger baud rates
@@ -18,13 +18,13 @@
 #include "ez80f92.h"
 
 #define MASTERCLOCK				18432000	        	//!< The default system clock speed for eZ80F92.
-#define CLOCK_DIVISOR_16		16			        	//!< The default clock divisor 
+#define CLOCK_DIVISOR_16		16			        	//!< The default clock divisor
 
-#if !defined(UART0_IVECT) 								//!< If it is not defined 
+#if !defined(UART0_IVECT) 								//!< If it is not defined
 #define UART0_IVECT				0x18		        	//!< The UART0 interrupt vector.
 #endif
 
-#if !defined(UART1_IVECT) 								//!< If it is not defined 
+#if !defined(UART1_IVECT) 								//!< If it is not defined
 #define UART1_IVECT				0x1A		        	//!< The UART1 interrupt vector.
 #endif
 
@@ -44,22 +44,22 @@
 #define FCTL_HW					1						//!< Hardware flow control
 
 #define	UART_ERR_NONE					((BYTE)0x00)	//!< The error code for success.
-#define	UART_ERR_KBHIT					((BYTE)0x01)	//!< The error code for keyboard hit.			
-#define	UART_ERR_FRAMINGERR				((BYTE)0x02)	//!< The error code returned when Framing error occurs in the character received.		
-#define	UART_ERR_PARITYERR				((BYTE)0x03)	//!< The error code returned when Parity error occurs in the character received.			
-#define	UART_ERR_OVERRUNERR				((BYTE)0x04)	//!< The error code returned when Overrun error occurs in the receive buffer register.		
-#define	UART_ERR_BREAKINDICATIONERR		((BYTE)0x05)	//!< The error code returned when Break Indication Error occurs.		
-#define	UART_ERR_CHARTIMEOUT			((BYTE)0x06)	//!< The error code returned when a character time-out occurs while receiving.			
-#define	UART_ERR_INVBAUDRATE			((BYTE)0x07)	//!< The error code returned when baud rate specified is invalid.			
-#define	UART_ERR_INVPARITY				((BYTE)0x08)	//!< The error code returned when parity option specified is invalid.			
-#define	UART_ERR_INVSTOPBITS			((BYTE)0x09)	//!< The error code returned when stop bits specified is invalid.			
-#define	UART_ERR_INVDATABITS			((BYTE)0x0A)	//!< The error code returned when data bits per character specified is invalid.			
-#define	UART_ERR_INVTRIGGERLEVEL		((BYTE)0x0B)	//!< The error code returned when receive FIFO trigger level specified is invalid.			
-#define	UART_ERR_FIFOBUFFERFULL			((BYTE)0x0C)	//!< The error code returned when the transmit FIFO buffer is full.		
-#define	UART_ERR_FIFOBUFFEREMPTY		((BYTE)0x0D)	//!< The error code returned when the receive FIFO buffer is empty.			
-#define	UART_ERR_RECEIVEFIFOFULL		((BYTE)0x0E)	//!< The error code returned when the software receive FIFO buffer is full.			
-#define	UART_ERR_RECEIVEFIFOEMPTY		((BYTE)0x0F)	//!< The error code returned when the software receive FIFO buffer is empty.			
-#define	UART_ERR_PEEKINPOLL				((BYTE)0x10)	//!< The error code returned when 'peek a character' is done in polling mode, which is invalid.		
+#define	UART_ERR_KBHIT					((BYTE)0x01)	//!< The error code for keyboard hit.
+#define	UART_ERR_FRAMINGERR				((BYTE)0x02)	//!< The error code returned when Framing error occurs in the character received.
+#define	UART_ERR_PARITYERR				((BYTE)0x03)	//!< The error code returned when Parity error occurs in the character received.
+#define	UART_ERR_OVERRUNERR				((BYTE)0x04)	//!< The error code returned when Overrun error occurs in the receive buffer register.
+#define	UART_ERR_BREAKINDICATIONERR		((BYTE)0x05)	//!< The error code returned when Break Indication Error occurs.
+#define	UART_ERR_CHARTIMEOUT			((BYTE)0x06)	//!< The error code returned when a character time-out occurs while receiving.
+#define	UART_ERR_INVBAUDRATE			((BYTE)0x07)	//!< The error code returned when baud rate specified is invalid.
+#define	UART_ERR_INVPARITY				((BYTE)0x08)	//!< The error code returned when parity option specified is invalid.
+#define	UART_ERR_INVSTOPBITS			((BYTE)0x09)	//!< The error code returned when stop bits specified is invalid.
+#define	UART_ERR_INVDATABITS			((BYTE)0x0A)	//!< The error code returned when data bits per character specified is invalid.
+#define	UART_ERR_INVTRIGGERLEVEL		((BYTE)0x0B)	//!< The error code returned when receive FIFO trigger level specified is invalid.
+#define	UART_ERR_FIFOBUFFERFULL			((BYTE)0x0C)	//!< The error code returned when the transmit FIFO buffer is full.
+#define	UART_ERR_FIFOBUFFEREMPTY		((BYTE)0x0D)	//!< The error code returned when the receive FIFO buffer is empty.
+#define	UART_ERR_RECEIVEFIFOFULL		((BYTE)0x0E)	//!< The error code returned when the software receive FIFO buffer is full.
+#define	UART_ERR_RECEIVEFIFOEMPTY		((BYTE)0x0F)	//!< The error code returned when the software receive FIFO buffer is empty.
+#define	UART_ERR_PEEKINPOLL				((BYTE)0x10)	//!< The error code returned when 'peek a character' is done in polling mode, which is invalid.
 #define	UART_ERR_USERBASE				((BYTE)0x11)	//!< The error code base value for user applications.
 #define	UART_ERR_FAILURE				((BYTE)-1)		//!< The error code for failures.
 
@@ -136,7 +136,7 @@
 #define UART_MCTL_RTS					((unsigned char)0x02)
 #define UART_MCTL_DTR					((unsigned char)0x01)
 
-// UART_LSR bits 
+// UART_LSR bits
 //
 #define UART_LSR_ERR					((unsigned char)0x80)
 #define UART_LSR_TEMT					((unsigned char)0x40)
@@ -161,7 +161,7 @@
 // UART settings for open_UART0
 //
 typedef struct {
-   UINT24	baudRate;					// The baudrate 
+   UINT24	baudRate;					// The baudrate
    BYTE		dataBits;					// The number of databits per character to be used
    BYTE		stopBits;					// The number of stopbits to be used
    BYTE		parity;						// The parity bit option to be used
@@ -175,11 +175,39 @@ void init_UART1();
 BYTE open_UART0(UART * pUART);
 BYTE open_UART1(UART * pUART);
 
+/* Internal EMOS nonblocking operations; not new public MOS API numbers. */
+#define UART_POLL_EMPTY 0
+#define UART_POLL_READY 1
+#define UART_POLL_ERROR 2
+#define UART_POLL_UNAVAILABLE 3
+#define UART_POLL_BLOCKED 4
+BYTE uart1_try_get(BYTE *value);
+BYTE uart1_try_put(BYTE value);
+BYTE uart1_claim_rts(void);
+BYTE uart1_receive_ready(BYTE ready);
+
 void close_UART1();
 
 extern volatile BYTE serialFlags;		// In globals.asm
 
 extern INT putch(INT ich);				// Now in serial.asm
 extern INT getch(void);					// Now in serial.asm
+
+/* Private resident keyboard driver; not an application UART API. */
+/* Nonzero still reserves the public UART API. 2 means pins parked for
+ * private parallel ownership, not a released keyboard lease. Assembly agrees. */
+#define UART_KEYBOARD_PARKED 2
+extern volatile BYTE uart1_keyboard_owned;
+/* IRQ-off leaves; coordinator must fence the peer and reserve Port C first.
+ * Normal park never clears FIFOs, key state, baud rate or the installed vector.
+ * Unpark requires all eight local lanes input and peer release acknowledged. */
+BYTE uart1_keyboard_park(void);
+BYTE uart1_keyboard_unpark(void);
+BYTE uart1_keyboard_open(void);
+void uart1_keyboard_close(void);
+void uart1_keyboard_stop(void);
+BYTE uart1_keyboard_put(BYTE value);
+void uart1_keyboard_irq(void);
+void uart1_keyboard_tx_enable(BYTE enabled);
 
 #endif /* UART_H */

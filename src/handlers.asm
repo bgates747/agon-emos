@@ -19,7 +19,7 @@ rst_08_handler:	CALL	mos_api
 ; Parameters:
 ; - A: The character
 ;
-rst_10_handler:	CALL	UART0_serial_PUTCH
+rst_10_handler:	CALL	EMOS_vdu_PUTCH
 			RET.L
 
 ; Write a block of bytes out to the ESP32
@@ -30,7 +30,7 @@ rst_10_handler:	CALL	UART0_serial_PUTCH
 ;
 rst_18_handler:	LD	E, A 			; Preserve the delimiter
 			LD	A, MB			; Check if MBASE is 0
-			OR	A, A 
+			OR	A, A
 			CALL	NZ, SET_AHL24		; No, so create a 24-bit pointer
 			LD	A, B			; Check for BC = 0
 			OR	C 			; Yes, so run in delimited mode?
@@ -38,13 +38,7 @@ rst_18_handler:	LD	E, A 			; Preserve the delimiter
 ;
 ; Standard loop mode
 ;
-rst_18_handler_0:	LD 	A, (HL)			; Fetch the character
-			CALL	UART0_serial_PUTCH	; Output
-			INC 	HL 			; Increment the buffer pointer
-			DEC	BC 			; Decrement the loop counter
-			LD	A, B 			; Is it 0?
-			OR 	C 
-			JR	NZ, rst_18_handler_0	; No, so loop
+rst_18_handler_0:	CALL	EMOS_vdu_WRITE
 			RET.L
 ;
 ; Delimited mode
@@ -52,7 +46,7 @@ rst_18_handler_0:	LD 	A, (HL)			; Fetch the character
 rst_18_handler_1:	LD 	A, (HL)			; Fetch the character
 			CP 	E 			; Is it the delimiter?
 			RET.L	Z 			; Yes, so return
-			CALL	UART0_serial_PUTCH	; Output
+			CALL	EMOS_vdu_PUTCH	; Output
 			INC 	HL 			; Increment the buffer pointer
 			JR 	rst_18_handler_1	; Loop
 

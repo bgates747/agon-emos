@@ -138,6 +138,7 @@
 			XREF	_getFilepathLeafname
 			XREF	_isDirectory
 			XREF	_resolveRelativePath
+			XREF	_emos_gateway		; Provisional resident EMOS Core gateway
 
 			XREF	_SD_getUnlockCode	; In sd.h
 			XREF	_SD_init_API
@@ -148,11 +149,11 @@
 			XREF	_SD_writeBlocks
 
 ; Call a MOS API function
-; 00h - 7Fh: Reserved for high level MOS calls
-; 80h - FFh: Reserved for low level calls to FatFS
+; 0x00 - 0x7F: Reserved for high level MOS calls
+; 0x80 - FFh: Reserved for low level calls to FatFS
 ;  A: function to call
 ;
-mos_api:		CP	80h			; Check if it is a FatFS command
+mos_api:		CP	0x80			; Check if it is a FatFS command
 			JP	NC, 1f			; Yes, so jump to next block
 			CP	mos_api_block1_size	; Check if out of bounds
 			JP	NC, mos_api_not_implemented
@@ -244,7 +245,7 @@ mos_api_block1_start:	DW	mos_api_getkey		; 0x00
 			DW	mos_api_not_implemented	; 0x4f
 
 			DW	mos_api_getfunction	; 0x50
-			DW	mos_api_not_implemented	; 0x51
+			DW	mos_api_emos_gateway	; 0x51
 			DW	mos_api_not_implemented	; 0x52
 			DW	mos_api_not_implemented	; 0x53
 			DW	mos_api_not_implemented	; 0x54
@@ -296,7 +297,7 @@ mos_api_block1_start:	DW	mos_api_getkey		; 0x00
 
 mos_api_block1_size:	EQU 	($ - mos_api_block1_start) / 2
 ;
-1:			AND	7Fh			; Else remove the top bit
+1:			AND	0x7F			; Else remove the top bit
 			CP	mos_api_block2_size	; Check if out of bounds
 			JP	NC, mos_api_not_implemented
 			CALL	SWITCH_A		; And switch on this table
@@ -965,7 +966,7 @@ mos_api_uopen:		LEA	HL, IX + 0	; HLU: Pointer to struct
 			PUSH	HL		; UART * pUART
 			CALL	_open_UART1	; Initialise the UART port
 			POP	HL 		; Tidy up the stack
-			RET 
+			RET
 
 ; Close UART1
 ;
@@ -1303,7 +1304,7 @@ mos_api_readvarval:
 			LD	(_scratchpad), IY	; Save the actualName pointer
 			PUSH 	IX		; move optional target buffer into DE
 		        POP	DE
-	
+
 			LD	A, MB		; Check if MBASE is 0
 			OR	A, A
 			JR	Z, 1f		; If it is, we can assume addresses are 24 bit
@@ -2225,6 +2226,21 @@ ffs_api_flseek_p:	LD	A, MB
 			POP	DE
 			RET
 
+; Call the provisional resident EMOS Core gateway.
+; HLU: Pointer to the fixed versioned t_emosGatewayRequest
+; Returns:
+; - A: EMOS/FatFS status
+; This gateway never returns a transient module pointer.
+;
+mos_api_emos_gateway:	LD	A, MB
+			OR	A, A
+			JP	NZ, mos_api_not_implemented	; EMOS v1 requests are ADL-only
+			PUSH	HL
+			CALL	_emos_gateway
+			LD	A, L
+			POP	HL
+			RET
+
 ; Expose raw SD card access APIs
 ;
 
@@ -2284,6 +2300,8 @@ sd_api_writeblocks:	LD	A, MB		; A: MB
 1:			PUSH	BC		; WORD count
 			PUSH	DE		; BYTE * buf
 			PUSH	HL		; DWORD * addr
+			; EMOS FWBUG-008: official MOS 3.0.2 dispatches this write wrapper
+			; to the read driver. Preserve the wrapper ABI and select its write peer.
 			CALL	_SD_writeBlocks_API
 			POP	HL
 			POP	DE
@@ -2368,5 +2386,20 @@ mos_function_block_start:
 			D24	_resolveRelativePath	; 0x0F
 			D24	func_getsysvars	; 0x10
 			D24	func_getkbmap	; 0x11
+			D24	0		; 0x12 reserved (qsort development)
+			D24	0		; 0x13
+			D24	0		; 0x14
+			D24	0		; 0x15
+			D24	0		; 0x16
+			D24	0		; 0x17
+			D24	0		; 0x18
+			D24	0		; 0x19
+			D24	0		; 0x1A
+			D24	0		; 0x1B
+			D24	0		; 0x1C
+			D24	0		; 0x1D
+			D24	0		; 0x1E
+			D24	0		; 0x1F
+			D24	_emos_gateway	; 0x20 stable resident Core gateway
 
 mos_function_block_size:	EQU 	($ - mos_function_block_start) / 3

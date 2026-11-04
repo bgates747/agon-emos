@@ -16,19 +16,20 @@
 			.ASSUME	ADL = 1
 
 			.text
-			
+
 			XDEF	_vblank_handler
 			XDEF	_uart0_handler
 			XDEF	_i2c_handler
 
+			XREF	emos_keyboard_tick_entry
 			XREF	_clock
 			XREF	_vdp_protocol_data
-			
+
 			XREF	UART0_serial_RX
 			XREF	UART0_serial_TX
 			XREF	mos_api
-			XREF	vdp_protocol			
-			
+			XREF	vdp_protocol
+
 			XREF	_i2c_slave_rw
 			XREF	_i2c_error
 			XREF	_i2c_role
@@ -42,21 +43,22 @@ _vblank_handler:	DI
 			SET_GPIO 	PB_DR, 2		; Need to set this to 2 for the interrupt to work correctly
 			PUSH		BC
 			PUSH		DE
-			PUSH		HL	
+			PUSH		HL
 			LD 		HL, (_clock)		; Increment the 32-bit clock counter
 			LD		BC, 2			; By 2, effectively timing in centiseconds
 			ADD		HL, BC
 			LD		(_clock), HL
 			LD		A, (_clock + 3)
 			ADC		A, 0
-			LD		(_clock + 3), A			
+			LD		(_clock + 3), A
+            CALL emos_keyboard_tick_entry
 			POP		HL
 			POP		DE
 			POP		BC
 			POP		AF
-			EI	
+			EI
 			RETI.L
-			
+
 ; AGON UART0 Interrupt Handler
 ;
 _uart0_handler:		DI
@@ -64,16 +66,32 @@ _uart0_handler:		DI
 			PUSH		BC
 			PUSH		DE
 			PUSH		HL
-			CALL		UART0_serial_RX
-			LD		C, A		
+			PUSH IX
+            PUSH IY
+            EX AF, AF'
+            PUSH AF
+            EXX
+            PUSH BC
+            PUSH DE
+            PUSH HL
+            CALL		UART0_serial_RX
+			LD		C, A
 			LD		HL, _vdp_protocol_data
 			CALL		vdp_protocol
+            POP HL
+            POP DE
+            POP BC
+            EXX
+            POP AF
+            EX AF, AF'
+            POP IY
+            POP IX
 			POP		HL
 			POP		DE
 			POP		BC
 			POP		AF
 			EI
-			RETI.L	
+			RETI.L
 
 ; AGON I2C Interrupt handler
 ;
@@ -125,22 +143,22 @@ _i2c_handler:
 i2c_handle_sr_vector:
 			EX		(SP), HL	; Swap HL with the contents of the top of the stack
 			ADD		A, A		; Multiply A by two
-			ADD		A, L 
-			LD		L, A 
+			ADD		A, L
+			LD		L, A
 			ADC		A, H
 			SUB		L
-			LD		H, A		; Add 8bit A to HL 
+			LD		H, A		; Add 8bit A to HL
 			LD		A, (HL)		; Fetch vector adress from the table
 			INC		HL
 			LD		H, (HL)
 			LD		L, A
 			EX		(SP), HL	; Swap this new address back, restores HL
-			RET					; Return program control to this new address		
+			RET					; Return program control to this new address
 
 i2c_case_buserror: ; 00h
 			LD		A, RET_BUS_ERROR
 			LD		(_i2c_error),A
-			
+
 			; perform software reset of the bus
 			XOR		A
 			OUT0	(I2C_SRR),A
@@ -204,7 +222,7 @@ i2c_case_mr_ar_nack: ; 48h
 			LD		A, RET_NORESPONSE
 			LD		(_i2c_error),A
 			JP		i2c_sendstop
-			
+
 i2c_case_db_nacked:	; 30h
 			LD		A, RET_DATA_NACK
 			LD		(_i2c_error),A
@@ -229,7 +247,7 @@ i2c_case_mr_dbr_ack: ; 50h
 			EX		DE, HL
 			LD		(HL), DE
 ;			; intentionally falling through to next case
-i2c_case_mr_ar_ack: ; 40h		
+i2c_case_mr_ar_ack: ; 40h
 			LD		A, (_i2c_msg_size)
 			CP		1					; last byte to receive?
 			JR		Z, 1f
@@ -237,7 +255,7 @@ i2c_case_mr_ar_ack: ; 40h
 			LD		A, I2C_CTL_IEN | I2C_CTL_ENAB | I2C_CTL_AAK	; reply with ACK
 			JR		2f
 1:
-			LD		A, I2C_CTL_IEN | I2C_CTL_ENAB				; reply without ACK	
+			LD		A, I2C_CTL_IEN | I2C_CTL_ENAB				; reply without ACK
 2:		OUT0	(I2C_CTL),A		; set to Control register
 			; size--
 			LD		A, (_i2c_msg_size)
@@ -249,7 +267,7 @@ i2c_case_mr_ar_ack: ; 40h
 			POP		AF
 			EI
 			RETI.L
-			
+
 i2c_case_mr_dbr_nack: ; 58h
 			; load pointer
 			LD		HL, _i2c_msg_ptr
@@ -257,20 +275,20 @@ i2c_case_mr_dbr_nack: ; 58h
 
 			IN0		A,(I2C_DR)			; load byte from I2C Data Register
 			LD		(HL),A				; store in buffer at calculated index
-						
+
 			JR		i2c_sendstop
 
 i2c_case_invalid:
 i2c_case_toimplement:
 i2c_sendstop:
 			; send stop first to go to idle state
-			LD		A, I2C_CTL_ENAB | I2C_CTL_STP			
-			OUT0	(I2C_CTL),A		; set to Control register			
+			LD		A, I2C_CTL_ENAB | I2C_CTL_STP
+			OUT0	(I2C_CTL),A		; set to Control register
 1:
 			IN0		A,(I2C_CTL)
 			AND		I2C_CTL_STP		; STP bit still in place?
 			JR		NZ, 1b
-			
+
 			; Release control of the bus
 			XOR		A				; all bits of I2C_CTL to 0
 			OUT0	(I2C_CTL),A		; set to Control register I2C_CTL
@@ -283,5 +301,5 @@ i2c_sendstop:
 			POP		AF
 			EI
 			RETI.L
-	
+
 			END

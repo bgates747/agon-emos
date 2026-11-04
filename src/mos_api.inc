@@ -177,7 +177,7 @@ ffs_setcp:		EQU	A5h
 ;
 ffs_flseek_p:		EQU	A6h
 
-	
+
 ; File access modes
 ;
 fa_read:		EQU	01h
@@ -187,7 +187,7 @@ fa_create_new:		EQU	04h
 fa_create_always:	EQU	08h
 fa_open_always:		EQU	10h
 fa_open_append:		EQU	30h
-	
+
 ; System variable indexes for api_sysvars
 ; Index into _sysvars in globals.asm
 ;
@@ -199,7 +199,7 @@ sysvar_cursorX:		EQU	07h	; 1: Cursor X position
 sysvar_cursorY:		EQU	08h	; 1: Cursor Y position
 sysvar_scrchar:		EQU	09h	; 1: Character read from screen
 sysvar_scrpixel:	EQU	0Ah	; 3: Pixel data read from screen (R,B,G)
-sysvar_audioChannel:	EQU	0Dh	; 1: Audio channel 
+sysvar_audioChannel:	EQU	0Dh	; 1: Audio channel
 sysvar_audioSuccess:	EQU	0Eh	; 1: Audio channel note queued (0 = no, 1 = yes)
 sysvar_scrWidth:	EQU	0Fh	; 2: Screen width in pixels
 sysvar_scrHeight:	EQU	11h	; 2: Screen height in pixels
@@ -224,7 +224,7 @@ sysvar_mouseWheel:	EQU	2Eh	; 1: Mouse wheel delta
 sysvar_mouseXDelta:	EQU	2Fh	; 2: Mouse X delta
 sysvar_mouseYDelta:	EQU	31h	; 2: Mouse Y delta
 sysvar_gp:		EQU	37h	; 1: General poll packet data
-	
+
 ; Flags for the VPD protocol
 ;
 vdp_pflag_cursor:	EQU	00000001b
@@ -265,7 +265,7 @@ FIL .STRUCT
 FIL_SIZE .ENDSTRUCT FIL
 ;
 ; Directory object structure (DIR)
-; 
+;
 DIR .STRUCT
 	obj:		.TAG	FFOBJID	; Object identifier
 	dptr:		DS	4	; Current read/write offset
@@ -295,8 +295,11 @@ FILINFO_SIZE .ENDSTRUCT FILINFO
 MOSCALL:		MACRO	function
 			LD	A, function
 			RST.LIS	08h
-			ENDMACRO 	
+			ENDMACRO
 
 ; Experimental Eirene single-buffer UART0 API; see TM-001 contract.
 mos_async_vdu_write:	EQU	42h
 mos_async_vdu_finish:	EQU	43h
+
+; EMOS-001 existing resident gateway, not a new Eirene allocation.
+mos_emos_gateway equ 0x51

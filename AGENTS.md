@@ -1,0 +1,54 @@
+# agon-emos project instructions
+
+When this checkout is inside the Author's larger Agon workspace and
+`../agon-dev-env/codex/AGENTS.md` exists, read that canonical guidance first.
+An independent clone does not require the sibling checkout.
+
+Read `OWNERSHIP.md` before changing source, build integration, tasks, or
+qualification evidence. `TODO.md` is this repository's only authoritative
+unfinished-work list.
+
+Use `docs/README.md` for current resident and foreground-utility contracts.
+Keep that maintained documentation current in place; old task/qualification
+records are supporting evidence, not competing operating instructions.
+
+Maintain EMOS as an upstream-shaped derivative of official MOS. Preserve
+official names, source placement, ZDS idioms, APIs, and control flow wherever
+practical so later tagged upstream releases remain reviewable. Put EMOS product
+behavior in this repository. Put reusable AgonDev port machinery in
+`mos-agondev`; never hand-edit generated prepared source or GNU-as output.
+
+Review official documentation before changing MOS APIs, ABIs, sysvars,
+executable formats, VDP packets, or hardware contracts. Record deviations,
+workarounds, and inherited defects beside affected code and in the active task.
+Every emulator-coupled change requires Author validation before commit or push.
+
+Test runners, fixtures and deployment helpers must never modify `/autoexec.txt`
+or launch tests through reset. Use explicit CLI invocation. Appliances query the
+active mode, switch only when needed, allow at least one full second after a
+confirmed switch, and restore entry mode and a visible CLI. Pi runners own any
+preselection and restoration of earlier route/mode state. Use `VDU 22 n` with
+spaces. Read the maintained Extender [test-appliance lifecycle](../agon-extender/docs/procedures/test-appliances.md)
+before designing, deploying or running tests in the Agon workspace. Historical
+boot-script recipes require deliberate migration before reuse.
+
+Build EMOS only through its repository wrappers or the `mos-agondev`
+repository-root targets with an EMOS source profile. Those paths must execute
+all profile-owned `FIRMWARE_LINK_CHECKS`, including the linked UART divisor
+guard. A direct low-level port build is not an EMOS-qualified build, and a Fab
+boot cannot validate physical baud because its VDP link exchanges complete
+bytes without an independent receiver clock.
+
+## Network access authority
+
+For access between development machines, read the [canonical network instructions](https://github.com/bgates747/agon-dev-env/blob/feature/standardized-deployment/codex/environment.md#ssh-between-development-machines) in `~/Agon/mystuff/agon-dev-env/codex/environment.md` and its machine-local `.local/ssh-001/CONNECTIONS.md` guide. They own current hostnames, discovery, SSH identities, sudo, and LAN shares. Do not duplicate access recipes or revive old aliases, addresses, or share mappings in this project. Project-specific device/protocol and bench-safety instructions remain local.
+
+## EMOS-001 native branch
+
+This Author-selected Eirene-based task branch owns native C/GNU assembly.
+Use its repository-root `make firmware-check`; preserve all four product link
+validators. `projects/emos/build_identified.py` generates a source-owned identity
+header and records clean source provenance for deployment. Do not regenerate
+this tree through the older ZDS-oriented builder. No emulator fixture/profile
+or production/default selection is changed by this branch. Historical support
+inputs remain with the cross-component task, not active native build recipes.

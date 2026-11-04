@@ -4,7 +4,8 @@
 include "equs.inc"
 .text
 .global uart0_async_write,uart0_async_finish,uart0_async_isr
-.extern _uart0_handler,__2nd_jump_table
+.extern _uart0_handler,__2nd_jump_table,_emosVduBackend
+.global _emos_uart0_async_owned
 .equ async_vector,__2nd_jump_table+0x31
 UART0_ASYNC_SCALAR equ 0
 
@@ -14,6 +15,10 @@ uart0_async_write:
  di
  push hl
  push de
+ ; EMOS-001: UART0 is the onboard output only; ExCom must not bypass route.
+ ld a,(_emosVduBackend)
+ or a
+ jr nz,async_write_busy
  ld hl,(async_left)
  call async_zero
  jr nz,async_write_busy
@@ -182,6 +187,18 @@ async_cts_blocked:
  or 0x0a
  out0 (UART0_IER),a
  ret                       ; Re-arm next entry, not a DI retry loop.
+
+; BYTE result in A. Reuse vector ownership, including source-released/wire-tail
+; phase, rather than allocate another resident session flag.
+_emos_uart0_async_owned:
+ ld hl,(async_vector)
+ ld de,uart0_async_isr
+ or a
+ sbc hl,de
+ ld a,0
+ ret nz
+ inc a
+ ret
 
 .bss
 async_source: .ds 3

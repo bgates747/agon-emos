@@ -3,7 +3,7 @@
  * Author:			Dean Belfield
  * Created:			21/03/2023
  * Last Updated:	10/11/2023
- * 
+ *
  * Modinfo:
  * 22/03/2023:		The VDP commands are now indexed from 0x80
  * 24/03/2023:		Added DEBUG
@@ -34,6 +34,11 @@ typedef int16_t INT16 ;
 typedef uint8_t UINT8 ;
 typedef int8_t INT8 ;
 typedef uint8_t BYTE;
+typedef uint16_t WORD;
+typedef uint32_t DWORD;
+typedef uint64_t QWORD;
+typedef signed char CHAR;
+typedef void VOID;
 typedef uint8_t UINT8;
 typedef uint8_t UCHAR;
 typedef bool BOOL;
@@ -63,6 +68,16 @@ typedef enum {
 	MOS_OVERLAPPING_SYSTEM,		/* (24) File load prevented to stop overlapping system memory */
 	MOS_BAD_STRING,				/* (25) Bad or incomplete string */
 	MOS_TOO_DEEP,				/* (26) Too many nested commands */
+	EMOS_NOT_FOUND,				/* (27) EMOS provider not found */
+	EMOS_INVALID_MODULE,		/* (28) EMOS module is malformed */
+	EMOS_INCOMPATIBLE,			/* (29) EMOS module ABI is incompatible */
+	EMOS_CONFLICT,				/* (30) EMOS provider claim conflicts */
+	EMOS_BUSY,					/* (31) EMOS transient dispatcher is busy */
+	EMOS_UNSAFE_CALLER,			/* (32) Caller cannot safely load a module */
+	EMOS_PROVIDER_FAILED,		/* (33) Provider reported failure */
+	EMOS_RECOVERY_FAILED,		/* (34) Compatible-app restore failed */
+	EMOS_UNAVAILABLE,			/* (35) Requested EMOS backend unavailable */
+	EMOS_REGISTRY_FULL,			/* (36) EMOS registry limit reached */
 } MOSRESULT;
 
 #define SPL_STACK_SIZE				2048

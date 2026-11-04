@@ -177,6 +177,10 @@ UINT8	wait_VDP(UINT8 mask);
 							"  -v: Hide volume information\r\n"
 #define HELP_CAT_ARGS		"[-l] [-a] [-s] [-v] <path>"
 
+#define HELP_EMOS			"Inspect/control EMOS or run a foreground /emos utility\r\n" \
+							"Subcommands: STATUS, KEYINPUT, EXCOM, LEGACY, CALL, MODE, FAKE; or a utility name\r\n"
+#define HELP_EMOS_ARGS		"[STATUS|KEYINPUT [mainboard|browser|extender]|EXCOM|LEGACY|<utility> [args]]"
+
 #define HELP_CD				"Change current directory\r\n"
 #define HELP_CD_ARGS		"<path>"
 

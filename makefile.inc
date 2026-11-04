@@ -29,7 +29,7 @@ ifeq ($(LDHAS_EXIT_HANDLER), 1)
 else
     LINKER_EXIT=-defsym=_has_exit_handler=0
 endif
-LINKERFLAGS=$(LINKER_ARG) $(LINKER_EXIT) -Map=$(BINDIR)/$(NAME).map -T $(LINKERCONFIG) --oformat binary -o 
+LINKERFLAGS=$(LINKER_ARG) $(LINKER_EXIT) -Map=$(BINDIR)/$(NAME).map -T $(LINKERCONFIG) --oformat binary -o
 LINKERLIBFLAGS=-L$(LIBDIR) -lagon
 SETPROGNAME=$(TOOLBINDIR)/agondev-setname
 
@@ -41,13 +41,20 @@ BINDIR=bin
 BINARY=$(BINDIR)/$(NAME).bin
 
 # Automatically get all object names from sourcefiles
-OBJS=$(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%.o, $(wildcard $(SRCDIR)/*.asm)) \
+ALL_OBJS=$(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%.o, $(wildcard $(SRCDIR)/*.asm)) \
 	 $(patsubst $(SRCDIR)/%.s,   $(OBJDIR)/%.o, $(wildcard $(SRCDIR)/*.s)) \
 	 $(patsubst $(SRCDIR)/%.src, $(OBJDIR)/%.o, $(wildcard $(SRCDIR)/*.src)) \
 	 $(patsubst src_fatfs/%.c,   src_fatfs/%.o, $(wildcard src_fatfs/*.c)) \
 	 $(patsubst src_umm_malloc/%.c,   src_umm_malloc/%.o, $(wildcard src_umm_malloc/*.c)) \
 	 $(patsubst $(SRCDIR)/%.c,   $(OBJDIR)/%.o, $(wildcard $(SRCDIR)/*.c)) \
 	 $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(wildcard $(SRCDIR)/*.cpp))
+
+# EMOS-001 explicit resident composition: no automatic inclusion of experiments.
+EMOS_C := emos emos_admission emos_telemetry emos_sdlink emos_console emos_keyboard emos_uart_flow emos_parallel emos_parallel_engine emos_parallel_handover emos_parallel_boot emos_parallel_startup emos_controller emos_parallel_upload
+EMOS_ASM := emos_console_io emos_keyboard_io emos_parallel_io emos_parallel_upload_io
+OBJS = $(filter-out $(OBJDIR)/emos%.o,$(ALL_OBJS)) $(addprefix $(OBJDIR)/,$(addsuffix .o,$(EMOS_C) $(EMOS_ASM)))
+CFLAGS += -DEMOS_CONTROLLER_INPUT=1 -DEMOS_PARALLEL_UPLOAD=1 -DEMOS_PARALLEL_NATIVE_COORDINATOR=1
+# Source/build identities remain fail-closed exploratory values. Not deployable.
 
 # Default rule
 all: $(BINDIR) $(OBJDIR) $(BINARY)
@@ -80,5 +87,5 @@ $(OBJDIR):
 	@mkdir $(OBJDIR)
 
 clean:
-	@$(RM) -r $(BINDIR) $(OBJDIR) 
+	@$(RM) -r $(BINDIR) $(OBJDIR)
 	@$(RM) src_fatfs/*.o src_umm_malloc/*.o

@@ -13,6 +13,8 @@
 			.text
 
 			XDEF	keyboard_handler
+			XDEF	keyboard_lookup
+			XDEF	keyboard_lookup_end
 
 			XREF	_keymods 			; In globals.asm
 			XREF	_keyascii
@@ -32,11 +34,15 @@ keyboard_handler:	LD	A, B
 ;  C: Keydown state (1 = pressed 0 = depressed)
 ;  A: Virtual keycode
 ;
-keyboard_map:		DEC	A 				;  A: Virtual keycode - 1
+keyboard_map:
+            ; Bound callback-edited indices as well as validated wire keys.
+            CP (keyboard_lookup_end-keyboard_lookup)/4 + 1
+            RET NC
+            DEC	A 				;  A: Virtual keycode - 1
 			LD	DE, keyboard_lookup		; DE: Address of keyboard lookup table
 			LD	HL, 0
-			LD	L, A 
-			ADD	HL, HL 
+			LD	L, A
+			ADD	HL, HL
 			ADD	HL, HL				; HL: Virtual keycode x 4
 			ADD	HL, DE				; HL: Address of key data in keyboard lookup
 			LD	A, (HL)				;  A: Bit to set
@@ -49,12 +55,12 @@ keyboard_map:		DEC	A 				;  A: Virtual keycode - 1
 			CPL					; It is up so complement the bit
 			AND	(HL)				; Then AND it with the keymap entry
 			LD	(HL), A
-			RET 
+			RET
 ;
 1:			OR	(HL)				; OR with the keymap entry
 			LD	(HL), A
-			RET 
-;			
+			RET
+;
 ; Now check for CTRL+ALT+DEL
 ;
 keyboard_reset:		LD	A, B				; Get the virtual key code
@@ -65,8 +71,8 @@ keyboard_reset:		LD	A, B				; Get the virtual key code
 			CP	88				; And DEL (numlock)
 			RET	NZ
 1:			LD	A, (_keymods)			; DEL is pressed so check CTRL + ALT
-			AND	05h				; Bit 0 and 2
-			CP	05h
+			AND	0x05				; Bit 0 and 2
+			CP	0x05
 			RET	NZ				; Exit if not pressed
 ;
 ; Here we're just waiting for the key to go up
@@ -74,8 +80,8 @@ keyboard_reset:		LD	A, B				; Get the virtual key code
 			LD	A, C				; Get key down
 			DEC	A				; Check for 0 (key up)
 			JP	NZ, 0				; Yes so reset
-			LD	(_keyascii), A			; Otherwise clear the keycode so no interaction with console 
-			LD	(_keycode), A 
+			LD	(_keyascii), A			; Otherwise clear the keycode so no interaction with console
+			LD	(_keycode), A
 			RET
 
 ; Lookup table to convert virtual keycodes to physical keys (BBC BASIC specification)
@@ -84,13 +90,13 @@ keyboard_reset:		LD	A, B				; Get the virtual key code
 ; - 1 byte:  The bit data to set into the keymap
 ; - 3 bytes: The address to set (precalculated)
 ;
-		MACRO KEY VKEYCODE 
+		MACRO KEY VKEYCODE
 			IF	\VKEYCODE = 0
 			D32 	0
 			ELSE
 			DB	1 << ((\VKEYCODE - 1) & 0b00000111)
 			D24	_keymap + (((\VKEYCODE - 1) & 0b11111000) >> 3)
-			ENDIF 
+			ENDIF
 		.endm
 ;
 keyboard_lookup:	KEY(099)	; VK_SPACE
@@ -165,7 +171,7 @@ keyboard_lookup:	KEY(099)	; VK_SPACE
 			KEY(034)	; VK_W
 			KEY(067)	; VK_X
 			KEY(069)	; VK_Y
-			KEY(098)	; VK_Z              
+			KEY(098)	; VK_Z
 			KEY(046)	; VK_GRAVEACCENT
 			KEY(000)	; VK_ACUTEACCENT
 			KEY(072)	; VK_QUOTE
@@ -188,7 +194,7 @@ keyboard_lookup:	KEY(099)	; VK_SPACE
 			KEY(000)	; VK_AMPERSAND
 			KEY(000)	; VK_VERTICALBAR
 			KEY(000)	; VK_HASH
-			KEY(072)	; VK_AT  
+			KEY(072)	; VK_AT
 			KEY(025)	; VK_CARET
 			KEY(000)	; VK_DOLLAR
 			KEY(000)	; VK_POUND
@@ -227,14 +233,14 @@ keyboard_lookup:	KEY(099)	; VK_SPACE
 			KEY(048)	; VK_BACKSPACE
 			KEY(063)	; VK_HOME
 			KEY(063)	; VK_KP_HOME
-			KEY(106)	; VK_END 
+			KEY(106)	; VK_END
 			KEY(106)	; VK_KP_END
 			KEY(000)	; VK_PAUSE
 			KEY(045)	; VK_BREAK
 			KEY(032)	; VK_SCROLLLOCK
 			KEY(078)	; VK_NUMLOCK
 			KEY(065)	; VK_CAPSLOCK
-			KEY(097)	; VK_TAB 
+			KEY(097)	; VK_TAB
 			KEY(074)	; VK_RETURN
 			KEY(061)	; VK_KP_ENTER
 			KEY(128)	; VK_APPLICATION
@@ -242,7 +248,7 @@ keyboard_lookup:	KEY(099)	; VK_SPACE
 			KEY(064)	; VK_KP_PAGEUP
 			KEY(079)	; VK_PAGEDOWN
 			KEY(079)	; VK_KP_PAGEDOWN
-			KEY(058)	; VK_UP  
+			KEY(058)	; VK_UP
 			KEY(058)	; VK_KP_UP
 			KEY(042)	; VK_DOWN
 			KEY(042)	; VK_KP_DOWN
@@ -251,18 +257,18 @@ keyboard_lookup:	KEY(099)	; VK_SPACE
 			KEY(122)	; VK_RIGHT
 			KEY(122)	; VK_KP_RIGHT
 			KEY(000)	; VK_KP_CENTER
-			KEY(114)	; VK_F1  
-			KEY(115)	; VK_F2  
-			KEY(116)	; VK_F3  
-			KEY(021)	; VK_F4  
-			KEY(117)	; VK_F5  
-			KEY(118)	; VK_F6  
-			KEY(023)	; VK_F7  
-			KEY(119)	; VK_F8  
-			KEY(120)	; VK_F9  
-			KEY(031)	; VK_F10 
-			KEY(029)	; VK_F11 
-			KEY(030)	; VK_F12 
+			KEY(114)	; VK_F1
+			KEY(115)	; VK_F2
+			KEY(116)	; VK_F3
+			KEY(021)	; VK_F4
+			KEY(117)	; VK_F5
+			KEY(118)	; VK_F6
+			KEY(023)	; VK_F7
+			KEY(119)	; VK_F8
+			KEY(120)	; VK_F9
+			KEY(031)	; VK_F10
+			KEY(029)	; VK_F11
+			KEY(030)	; VK_F12
 			KEY(000)	; VK_GRAVE_a
 			KEY(000)	; VK_GRAVE_e
 			KEY(000)	; VK_GRAVE_i
@@ -327,7 +333,7 @@ keyboard_lookup:	KEY(099)	; VK_SPACE
 			KEY(000)	; VK_DIAERESIS
 			KEY(000)	; VK_SQUARE
 			KEY(000)	; VK_CURRENCY
-			KEY(000)	; VK_MU  
+			KEY(000)	; VK_MU
 			KEY(000)	; VK_aelig
 			KEY(000)	; VK_oslash
 			KEY(000)	; VK_aring
@@ -341,3 +347,4 @@ keyboard_lookup:	KEY(099)	; VK_SPACE
 			KEY(000)	; VK_HANKAKU_ZENKAKU_KANJI
 			KEY(000)	; VK_SHIFT_0
 			KEY(000)	; VK_ASCII
+keyboard_lookup_end:

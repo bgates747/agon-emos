@@ -48,6 +48,8 @@
 #include "mos.h"
 #include "i2c.h"
 #include "umm_malloc.h"
+#include "emos.h"
+#include "emos_admission.h"
 
 extern volatile BYTE scrcolours, scrpixelIndex;  // In globals.asm
 
@@ -58,7 +60,7 @@ extern void 	uart0_handler(void);
 extern void 	i2c_handler(void);
 
 extern char hardReset;		// 1 = hard cpu reset, 0 = soft reset
-extern volatile	char 	keycode;		// Keycode 
+extern volatile	char 	keycode;		// Keycode
 extern volatile char	gp;				// General poll variable
 extern volatile BYTE	keymods;		// Key modifiers
 extern volatile BYTE	keydown;		// Key down flag
@@ -73,7 +75,7 @@ extern BOOL	vdpSupportsTextPalette;
 // - pUART: Pointer to a UART structure
 // - baudRate: Baud rate to initialise UART with
 //
-void wait_ESP32(UART * pUART, UINT24 baudRate) {	
+void wait_ESP32(UART * pUART, UINT24 baudRate) {
 	int	i, t;
 
 	pUART->baudRate = baudRate;			// Initialise the UART object
@@ -83,11 +85,11 @@ void wait_ESP32(UART * pUART, UINT24 baudRate) {
 	pUART->flowControl = FCTL_HW;
 	pUART->interrupts = UART_IER_RECEIVEINT;
 
-	open_UART0(pUART);					// Open the UART 
+	open_UART0(pUART);					// Open the UART
 	init_timer0(10, 16, 0x00);			// 10ms timer for delay
 
 	gp = 0;
-	while (gp==0) {					// Wait for the ESP32 to respond with a GP packet	  
+	while (gp==0) {					// Wait for the ESP32 to respond with a GP packet
 		putch(23);						// Send a general poll packet
 		putch(0);
 		putch(VDP_gp);
@@ -180,7 +182,7 @@ int main(void) {
 	init_UART0();									// Initialise UART0 for the ESP32 interface
 	init_UART1();									// Initialise UART1
 	asm volatile("ei");
-	
+
 	wait_ESP32(&pUART0, 1152000);					// Connect to VDP at maximum rate
 
 	if (hardReset == 0) {							// If a warm boot detected then
@@ -192,7 +194,7 @@ int main(void) {
 	getModeInformation();
 	while (scrcolours == 0) { }
 	readPalette(128, TRUE);
-	
+
 	if (scrpixelIndex < 128) {
 		vdpSupportsTextPalette = TRUE;
 	} else {
@@ -210,6 +212,7 @@ int main(void) {
 
 	mos_mount();									// Mount the SD card
 	mos_setupSystemVariables();						// Setup the system variables
+	emos_init();									// EMOS always starts in operational Legacy
 
 	putch(7);										// Startup beep
 	editHistoryInit();								// Initialise the command history
@@ -236,7 +239,8 @@ int main(void) {
 	// The main loop
 	//
 	while (1) {
-		if (mos_input(&cmd, sizeof(cmd)) == 13) {
+        UINT24 reason = mos_input(&cmd, sizeof(cmd));
+        if (reason == 13) {
 			int err = mos_exec(&cmd, true);
 			createOrUpdateSystemVariable("Sys$ReturnCode", MOS_VAR_NUMBER, (void *)err);
 			if (err > 0) {

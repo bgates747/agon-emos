@@ -3,7 +3,7 @@
  * Author:			Dean Belfield
  * Created:			10/07/2022
  * Last Updated:	11/11/2023
- * 
+ *
  * Modinfo:
  * 11/07/2022:		Added mos_cmdDIR, mos_cmdLOAD, removed mos_cmdBYE
  * 12/07/2022:		Added mos_cmdJMP
@@ -55,6 +55,9 @@
 #include "umm_malloc.h"
 #include "mos_sysvars.h"
 #include "mos_file.h"
+#include "emos.h"
+#include "emos_keyboard.h"
+#include "emos_admission.h"
 #if DEBUG > 0
 # include "tests.h"
 #endif /* DEBUG */
@@ -102,6 +105,7 @@ static t_mosCommand mosCommands[] = {
 	{ "Disc",		&mos_cmdDISC,		false,	NULL,				NULL },
 	{ "Do",			&mos_cmdDO,			true,	HELP_DO_ARGS,		HELP_DO },
 	{ "Echo",		&mos_cmdECHO,		false,	HELP_ECHO_ARGS,		HELP_ECHO },
+	{ "EMOS",		&emos_cmd,			false,	HELP_EMOS_ARGS,		HELP_EMOS },
 	{ "Erase",		&mos_cmdDEL,		true,	HELP_DELETE_ARGS,	HELP_DELETE },
 	{ "Exec",		&mos_cmdEXEC,		true,	HELP_EXEC_ARGS,		HELP_EXEC },
 	{ "Help",		&mos_cmdHELP,		false,	HELP_HELP_ARGS,		HELP_HELP },
@@ -172,6 +176,16 @@ static char * mos_errors[] = {
 	"Load overlaps system area",
 	"Bad string",
 	"Too deep",
+	"EMOS provider not found",
+	"Invalid EMOS module",
+	"Incompatible EMOS module",
+	"EMOS provider conflict",
+	"EMOS dispatcher busy",
+	"Caller is not module safe",
+	"EMOS provider failed",
+	"EMOS module-area recovery failed",
+	"EMOS backend unavailable",
+	"EMOS registry full",
 };
 
 #define mos_errors_count (sizeof(mos_errors)/sizeof(char *))
@@ -208,14 +222,26 @@ BYTE mos_getkey() {
 // - The keycode (ESC or CR)
 //
 UINT24 mos_input(char * buffer, int bufferLength) {
-	INT24 retval;
-	char * prompt = expandVariableToken("CLI$Prompt");
-
-	printf("%s", prompt ? prompt : "*");
-	umm_free(prompt);
-	retval = mos_EDITLINE(buffer, bufferLength, 3);
-	printf("\n\r");
-	return retval;
+    INT24 retval;
+    BYTE prompt_needed = 1;
+    for (;;) {
+        if (prompt_needed) {
+            char * prompt = expandVariableToken("CLI$Prompt");
+            printf("%s", prompt ? prompt : "*");
+            umm_free(prompt);
+        }
+        retval = emos_cli_editline(buffer, bufferLength);
+        if (retval != EMOS_CLI_SERVICE) break;
+        /* The private editor has released its storage before dispatch.
+         * Silent finite jobs resume the same empty CLI line; ordinary CR/ESC
+         * behavior and the public editor API are unchanged. Errors remain
+         * visible and require a fresh prompt after their diagnostic. */
+        retval = emos_admission_dispatch();
+        prompt_needed = retval != 0;
+        if (retval) mos_error(retval);
+    }
+    printf("\n\r");
+    return retval;
 }
 
 // Parse a MOS command from the line edit buffer
@@ -269,17 +295,21 @@ char * mos_trim(char * s, bool removeLeadingAsterisks, bool removeTrailingSpaces
 
 int mos_runBin(UINT24 addr, char * args) {
 	UINT8 mode = mos_execMode((UINT8 *)addr);
+	BYTE previousPolicy = emos_application_enter((UINT8 *)addr, addr);
+	int result;
 	switch (mode) {
 		case 0:		// Z80 mode
-			return exec16(addr, args);
+			result = exec16(addr, args);
 			break;
 		case 1: 	// ADL mode
-			return exec24(addr, args);
-			break;	
+			result = exec24(addr, args);
+			break;
 		default:	// Unrecognised header
-			return MOS_INVALID_EXECUTABLE;
+			result = MOS_INVALID_EXECUTABLE;
 			break;
 	}
+	emos_application_leave(previousPolicy);
+	return result;
 }
 
 int mos_runBinFile(char * filepath, char * args) {
@@ -511,7 +541,6 @@ int mos_exec(char * buffer, BOOL in_mos) {
 		// printf("searching for command '%s' (cmdLen is %d)\n\r", command, cmdLen);
 
 		cmd = mos_getCommand(command, MATCH_COMMANDS);
-		umm_free(command);
 		func = cmd ? cmd->func : NULL;
 		if (cmd != NULL && func != 0) {
 			if (cmd->expandArgs) {
@@ -522,8 +551,10 @@ int mos_exec(char * buffer, BOOL in_mos) {
 			if (cmd->expandArgs) {
 				umm_free(args);
 			}
+			umm_free(command);
 			return result;
 		} else {
+			umm_free(command);
 			// Command not built-in, so see if it's a file
 			char * path;
 			bool useWildcard = false;
@@ -833,7 +864,7 @@ int mos_cmdHOTKEY(char *ptr) {
 
 	sprintf(label, "Hotkey$%d", fn_number);
 
-	if (strlen(ptr) < 1) {		
+	if (strlen(ptr) < 1) {
 		if (getSystemVariable(label, &hotkeyVar) == 0) {
 			removeSystemVariable(hotkeyVar);
 			printf("F%u cleared.\r\n", fn_number);
@@ -940,7 +971,7 @@ int mos_cmdIFTHERE(char * ptr) {
 	char * then = NULL;
 	char * elseCmd = NULL;
 	int result = FR_OK;
-	int pathLength = 0;	
+	int pathLength = 0;
 
 	then = stristr(ptr, " THEN ");
 	if (!then) {
@@ -1117,7 +1148,7 @@ int mos_cmdOBEY(char *ptr) {
 	f_close(&fil);
 	umm_free(expandedPath);
 	umm_free(buffer);
-	return fr;	
+	return fr;
 }
 
 
@@ -1162,7 +1193,7 @@ int mos_cmdDEL(char * ptr) {
 	BYTE	index = 0;
 
 	fr = extractString(ptr, &ptr, NULL, &filename, EXTRACT_FLAG_AUTO_TERMINATE);
-	
+
 	// TODO consider supporting more flags to control the behaviour of DEL
 	// For example we could change default behaviour to _not_ work with system/hidden files
 	// and have flags to permit them to be deleted
@@ -1272,7 +1303,7 @@ int mos_cmdLOADFILE(char *ptr) {
 int mos_cmdRUN(char *ptr) {
 	UINT24	addr = 0;
 	int		result;
-	
+
 	// First argument should be a number, and if not should be absent, or a `.` for "default address"
 	if (!extractNumber(ptr, &ptr, NULL, (int *)&addr, 0) &&
 		(*ptr == '\0' || (*ptr =='.' && (ptr[1] == '\0' || ptr[1] == ' ')))
@@ -1742,7 +1773,7 @@ void printCommandInfo(t_mosCommand * cmd, BOOL full) {
 	printf("%s", cmd->name);
 	if (cmd->args != NULL)
 		printf(" %s", cmd->args);
-	
+
 	// find aliases
 	for (i = 0; i < mosCommands_count; ++i) {
 		if (mosCommands[i].func == cmd->func && mosCommands[i].name != cmd->name) {
@@ -1885,14 +1916,14 @@ int mos_cmdTEST(char *ptr) {
 // - size: Number of bytes to load, 0 for maximum file size
 // Returns:
 // - FatFS return code
-// 
+//
 UINT24 mos_LOAD(char * filename, UINT24 address, UINT24 size) {
 	FIL		fil;
-	UINT	br;	
+	UINT	br;
 	FSIZE_t	fSize;
 	char *	expandedFilename = NULL;
 	FRESULT	fr = getResolvedPath(filename, &expandedFilename, RESOLVE_OMIT_EXPAND);
-	
+
 	if (fr != FR_OK) {
 		umm_free(expandedFilename);
 		return fr;
@@ -1914,7 +1945,7 @@ UINT24 mos_LOAD(char * filename, UINT24 address, UINT24 size) {
 		if ((address <= MOS_externLastRAMaddress) && ((address + size) > MOS_systemAddress)) {
 			fr = MOS_OVERLAPPING_SYSTEM;
 		} else {
-			fr = f_read(&fil, (void *)address, size, &br);		
+			fr = f_read(&fil, (void *)address, size, &br);
 		}
 	}
 	f_close(&fil);
@@ -1939,10 +1970,10 @@ UINT24 mos_LOAD_API(char * filename, UINT24 address, UINT24 size) {
 // - size: Number of bytes to save
 // Returns:
 // - FatFS return code
-// 
+//
 UINT24 mos_SAVE(char * filename, UINT24 address, UINT24 size) {
 	FIL		fil;
-	UINT	br;	
+	UINT	br;
 	char *	expandedFilename = NULL;
 	FRESULT	fr;
 
@@ -2035,7 +2066,7 @@ UINT24 mos_TYPE(char * filename) {
 // - filename: Path of file to save
 // Returns:
 // - FatFS return code
-// 
+//
 UINT24	mos_CD(char *path) {
 	FRESULT	fr;
 	char *	expandedPath = NULL;
@@ -2414,7 +2445,7 @@ UINT24 mos_DEL(char * filename) {
 // - dstPath: Destination file path
 // Returns:
 // - FatFS return code
-// 
+//
 UINT24 mos_REN_API(char *srcPath, char *dstPath) {
 	FRESULT	fr = FR_INT_ERR;
 	char *	expandedSrcPath = expandMacro(srcPath);
@@ -2435,7 +2466,7 @@ UINT24 mos_REN_API(char *srcPath, char *dstPath) {
 // - dstPath: Destination file path
 // Returns:
 // - FatFS return code
-// 
+//
 UINT24 mos_REN(char *srcPath, char *dstPath, BOOL verbose) {
 	FRESULT	fr;
 	FRESULT	renResult;
@@ -2592,7 +2623,7 @@ UINT24 mos_REN(char *srcPath, char *dstPath, BOOL verbose) {
 // - dstPath: Destination file path
 // Returns:
 // - FatFS return code
-// 
+//
 UINT24 mos_COPY_API(char *srcPath, char *dstPath) {
 	FRESULT	fr = FR_INT_ERR;
 	char *	expandedSrcPath = expandMacro(srcPath);
@@ -2614,7 +2645,7 @@ UINT24 mos_COPY_API(char *srcPath, char *dstPath) {
 // Returns:
 // - FatFS return code
 // - MOS_OUT_OF_MEMORY if memory allocation fails
-// 
+//
 UINT24 mos_COPY(char *srcPath, char *dstPath, BOOL verbose) {
 	FRESULT	fr;
 	FRESULT	copyResult;
@@ -2714,7 +2745,7 @@ UINT24 mos_COPY(char *srcPath, char *dstPath, BOOL verbose) {
 // - filename: Path of file to delete
 // Returns:
 // - FatFS return code
-// 
+//
 UINT24 mos_MKDIR(char * filename) {
 	FRESULT	fr;
 	char *	resolved = NULL;
@@ -2778,7 +2809,7 @@ UINT24 mos_EXEC(char * filename) {
 	}
 	umm_free(expandedPath);
 	umm_free(buffer);
-	return fr;	
+	return fr;
 }
 
 // Open a file
@@ -2787,7 +2818,7 @@ UINT24 mos_EXEC(char * filename) {
 // - mode: File open mode (r, r/w, w, etc) - see FatFS documentation for more details
 // Returns:
 // - File handle, or 0 if the file cannot be opened
-// 
+//
 UINT24 mos_FOPEN(char * filename, UINT8 mode) {
 	char *	expandedFilename = NULL;
 	int		i;
@@ -2818,7 +2849,7 @@ UINT24 mos_FOPEN(char * filename, UINT8 mode) {
 UINT24 mos_FCLOSE(UINT8 fh) {
 	FRESULT fr;
 	int 	i;
-	
+
 	if (fh > 0 && fh <= MOS_maxOpenFiles) {
 		i = fh - 1;
 		if (mosFileObjects[i].free > 0) {
@@ -2832,8 +2863,8 @@ UINT24 mos_FCLOSE(UINT8 fh) {
 				mosFileObjects[i].free = 0;
 			}
 		}
-	}	
-	return fh;	
+	}
+	return fh;
 }
 
 // Read a byte from a file
@@ -2851,10 +2882,10 @@ UINT24	mos_FGETC(UINT8 fh) {
 
 	fo = (FIL *)mos_GETFIL(fh);
 	if (fo > 0) {
-		fr = f_read(fo, &c, 1, &br); 
+		fr = f_read(fo, &c, 1, &br);
 		if (fr == FR_OK) {
 			return	((UINT24)c) | ((UINT24)fat_EOF(fo) << 8);
-		}		
+		}
 	}
 	return 0;
 }
@@ -2921,7 +2952,7 @@ UINT24	mos_FWRITE(UINT8 fh, UINT24 buffer, UINT24 btw) {
 // - offset: Position of the pointer relative to the start of the file
 // Returns:
 // - FRESULT
-// 
+//
 UINT8	mos_FLSEEK(UINT8 fh, UINT32 offset) {
 	FIL * fo = (FIL *)mos_GETFIL(fh);
 
@@ -3373,7 +3404,12 @@ int writeVDPSetting(char * buffer, int setting) {
 
 // Write the "keyboard" setting to the VDP
 int writeKeyboard(char * buffer) {
-	return writeVDPSetting(buffer, VDP_keycode);
+	int value;
+    BYTE result;
+    if (!extractNumber(buffer, NULL, NULL, &value, 0)) return FR_INVALID_PARAMETER;
+    result = emos_keyboard_layout((BYTE)value);
+    return result == EMOS_KEY_OK ? FR_OK :
+        (result == EMOS_KEY_BUSY ? EMOS_BUSY : FR_TIMEOUT);
 }
 
 // Write the "console" setting to the VDP

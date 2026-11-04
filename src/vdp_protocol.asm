@@ -2,7 +2,7 @@
 ; Title:	AGON MOS - VDP serial protocol
 ; Author:	Dean Belfield
 ; Created:	03/08/2022
-; Last Updated:	26/09/2023
+; Last Updated:	28/07/2026
 ;
 ; Modinfo:
 ; 09/08/2022:	Added vdp_protocol_CURSOR
@@ -14,11 +14,12 @@
 ; 09/03/2023:	Added FabGL virtual key data to vdp_protocol_KEY, reset is now CTRL+ALT+DEL
 ; 15/03/2023:	Added vdp_protocol_RTC
 ; 21/03/2023:	Added vdp_protocol_KEYSTATE
-; 26/03/2023:	Added vdp_protocol_GP, checks DEL above cursor block for CTRL+ALT+DEL	
+; 26/03/2023:	Added vdp_protocol_GP, checks DEL above cursor block for CTRL+ALT+DEL
 ; 19/05/2023:	Extended vdp_protocol_MODE to store scrmode
 ; 03/08/2023:	Added user_kbvector in vdp_protocol_KEY
 ; 13/08/2023:	Moved keyboard handling to keyboard.asm
 ; 26/09/2023:	RTC packet length reduced to 6 bytes
+; 28/07/2026:	Fixed oversized-packet discard length
 
 			INCLUDE	"macros.inc"
 			INCLUDE	"equs.inc"
@@ -26,8 +27,13 @@
 			.ASSUME	ADL = 1
 
 			.text
-			
+
 			XDEF	vdp_protocol
+            XDEF emos_keyboard_payload
+            XDEF emos_vdp_dispatch
+            XREF _emosVduBackend
+            XREF _emos_keyboard_mainboard
+            XREF _emos_keyboard_mainboard_settings
 
 			XREF	_keyascii
 			XREF	_keycode
@@ -48,8 +54,8 @@
 			XREF	_scrpixelIndex
 			XREF	_scrmode
 			XREF	_rtc
-			XREF	_keydelay 
-			XREF	_keyrate 
+			XREF	_keydelay
+			XREF	_keyrate
 			XREF 	_keyled
 			XREF	_mouseX
 			XREF	_gp
@@ -79,10 +85,10 @@ vdp_protocol:		LD	A, (_vdp_protocol_state)
 			LD	(_vdp_protocol_state), A
 			RET
 ;
-; Wait for control byte (>=80h)
+; Wait for control byte (>=0x80)
 ;
 vdp_protocol_state0:	LD	A, C			; Wait for a header byte (bit 7 set)
-			SUB	80h
+			SUB	0x80
 			RET	C
 			LD	(_vdp_protocol_cmd), A	; Store the cmd (discard the top bit)
 			LD	(_vdp_protocol_ptr), HL	; Store the buffer pointer
@@ -96,6 +102,7 @@ vdp_protocol_state0:	LD	A, C			; Wait for a header byte (bit 7 set)
 vdp_protocol_state1:	LD	A, C			; Fetch the length byte
 			CP	VDPP_BUFFERLEN + 1	; Check if it exceeds buffer length (16)
 			JR	C, 1f			;
+			LD	(_vdp_protocol_len), A	; Preserve the number of bytes to discard
 			LD	A, 3			; If it does exceed buffer length, switch to state 3 (ignore packet)
 			LD	(_vdp_protocol_state), A
 			RET
@@ -124,8 +131,29 @@ vdp_protocol_state2:	LD	HL, (_vdp_protocol_ptr)	; Get the buffer pointer
 vdp_protocol_exec:	XOR	A			; Reset the state
 			LD	(_vdp_protocol_state), A
 			LD	A, (_vdp_protocol_cmd)	; Get the command byte...
+            ; INTEG-012: private graphics result requires all sixteen bytes.
+            CP 0x0C
+            JR NZ, graphics_length_done
+            LD HL, (_vdp_protocol_ptr)
+            LD DE, _vdp_protocol_data+16
+            OR A
+            SBC HL, DE
+            RET NZ
+            LD A, 0x0C
+graphics_length_done:
 			CP	vdp_protocol_vesize	; Check whether the command is in bounds
 			RET	NC			; Out of bounds, so just ignore
+            ; UART0 display effects are unowned while ExCom is committed.
+            ; Keyboard/settings retain their independently selected source.
+            LD A, (_emosVduBackend)
+            CP 1
+            LD A, (_vdp_protocol_cmd)
+            JR NZ, emos_vdp_dispatch
+            CP 1
+            JR Z, emos_vdp_dispatch
+            CP 8
+            RET NZ
+emos_vdp_dispatch:
 			LD	DE, vdp_protocol_vector
 			LD	HL, 0			; Index into the jump table
 			LD	L, A			; ...in HLU
@@ -146,9 +174,40 @@ vdp_protocol_vector:	JP	vdp_protocol_GP
 			JP	vdp_protocol_RTC
 			JP	vdp_protocol_KEYSTATE
 			JP	vdp_protocol_MOUSE
+            JP graphics_ignored          ; stock echo, still unimplemented
+            JP graphics_ignored          ; stock echo-end, still unimplemented
+            JP graphics_reply
 ;
 vdp_protocol_vesize:	EQU	($-vdp_protocol_vector)/4
 
+;
+ ; INTEG-012: bounded diagnostic callback, NOT keyboard publication.
+; DE points at 16 private bytes; user vector has its normal ISR restrictions.
+; Callback validates token and metric and copies to its bounded mailbox.
+graphics_reply:
+            LD HL, (_vdp_protocol_data)
+            LD DE, 0x475451              ; Q,T,G
+            OR A
+            SBC HL, DE
+            RET NZ
+            LD A, (_vdp_protocol_data+3)
+            CP 0x0A1
+            RET NZ
+            LD A, (_emosVduBackend)
+            LD HL, _vdp_protocol_data+7
+            CP (HL)
+            RET NZ
+; Callback-only terminal dispatch: no keyboard effects after RET from the app.
+vdp_callback_only:
+            LD HL, (_user_kbvector)
+            LD DE, 0
+            OR A
+            SBC HL, DE
+            RET Z
+            LD DE, _vdp_protocol_data
+            JP (HL)
+graphics_ignored:
+            RET
 ;
 ; Discard data (packet too long)
 ;
@@ -169,32 +228,88 @@ vdp_protocol_GP:	LD	A, (_vdp_protocol_data + 0)
 ; Keyboard Data
 ; Received after a keypress event in the VPD
 ;
-vdp_protocol_KEY:	LD	HL, (_user_kbvector)		; If a user kbvector is set, call it
-			LD	DE, 0
-			OR	A
-			SBC	HL, DE
-			JR	Z, 1f
-			LD	HL, 1f
-			PUSH	HL				; Push return address from user routine
-			LD	HL, (_user_kbvector)
-			LD	DE, _vdp_protocol_data		; Pass keyboard packet address to user routine in DE (24-bit)
-			JP	(HL)
-;
-1:			LD	A, (_vdp_protocol_data + 0)	; ASCII key code
-			LD	(_keyascii), A
-			LD	A, (_vdp_protocol_data + 1)	; Key modifiers (SHIFT, ALT, etc)
-			LD	(_keymods), A
-			LD	A, (_vdp_protocol_data + 3)	; Key down? (1=down, 0=up)
-			LD	C, A				; C: Keydown
-			LD	(_keydown), A
-			LD	A, (_keycount)			; Increment the key event counter
-			INC	A
-			LD	(_keycount), A
-			LD	A, (_vdp_protocol_data + 2)	; Virtual key code
-			LD	B, A 				; B: Virtual keycode
-			LD	(_keycode), A
-;
-			JP	keyboard_handler		; Call the handle keyboard routine (in keyboard.asm)
+vdp_protocol_KEY:
+            ; Mainboard Pingo/VDPlet carry bounded replies as KEY/0x81.
+            ; mos_setkbvector receives only ten-byte P3DR or VDPL records.
+            ; EMOS key-source/valid-key filtering had hidden this callback.
+            ; Check completed length first: short packets must not expose stale
+            ; tails. Ordinary keys keep their selected-source and value guards.
+            LD HL, (_vdp_protocol_ptr)
+            LD DE, _vdp_protocol_data
+            OR A
+            SBC HL, DE
+            LD A, L
+            CP 4
+            JR Z, keyboard_mainboard_key
+            CP 10
+            RET NZ
+            ; This is a display completion, not a mainboard physical key.
+            ; Only the committed mainboard display owns UART0 completions.
+            LD A, (_emosVduBackend)
+            OR A
+            RET NZ
+            LD HL, (_vdp_protocol_data)
+            LD DE, 0x443350              ; P,3,D
+            OR A
+            SBC HL, DE
+            LD A, 0x52                  ; Expected fourth byte: R
+            ; LD preserves the comparison flags used by this branch.
+            JR Z, keyboard_completion_last
+            LD HL, (_vdp_protocol_data)
+            LD DE, 0x504456              ; V,D,P
+            OR A
+            SBC HL, DE
+            RET NZ
+            LD A, 0x4C                  ; Expected fourth byte: L
+keyboard_completion_last:
+            LD HL, _vdp_protocol_data+3
+            CP (HL)
+            RET NZ
+            ; App owns each reply's fields. Never publish synthetic input,
+            ; even when no callback is installed or the callback edits bytes.
+            ; This explicit pair is not a generalized completion ABI.
+            JP vdp_callback_only
+keyboard_mainboard_key:
+            LD HL, _vdp_protocol_data
+            PUSH HL
+            CALL _emos_keyboard_mainboard
+            POP HL
+            RET
+
+; Shared stock KEY effects. DE points to the invoking UART's PRIVATE payload.
+; Preserve its address across the callback; callback edits remain visible.
+emos_keyboard_payload:
+            PUSH DE
+            LD HL, (_user_kbvector)
+            LD DE, 0
+            OR A
+            SBC HL, DE
+            JR Z, keyboard_payload_publish
+            POP DE
+            PUSH DE
+            LD HL, keyboard_payload_publish
+            PUSH HL
+            LD HL, (_user_kbvector)
+            JP (HL)
+keyboard_payload_publish:
+            POP HL
+            LD A, (HL)
+            LD (_keyascii), A
+            INC HL
+            LD A, (HL)
+            LD (_keymods), A
+            INC HL
+            LD B, (HL)
+            INC HL
+            LD A, (HL)
+            LD C, A
+            LD (_keydown), A
+            LD A, (_keycount)
+            INC A
+            LD (_keycount), A
+            LD A, B
+            LD (_keycode), A
+            JP keyboard_handler
 
 ; Cursor data
 ; Received after the cursor position is updated in the VPD
@@ -212,11 +327,11 @@ vdp_protocol_CURSOR:	LD	A, (_vdp_protocol_data+0)
 			OR	VDPP_FLAG_CURSOR
 			LD	(_vpd_protocol_flags), A
 			RET
-			
+
 ; Screen character data
 ; Received after VDU 23,0,0,x;y;
 ;
-; Byte: ASCII code of character 
+; Byte: ASCII code of character
 ;
 ; Sets vpd_protocol_flags to flag receipt to apps
 ;
@@ -226,7 +341,7 @@ vpd_protocol_SCRCHAR:	LD	A, (_vdp_protocol_data+0)
 			OR	VDPP_FLAG_SCRCHAR
 			LD	(_vpd_protocol_flags), A
 			RET
-			
+
 ; Pixel value data (RGB)
 ; Received after VDU 23,0,1,x;y;
 ;
@@ -245,7 +360,7 @@ vdp_protocol_POINT:	LD	HL, (_vdp_protocol_data+0)
 			OR	VDPP_FLAG_POINT
 			LD	(_vpd_protocol_flags), A
 			RET
-			
+
 ; Audio acknowledgement
 ; Received after VDU 23,0,5,channel,volume,frequency,duration
 ;
@@ -262,7 +377,7 @@ vdp_protocol_AUDIO:	LD	A, (_vdp_protocol_data+0)
 			OR	VDPP_FLAG_AUDIO
 			LD	(_vpd_protocol_flags), A
 			RET
-			
+
 ; Screen mode details
 ; Received after VDU 23,0,6 or VDU 17, n
 ;
@@ -293,7 +408,7 @@ vdp_protocol_MODE:	LD	A, (_vdp_protocol_data+0)
 			LD	(_scrmode), A
 			LD	A, (_vpd_protocol_flags)
 			OR	VDPP_FLAG_MODE
-			LD	(_vpd_protocol_flags), A			
+			LD	(_vpd_protocol_flags), A
 			RET
 
 ; RTC
@@ -304,12 +419,12 @@ vdp_protocol_MODE:	LD	A, (_vdp_protocol_data+0)
 ; Sets vpd_protocol_flags to flag receipt to apps
 ;
 vdp_protocol_RTC:	LD	HL, _vdp_protocol_data
-			LD	DE, _rtc 
+			LD	DE, _rtc
 			LD	BC,  6
-			LDIR 
+			LDIR
 			LD	A, (_vpd_protocol_flags)
 			OR	VDPP_FLAG_RTC
-			LD	(_vpd_protocol_flags), A			
+			LD	(_vpd_protocol_flags), A
 			RET
 
 ; Keyboard status
@@ -319,11 +434,12 @@ vdp_protocol_RTC:	LD	HL, _vdp_protocol_data
 ; Word: rate
 ; Byte: led status
 ;
-vdp_protocol_KEYSTATE:	LD	HL, _vdp_protocol_data
-			LD	DE, _keydelay
-			LD	BC, 5
-			LDIR 
-			RET
+vdp_protocol_KEYSTATE:
+            LD HL, _vdp_protocol_data
+            PUSH HL
+            CALL _emos_keyboard_mainboard_settings
+            POP HL
+            RET
 
 ; Mouse data
 ; Received after a mouse movement event, if mouse has been activated
@@ -338,7 +454,7 @@ vdp_protocol_KEYSTATE:	LD	HL, _vdp_protocol_data
 vdp_protocol_MOUSE:	LD	HL, _vdp_protocol_data
 			LD	DE, _mouseX
 			LD	BC, 10
-			LDIR 
+			LDIR
 			LD	A, (_vpd_protocol_flags)
 			OR	VDPP_FLAG_MOUSE
 			LD	(_vpd_protocol_flags), A

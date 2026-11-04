@@ -1,3 +1,12 @@
+# Isolated Eirene-based Extender MOS
+
+EMOS-001 experimental task branch; no production selection or compatibility
+qualification is implied. Native Eirene RC2 is the foundation; EMOS retains
+routing, input, controller, SD utility and private parallel-upload ownership.
+Use `make firmware-check` for offline builds and the owner identity wrapper
+for a separately authorized identified candidate. See docs/tasks/EMOS-001.md.
+The original foundation README follows as preserved attribution/history.
+
 # Eirene MOS — UART0 development
 
 This fork adds an opt-in asynchronous VDP sender based on Tom Morton's small
