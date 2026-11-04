@@ -1,124 +1,84 @@
-; Single-buffer UART0 sender, based on Tom Morton's async_vdu.asm.
-; See docs/tasks/TM-001/reference/async_vdu.asm and contract.md for provenance.
-; No startup hook, payload copy, queue, ticket or change to RST18.
+; Unpublished TR-001 trial, based on Tom Morton and the released RC1.
+; Normal MOS saves retained. Preconditions/callback convention: TR-001 contract.
 .assume adl=1
 include "equs.inc"
 .text
 .global uart0_async_write,uart0_async_finish,uart0_async_isr
-.extern _uart0_handler,__2nd_jump_table,_serialFlags
+.extern _uart0_handler,__2nd_jump_table
+.equ async_vector,__2nd_jump_table+0x31
 UART0_ASYNC_SCALAR equ 0
-.equ async_vector,__2nd_jump_table+0x31 ; UART0 vector18h *2 + JP operand
 
-; Foreground ADL/MBASE0 only. Require EI; never wait or pump inside a caller ISR.
-; Saved arguments at IX: callback+0, length+3, source+6.
-.macro async_api name,core
-\name:
- ld a,mb
- or a
- jp nz,async_context
- ld a,i
- jp po,async_context
+; Foreground ADL1/MBASE0/EI, normal UART setup, no competing owner.
+; Preserve HL/BC/DE/IX/IY/shadows. BC and indexes are not touched here.
+uart0_async_write:
  di
- push ix
  push hl
- push bc
  push de
- ld ix,0
- add ix,sp
- call \core
- pop de
- pop bc
- pop hl
- pop ix
- ei
- ret
-.endm
-async_api uart0_async_write,async_write_core
-async_api uart0_async_finish,async_finish_core
-async_context:
- ld a,3
- ret
-async_busy:
- ld a,1
- ret
-async_invalid:
- ld a,2
- ret
-async_ok:
- xor a
- ret
-async_zero:                  ; Full24-bit test; preserve HL/BC/DE.
- push de
- ld de,0
- or a
- sbc hl,de
- pop de
- ret
-
-async_write_core:
  ld hl,(async_left)
  call async_zero
- jp nz,async_busy
- ld hl,(ix+3)
- call async_zero
- jp z,async_invalid
- ; Like RST18, pointer validity/lifetime is the trusted caller's contract.
- ld a,(async_enabled)
+ jr nz,async_write_busy
+ ld hl,0
  or a
- jr nz,async_publish
- ; Refuse a competing UART owner; leave the baseline RX configuration intact.
- ld a,(_serialFlags)
- and 3
- cp 3
- jp nz,async_busy
- ld hl,(async_vector)
- ld de,_uart0_handler
- or a
- sbc hl,de
- jp nz,async_busy
- in0 a,(UART0_IER)
- and 0xfa                  ; Only baseline receive/line-status IRQs may be set.
- jp nz,async_busy
- in0 a,(UART0_LSR)
- bit 6,a
- jp z,async_busy            ; Do not activate across unfinished ordinary output.
- in0 a,(UART0_IER)
- ld (async_saved_ier),a
- ld a,1
- ld (async_enabled),a
-async_publish:
- ld hl,(ix+6)
+ sbc hl,bc
+ jr z,async_write_invalid
+ pop de
+ pop hl
+ push hl
  ld (async_source),hl
- ld hl,(ix+3)
- ld (async_left),hl
- ld hl,(ix+0)
- ld (async_callback),hl
- ; Publish complete state AND install the vector under the same DI scope.
+ ld (async_left),bc
+ ld (async_callback),de
+ ; Publish complete state and vector before enabling UART transmit IRQs.
  ld hl,uart0_async_isr
  ld (async_vector),hl
- ld a,(async_saved_ier)
- or 0x0a                   ; TX-empty plus CTS-change wakeup.
+ in0 a,(UART0_IER)
+ or 0x0a
  out0 (UART0_IER),a
- jp async_ok
+ pop hl
+ xor a
+ ei
+ ret
+async_write_busy:
+ ld a,1
+ jr async_write_rejected
+async_write_invalid:
+ ld a,2
+async_write_rejected:
+ pop de
+ pop hl
+ ei
+ ret
 
-async_finish_core:
- ld a,(async_enabled)
- or a
- ret z                     ; Inactive: no hardware access or vector changes.
+; Nonblocking, also safe before first submit under the same ownership contract.
+uart0_async_finish:
+ di
+ push hl
+ push de
  ld hl,(async_left)
  call async_zero
- jp nz,async_busy
+ jr nz,async_finish_busy
  in0 a,(UART0_LSR)
  bit 6,a
- jp z,async_busy
- ld a,(async_saved_ier)
+ jr z,async_finish_busy
+ in0 a,(UART0_IER)
+ and 0xf5                 ; Release only our TX-empty/modem enables.
  out0 (UART0_IER),a
  ld hl,_uart0_handler
  ld (async_vector),hl
  xor a
- ld (async_enabled),a
- ld hl,0
- ld (async_callback),hl
+ jr async_finish_return
+async_finish_busy:
+ ld a,1
+async_finish_return:
+ pop de
+ pop hl
+ ei
+ ret
+
+; Full24-bit zero test; DE is scratch and saved by each caller's boundary.
+async_zero:
+ ld de,0
+ or a
+ sbc hl,de
  ret
 
 ; Chain RX to the original MOS ISR, including its ordinary keyboard callback.
@@ -165,7 +125,7 @@ async_fill:
  in0 a,(UART0_LSR)
  bit 5,a
  ret z
- ld a,(async_saved_ier)
+ in0 a,(UART0_IER)
  or 0x0a                   ; Arm CTS wakeup BEFORE sampling its level.
  out0 (UART0_IER),a
  in0 a,(UART0_MSR)
@@ -201,46 +161,24 @@ async_scalar_copy:
  sbc hl,bc
  ld (async_left),hl
  ret nz
- ld a,(async_saved_ier)
+ in0 a,(UART0_IER)
+ and 0xf5
  out0 (UART0_IER),a
  ld hl,(async_callback)
  call async_zero
  ret z
- ; Main registers are saved by the ISR. Protect indexes/shadow banks around
- ; the application callback so an ordinary C flag-posting function is usable.
- push ix
- push iy
- exx
- push bc
- push de
- push hl
- exx
- ex af,af'
- push af
- ex af,af'
+ ; Stock-style callback: preserve indexes/shadows in an app wrapper if touched.
+ ; The ISR retains AF/BC/DE/HL until this callback returns directly to it.
  xor a
- call async_callback_jump
- ex af,af'
- pop af
- ex af,af'
- exx
- pop hl
- pop de
- pop bc
- exx
- pop iy
- pop ix
- ret
-async_callback_jump:
  jp (hl)
 async_cts_blocked:
- ld a,(async_saved_ier)
- or 8                      ; Mask level-triggered TX-empty while CTS is blocked.
+ in0 a,(UART0_IER)
+ and 0xfd                      ; Mask level-triggered TX-empty while CTS is blocked.
  out0 (UART0_IER),a
  in0 a,(UART0_MSR)          ; Do not lose a rising CTS edge during the mask.
  bit 4,a
  ret z
- ld a,(async_saved_ier)
+ in0 a,(UART0_IER)
  or 0x0a
  out0 (UART0_IER),a
  ret                       ; Re-arm next entry, not a DI retry loop.
@@ -249,5 +187,3 @@ async_cts_blocked:
 async_source: .ds 3
 async_left: .ds 3
 async_callback: .ds 3
-async_saved_ier: .ds 1
-async_enabled: .ds 1

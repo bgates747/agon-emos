@@ -5,7 +5,12 @@ MOS's UART interrupt handler sends up to16bytes per refill using OTIRX, checking
 CTS before each block. MOS continues handling incoming VDP/keyboard replies.
 Ordinary RST18 remains synchronous. Nothing activates the new sender at boot.
 
-The detailed [register contract](tasks/TM-001/contract.md) is frozen for RC1.
+The detailed [register contract](tasks/TM-001/contract.md) is frozen for published RC1.
+The working tree now develops the smaller, unpublished [TRIM trial](../experiments/uart0-trim/contract.md).
+Its caller preconditions replace CONTEXT checks, and raw callbacks preserve
+IX/IY/alternate banks themselves or use a fixed-target application wrapper.
+The following RC1 description is historical; use the trial contract and matching
+example when building this branch.
 This is a fork-local experimental ABI, not an upstream MOS syscall assignment.
 Call only on the matching Eirene UART0 firmware, from foreground ADL1/MBASE0
 with interrupts enabled. The example verifies the matching ROM before use.
@@ -30,7 +35,8 @@ conservative source-lifetime check.
 
 The callback runs with interrupts disabled on the UART interrupt stack. It may
 post a flag/counter and return; no MOS calls, output, SD access, waiting, EI or
-further submission there. Registers are saved by MOS. Main work belongs in the
+further submission there. In RC1, registers are saved by MOS; the trial moves extra callback saves into
+the application wrapper as described above. Main work belongs in the
 foreground. No other producer may write UART0 while the transfer owns it:
 finish before printf, RST18, command output, returning or replacing handlers.
 Input-only keyboard hooks may remain installed under the same ISR restrictions.

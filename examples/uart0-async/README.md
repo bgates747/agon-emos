@@ -1,17 +1,19 @@
 # Small C/AgonDev UART0 example
 
-The built RC package contains example.bin and the complete generated source.
-With the matching RC MOS installed, type `example` from its directory. The
-example checks the ROM CRC before using the fork-local42h/43h syscalls, submits
-one static text source, calculates while the interrupt handler sends it, then
-finishes before printing RC1 EXAMPLE PASS and its work count/checksum.
+This working-tree example targets the unpublished TRIM trial. The RC1 tag and
+published package retain their original example and stronger callback contract.
+With the matching trial MOS installed, type `example` from its directory.
+It checks the ROM CRC, submits one source, calculates while MOS sends it, then
+finishes before printing TRIM1 EXAMPLE PASS and a work counter/checksum.
 
-The callback only posts a flag. Arm it before submission; keep source and
-callback storage live. Do not interleave printf/RST18 while the sender owns
-UART0. The tiny global-argument bridge is single-foreground-caller code, not a
-reentrant/ISR-safe library. See ../../docs/uart0-async.md for the full contract.
+The C callback only posts a flag. Its fixed-target assembly gate preserves
+IX/IY and alternate registers outside MOS. A different C callback needs its own
+gate; never replace an active callback through a mutable shared dispatch slot.
+Arm completion state before submission and keep source/callback storage live.
+Finish before printf/RST18 or returning. The argument bridge is private to a
+single foreground caller, not reentrant or ISR-safe.
 
-The release preparation script generates identity.h from the exact MOS image
-and copies the shared ROM checker into the frozen example source. Then build
-with `make AGONDEV_TOOLCHAIN=/absolute/path/to/agondev`. For the repository tree,
-use the reproducible recipe in ../../experiments/uart0-release/README.md.
+[Trial contract](../../experiments/uart0-trim/contract.md) and
+[build recipe](../../experiments/uart0-trim/README.md). The preparation script
+generates identity.h and copies the ROM checker from the matching firmware.
+Build the generated source with AgonDev using the pinned compiler/libraries.

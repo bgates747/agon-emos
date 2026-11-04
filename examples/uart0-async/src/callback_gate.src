@@ -1,0 +1,4 @@
+include "src/callback_gate.inc"
+.global _complete_gate
+.extern _complete
+protect_callback _complete_gate,_complete

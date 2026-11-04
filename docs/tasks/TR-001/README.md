@@ -73,3 +73,10 @@ assumed merely from a smaller module. Leave published RC1 intact.
 Expected deliverable: source-pinned trial and matching RC1/trial fixture package,
 size ledger, qualification evidence and plain bench protocol. New physical runs
 and any release promotion remain subsequent steps, not automatic completion.
+
+Hardware fact checked during implementation: neither the eZ80F92/F93 nor F91
+has a documented UART Auto-CTS enable. MCTL bit5 selects multidrop, not automatic
+flow control. CTS is sampled through MSR; once loaded, FIFO bytes continue
+transmitting even if CTS changes. Retain software CTS checks before each block.
+Primary sources: [F92/F93 PS0153, Table63 p119](https://www.zilog.com/docs/ez80acclaim/ps0153.pdf)
+and [F91 PS019217-1222, Table105 p190](https://www.zilog.com/docs/ez80acclaim/ps0192.pdf).

@@ -1,14 +1,18 @@
-# Eirene MOS — UART0 release candidate
+# Eirene MOS — UART0 development
 
 This fork adds an opt-in asynchronous VDP sender based on Tom Morton's small
 candidate, with interrupt-driven16-byte OTIRX refills. An aware application can
 calculate while MOS transmits its borrowed buffer. Ordinary startup and RST18
 remain upstream Eirene paths; legacy applications retain synchronous output.
 
-**Candidate: Eirene MOS3.1.0 UART0 RC1**, based on upstream3.1.0_beta_1.
+**Published candidate: Eirene MOS3.1.0 UART0 RC1**, based on upstream3.1.0_beta_1.
 This is a candidate in bgates747's fork, not an upstream Eirene release.
 Development and candidate tags stay on `codex/uart0-async`; `main` tracks upstream.
-The exact branded image passed the final stock-VDP Console8 check.
+The exact branded RC1 image passed the final stock-VDP Console8 check.
+The working tree develops a separate, unpublished **TRIM Trial1**, reducing
+sender size and moving extra callback protection into the app. It has different
+caller preconditions; see [TR-001](docs/tasks/TR-001/README.md) and the
+[trial contract](experiments/uart0-trim/contract.md). It is not yet hardware qualified.
 [Download the RC1 prerelease](https://github.com/bgates747/eirene-mos/releases/tag/3.1.0_uart0_rc_1);
 [qualification and artifact pins](docs/tasks/RC-001/publication.md).
 
