@@ -13,13 +13,13 @@ The Author additionally requires a candidate AND test suite matching the other
 MOS configurations: plain app-name invocation, no switches, the same payloads,
 receiver comparator, clocks, calculation kernel, pacing and all three scenarios.
 
-TR-001 [ ] Freeze the plan and RC1/Tom baselines. RC1 source is
+TR-001 [x] Freeze the plan and RC1/Tom baselines. RC1 source is
 47dd56129c0043931bb32f7d329c0392a0b8a809; sender476ROM/11RAM bytes, net480flash.
 Tom's original is158instruction bytes plus9inline variable bytes, with12bytes
 persistent state including3bytes within the code. Do not use source lines as
 size or attribute instruction-level performance to unmeasured behavior.
 
-TR-002 [ ] Implement a smaller MOS path. Preserve syscall inputs and ordinary
+TR-002 [x] Implement a smaller MOS path. Preserve syscall inputs and ordinary
 interrupt AF/BC/DE/HL behavior as stock MOS does; simplify the implementation,
 not that convention. Remove MBASE/IFF and foreign-UART ownership/configuration
 validation: foreground ADL1/MBASE0/EI, normal UART setup and sole ownership
@@ -31,7 +31,7 @@ stock RX chaining, FIFO/CTS checks, bounded CTS deferral/wakeup and drain/restor
 Do not replace CTS deferral with a DI spin without separate Author direction;
 normal RX/timer responsiveness remains part of the sender's purpose.
 
-TR-003 [ ] Move the extra IX/IY/alternate-bank callback protection into a thin
+TR-003 [x] Move the extra IX/IY/alternate-bank callback protection into a thin
 application assembly bridge under a clear stock-style raw-callback contract.
 Keep ISR primary registers protected through the callback. Include the bridge
 in both the C example and new C fixtures; handle a NULL callback without calling
@@ -39,13 +39,13 @@ address0. Account for application bytes and call cost, rather than claiming
 moved code disappeared. No queues, copied output, new callbacks/tickets or
 recovery framework. Explicit caller teardown remains required.
 
-TR-004 [ ] Assemble controlled intermediate variants and the final image on
+TR-004 [x] Assemble controlled intermediate variants and the final image on
 Oryx. Record per-change text/BSS deltas, full image, metadata/compiler hashes,
 source changes and all warning changes. Keep startup/reset/RST18/RX parser
 source unchanged. Build a trial-branded candidate reproducibly; preserve RC1
 and original scalar/control builds. Do not publish or retag as a new RC yet.
 
-TR-005 [ ] Prepare no-argument focused functional tests and matched PERF2 apps
+TR-005 [x] Prepare no-argument focused functional tests and matched PERF2 apps
 for both exact published RC1 and trial MOS. Bulk-only, paced-plus-calculation
 and bulk-plus-calculation each run3rotated repeats with8192payload bytes,
 identical timing core, receiver checks, calibration, checksums and continuing
@@ -55,7 +55,7 @@ Functional trial checks retain boundaries, zero-length/BUSY/NULL, source reuse,
 RX and ordinary-output/finish/re-entry. Context rejection is no longer promised;
 never invoke forbidden masked-context calls merely to test a removed check.
 
-TR-006 [ ] Qualify meaningful changed paths before bench use, using finite
+TR-006 [x] Qualify meaningful changed paths before bench use, using finite
 actual-firmware Flexe checks on Oryx when available under a lease; preserve any
 failure and no model performance claims. The previous emulator waiver concerned
 RC1's branding-only final gate, not this changed implementation. Prepare a
@@ -64,7 +64,7 @@ matching MOSes, plain commands, concise readme and stock restoration files.
 Archive/verify previous card contents before replacement if mounted. Physical
 flashing/execution remain Author actions. No protocol or diagnostic VDP change.
 
-TR-007 [ ] Report assembled savings, moved application code, behavior/precondition
+TR-007 [x] Report assembled savings, moved application code, behavior/precondition
 changes and test coverage without calling an untested trial approved/current.
 Return the concrete fixture and instructions for the physical matched A/B run.
 Hardware timing remains the final performance evidence; no improvement is
@@ -89,3 +89,14 @@ tr001-functional001; no hardware deployment. The shared gate include now selects
 ADL1 explicitly; preparation requires the29-byte gate, and the finite runner
 also stops immediately on a guest panic. MOS instructions did not cause this
 failure and must remain identical in the corrected build.
+
+Agent preparation completed: [size ledger](build.md), [model/deployment record](qualification.md),
+and [plain-command hardware protocol](hardware.md). Firmware source is pinned
+to df2066832ecb6a6a33a817acb8b9f41d609e44cc. The candidate and all matching
+fixtures are deployed; physical measurements remain explicitly pending below.
+
+TR-008 [ ] Analyze the returned stock-VDP Console8 reports from the matched
+stock/RC1/trim series. Verify exact ROM/app identities, byte checks, counters,
+calculation checksums, clocks and completeness before comparing throughput and
+useful work. Preserve failed/extra attempts and prior historical series.
+Any new release promotion requires a separate decision; do not retag RC1.
