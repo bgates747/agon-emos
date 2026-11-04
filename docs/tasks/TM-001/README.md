@@ -201,3 +201,12 @@ while matching stock bulk-plus-work throughput within0.1%. Paced calculation
 is64.06% above stock. This is application overlap, not a measured bulk-speed
 improvement or exclusive CPU-utilization claim. The planned next application
 step remains adapting the existing balls demo to the small Eirene interface.
+
+## Fork release candidate
+
+The Author authorized promotion of minimal Eirene OTIRX to a fork-local RC.
+See [RC-001](../RC-001/README.md) and [prepared artifacts](../RC-001/prepared.md).
+The source and exact branded image are frozen, the prerelease draft/ZIP is
+prepared, and the final no-argument Console8 check is deployed. The Author
+waived branded-image emulation. Publication waits on the physical result;
+main remains upstream and no stable/upstream acceptance is implied.

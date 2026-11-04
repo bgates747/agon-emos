@@ -14,26 +14,27 @@ promotion of Tom's3.1.0_beta_1. Keep commits and the eventual tag on
 codex/uart0-async. main stays at upstream86b694260e3be3b391284ce4aa8ecc758f7f34e9;
 no merge or change of default branch is authorized by promotion.
 
-RC-001 [ ] Freeze the selected implementation and publish the caller contract,
+RC-001 [x] Freeze the selected implementation and publish the caller contract,
 provenance and compatibility limits. Record the exact source commit. Keep
 42h/43h fork-local, one borrowed source, bounded16-byte OTIRX, source-release
 callback and explicit finish; no queue, copied RST18 or new recovery machinery.
 
-RC-002 [ ] Set the agreed candidate branding using existing version fields.
+RC-002 [x] Set the agreed candidate branding using existing version fields.
 Correct the inherited README build/toolchain instructions for Eirene. Keep
 startup/reset/RST18/RX service source unchanged. Document board/VDP and API
 qualification boundaries, installation, normal flash utility and recovery.
 
 RC-003 [ ] Build the exact branded image on Oryx with the pinned AgonDev
 compiler. Verify unchanged sender/startup source and object evidence against
-the physical candidate. Run finite focused functional checks in Flexe when a
-shared slot is available. Stage a no-argument test for manual Console8 cold
+the physical candidate. The Author waived branded-image emulation: the final
+Console8 check suffices. The unused reservation is cancelled; no emulator was
+run. Stage a no-argument test for manual Console8 cold
 boot, ordinary output, async callback/NULL callback, finish and ordinary output
 again. Author confirms the RC banner and runs the same fixture twice to check
 normal return/re-entry. Do not claim physical qualification of new image bytes
 until those reports are returned and checked.
 
-RC-004 [ ] Prepare a self-contained versioned package: exact MOS binary/map and
+RC-004 [x] Prepare a self-contained versioned package: exact MOS binary/map and
 source, build instructions/tool identities, checksums, original C example and
 no-argument regression fixture with sources/binaries, calling contract,
 credits/licenses, installation/recovery instructions and evidence. Archive the
@@ -58,3 +59,13 @@ EMOS fit, other boards and electrical CTS margins are outside that evidence.
 Completion: all five tasks checked with immutable source/artifact pins and a
 published prerelease. Physical flashing/execution on Console8 remain manual
 Author actions; complete all independent build/package work before that step.
+
+Author update2026-11-03: no Oryx emulation is needed for this release step;
+final Console8 qualification suffices. The card is mounted and deployment is
+authorized. The unused reservation is withdrawn; its stopped profiles are
+preparation evidence, not executed checks.
+
+Prepared: [build, draft and verified SD deployment](prepared.md). RC-001,
+RC-002 and RC-004 are complete. RC-003 has reproducible exact artifacts and
+the deployed fixture but awaits the manual C8 result. RC-005 has a staged
+draft/ZIP and awaits that result before publication.

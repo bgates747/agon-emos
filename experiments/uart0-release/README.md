@@ -40,3 +40,12 @@ or performance claim. The focused manual Console8 check remains separate.
 
 No extra sender feature or MOS recovery framework is added for release.
 See ../../docs/tasks/RC-001/README.md for promotion state and exact-image gate.
+
+For RC1 the Author waived branded-image emulator checks in favor of the final
+Console8 check. Build/package without a model claim using:
+
+```sh
+python3 experiments/uart0-release/package.py rc1-003 - rc1-package001 --hardware-only
+```
+
+The prepared stopped profiles were not executed; their reservation was cancelled.
