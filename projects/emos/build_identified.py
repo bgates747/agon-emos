@@ -9,7 +9,7 @@ def main():
  if subprocess.check_output(['git','status','--porcelain'],cwd=root,text=True):raise SystemExit('Refuse identified build from dirty native source')
  identity=json.loads((root/'port/eirene-identity.json').read_text());assert identity['status']=='experimental'
  stamp=datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d-%H-%M-%SZ');build=identity['source_identity']+'-b'+stamp
- assert re.fullmatch(r'agon-emos-eirene-r01-b\d{4}(?:-\d{2}){5}Z',build)
+ assert re.fullmatch(r'agon-emos-eirene-r[0-9]{2,}-b\d{4}(?:-\d{2}){5}Z',build)
  out=a.output.resolve();out.mkdir(exist_ok=False);header=out/'identity.h';header.write_text('/* Generated native EMOS identity; do not edit. */\n'+''.join('#define '+k+' '+json.dumps(v)+'\n' for k,v in [('EMOS_SOURCE_IDENTITY',identity['source_identity']),('EMOS_BUILD_ID',build),('EMOS_ARTIFACT_STATUS',identity['status'])]))
  cmd=['make','-j1','firmware-check','AGONDEV_TOOLCHAIN='+str(a.toolchain.resolve()),'PYTHON='+str(a.python.resolve()),'EMOS_IDENTITY_HEADER='+str(header)]
  (out/'command.json').write_text(json.dumps(cmd,indent=2)+'\n')

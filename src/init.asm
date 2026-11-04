@@ -122,9 +122,6 @@ __init:
 		dec a			; Otherwise set to 0
 	1:	push af 		; Stack AF, will store later as __c_startup clears globals area
 
-		; Initialize the interrupt vector table
-		call __init_default_vectors
-
 		; Set rising edge triggered interrupt for vblank GPIO
 		ld	a, GPIOMODE_INTRE
 		ld	b, 2
@@ -142,6 +139,13 @@ __init:
 		ld bc, ___bss_len - 1
 		ld (hl), 0
 		call ldir_handle_zerolen
+
+        ; EMOS-001: Eirene RC2 (825eaf7) initialized this table BEFORE clearing
+        ; BSS, which includes __2nd_jump_table. Main later rebuilt UART0/VBlank
+        ; but UART1 retained zeros; EMOS correctly refused its non-default slot.
+        ; Initialize defaults after the final BSS write, before any IRQ use.
+        ; Keep this order when incorporating an upstream startup correction.
+        call __init_default_vectors
 
 		pop af			; Pop the hardReset value
 		ld (_hardReset), a	; And store

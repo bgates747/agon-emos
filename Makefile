@@ -10,7 +10,7 @@ include makefile.inc
 
 # EMOS-001 native product wrapper. Keep every imported mandatory linked check.
 PYTHON ?= python3
-FIRMWARE_LINK_CHECKS := verify_uart_baud.py verify_parallel_upload.py verify_keyboard.py verify_console.py
+FIRMWARE_LINK_CHECKS := verify_startup.py verify_uart_baud.py verify_parallel_upload.py verify_keyboard.py verify_console.py
 
 $(BINDIR)/$(NAME).elf: $(OBJS)
 	$(LINKER) $(LINKER_ARG) $(LINKER_EXIT) -Map=$(BINDIR)/$(NAME).elf.map -T $(LINKERCONFIG) -o $@ $(OBJS) $(LINKERLIBFLAGS)

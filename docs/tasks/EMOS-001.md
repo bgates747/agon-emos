@@ -61,3 +61,15 @@ incoming pair, not redesigned in this migration. Its active header dependency
 was initially misclassified as unused during packaging, then restored before
 any identified build or deployment. Parallel payloads and SD fast traffic remain
 unchanged and checksum-free. Do not silently change paired framing in one ROM.
+
+## First hardware installation: startup defect and correction
+
+R01 programs and boots with the exact identity, but KEYINPUT fails busy. One
+Agon reset fails; the prescribed paired recovery is retained separately.
+Root source defect: Eirene initializes its default IRQ table before clearing
+BSS, which contains that table. Main reinstalls selected IRQs, but leaves the
+UART1 default slot zero. EMOS correctly refuses to replace a non-default owner.
+Move default initialization after BSS clearing rather than weaken ownership.
+Add a linked startup ordering/table-bound guard; revisionr02 is a new identified
+experimental build. No P4/native/startup edit. Hardware recovery and complete
+ROM readback remain required; do not claim R01 installation verified/accepted.
