@@ -48,6 +48,7 @@ s=s.replace('Zero-length/masked-context refusal PASS','Zero-length refusal; cont
 functional_info=identity(functional,trim,dict(kind='functional'));make(functional,out/'functional.log');functional_info['app_sha256']=h(functional/'bin/test.bin')
 example=out/'example';shutil.copytree(root/'examples/uart0-async/src',example/'src');shutil.copyfile(root/'examples/uart0-async/Makefile',example/'Makefile');shutil.copyfile(root/'experiments/uart0-release/src/rom_crc.h',example/'src/rom_crc.h')
 example_info=identity(example,trim,dict(kind='example'));make(example,out/'example.log');example_info['app_sha256']=h(example/'bin/example.bin')
+assert sizes(example/'obj/callback_gate.o')['.text']==29, 'Gate must use ADL1 CALL with a 24-bit target'
 # Match all measured C code across official stock, published RC1 and trial.
 # Only export the completion symbol so the fixed-target app wrapper can call it.
 stock=root.parent/'agon-mos/build/uart0-balls/run007/appliance/mos-stock.bin';assert h(stock)=='d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae'

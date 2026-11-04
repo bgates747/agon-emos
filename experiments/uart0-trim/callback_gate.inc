@@ -1,3 +1,5 @@
+.assume adl=1
+.text
 ; Optional app-side wrapper for one known C callback. No mutable dispatch slot.
 ; Instantiate once for each C callback used by the application.
 .macro protect_callback gate,body

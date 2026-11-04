@@ -21,6 +21,7 @@ for row in profiles['profiles']:
     if b'TM001 CLI RETURN' in wire:break
     assert b'TM001 MINIMAL FAIL' not in wire and b'PERF1 FAIL' not in wire and b'PERF2 FAIL' not in wire,'Fixture reports FAIL'
     assert b'Error executing autoexec' not in wire,'MOS command failed'
+    assert b'Guru meditation' not in wire and b'RST $38 panic' not in wire,'Guest panic'
     assert proc.poll() is None,'Frontend exited early'
     assert time.monotonic()-last<45,'No UART progress for45seconds'
     time.sleep(.1)

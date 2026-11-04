@@ -80,3 +80,12 @@ flow control. CTS is sampled through MSR; once loaded, FIFO bytes continue
 transmitting even if CTS changes. Retain software CTS checks before each block.
 Primary sources: [F92/F93 PS0153, Table63 p119](https://www.zilog.com/docs/ez80acclaim/ps0153.pdf)
 and [F91 PS019217-1222, Table105 p190](https://www.zilog.com/docs/ez80acclaim/ps0192.pdf).
+
+First model qualification caught an application-wrapper build error: the
+standalone example gate lacked `.assume adl=1`, encoding CALL with a16-bit target
+(28-byte gate), although the functional app's already-ADL1 bridge worked. The
+example panicked after both regression runs passed. Preserve tr001-001 and
+tr001-functional001; no hardware deployment. The shared gate include now selects
+ADL1 explicitly; preparation requires the29-byte gate, and the finite runner
+also stops immediately on a guest panic. MOS instructions did not cause this
+failure and must remain identical in the corrected build.
