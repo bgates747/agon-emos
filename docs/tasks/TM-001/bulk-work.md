@@ -39,9 +39,12 @@ all three scenarios in one report per fixture. The Author runs all five new
 fixtures; previous physical results remain historical, not a substitute for
 the newly added bulk-plus-work measurements.
 
-BW-005 [ ] Author runs all five new fixtures on Console8. Archive returned
+BW-005 [x] Author runs all five new fixtures on Console8. Archive returned
 reports and analyze all three scenarios across the five images. Do not reuse
 PERF1 work counts for the new cohort.
 
 Implementation, ten functional cells and card deployment are complete; see
 [the ready record](bulk-work-ready.md). Physical PERF2 results remain pending.
+
+All five physical suites and returned-report analysis are complete. See
+[Console8 results](hardware-perf2-r01.md):45trials passed, no missing cases.

@@ -193,3 +193,11 @@ All ten real-firmware Flexe cells passed; the Console8 package was read back
 and verified. New physical execution of all five apps and analysis remain
 BW-005. Old PERF1 hardware results stay historical; no PERF2 hardware speedup
 is claimed before the returned reports are inspected.
+
+All five PERF2 fixtures have now passed on Console8; BW-005 is complete.
+See [the physical results](hardware-perf2-r01.md). Minimal Eirene OTIRX
+retains85.5% of no-traffic foreground calculation rate during flat-out sending
+while matching stock bulk-plus-work throughput within0.1%. Paced calculation
+is64.06% above stock. This is application overlap, not a measured bulk-speed
+improvement or exclusive CPU-utilization claim. The planned next application
+step remains adapting the existing balls demo to the small Eirene interface.

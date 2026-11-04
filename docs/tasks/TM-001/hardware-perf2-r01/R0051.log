@@ -1,0 +1,69 @@
+PERF2 build=01fece108b8b19e0 case=previous-otirx
+CONFIG transport=2 tick_hz=1152000 wall_hz=72000 payload=8192 wire=8448 window=213996 work_steps=1
+MOS bytes=112777 CRC32=6E17923C expected=6E17923C
+CAL ticks=214076 wall=13382 work=2517 state=75D9D8D6
+Comparator negative/positive PASS
+Repeat 1/3: bulk only; 8192 payload / 8448 wire bytes
+DATA rep=1 scenario=0 ticks=95981 wall=6002 call=303 source_observed=95783 fence=334 work=0 credited=0 state=12345678 late=0 missed=0 callbacks=1
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+VERIFY8192 PASS
+Repeat 1/3: paced plus calculation; 8192 payload / 8448 wire bytes
+DATA rep=1 scenario=1 ticks=214164 wall=13388 call=6005 source_observed=210537 fence=318 work=1984 credited=1984 state=48747703 late=106 missed=0 callbacks=32
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+VERIFY8192 PASS
+Repeat 1/3: bulk plus calculation; 8192 payload / 8448 wire bytes
+DATA rep=1 scenario=2 ticks=95572 wall=5976 call=302 source_observed=95432 fence=326 work=819 credited=818 state=DB0D0D52 late=0 missed=0 callbacks=1
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+VERIFY8192 PASS
+Repeat 2/3: paced plus calculation; 8192 payload / 8448 wire bytes
+DATA rep=2 scenario=1 ticks=214142 wall=13386 call=6003 source_observed=210515 fence=326 work=1984 credited=1984 state=48747703 late=108 missed=0 callbacks=32
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+VERIFY8192 PASS
+Repeat 2/3: bulk plus calculation; 8192 payload / 8448 wire bytes
+DATA rep=2 scenario=2 ticks=96465 wall=6032 call=302 source_observed=96205 fence=334 work=830 credited=829 state=AA62651F late=0 missed=0 callbacks=1
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+VERIFY8192 PASS
+Repeat 2/3: bulk only; 8192 payload / 8448 wire bytes
+DATA rep=2 scenario=0 ticks=96069 wall=6007 call=301 source_observed=95871 fence=326 work=0 credited=0 state=12345678 late=0 missed=0 callbacks=1
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+VERIFY8192 PASS
+Repeat 3/3: bulk plus calculation; 8192 payload / 8448 wire bytes
+DATA rep=3 scenario=2 ticks=97519 wall=6098 call=302 source_observed=97379 fence=366 work=843 credited=842 state=BE3E9015 late=0 missed=0 callbacks=1
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+VERIFY8192 PASS
+Repeat 3/3: bulk only; 8192 payload / 8448 wire bytes
+DATA rep=3 scenario=0 ticks=95295 wall=5959 call=302 source_observed=95097 fence=334 work=0 credited=0 state=12345678 late=0 missed=0 callbacks=1
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+VERIFY8192 PASS
+Repeat 3/3: paced plus calculation; 8192 payload / 8448 wire bytes
+DATA rep=3 scenario=1 ticks=214196 wall=13390 call=6002 source_observed=210484 fence=342 work=1983 credited=1983 state=58521628 late=107 missed=0 callbacks=32
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+VERIFY8192 PASS
+PERF2 PASS
