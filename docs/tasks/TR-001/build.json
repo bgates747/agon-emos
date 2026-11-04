@@ -1,0 +1,87 @@
+{
+  "source_commit": "df2066832ecb6a6a33a817acb8b9f41d609e44cc",
+  "published_rc1_source": "47dd56129c0043931bb32f7d329c0392a0b8a809",
+  "trial": {
+    "instructions": 286,
+    "persistent_RAM": 9,
+    "image_bytes": 100958,
+    "ROM_CRC32": "D5CC99AE",
+    "image_sha256": "894ea631d7f2cce7997f1bcfcede07fe988bcf2f2adf1127dcf16d4e654b0316"
+  },
+  "published_rc1": {
+    "instructions": 476,
+    "persistent_RAM": 11,
+    "image_bytes": 101140
+  },
+  "Tom_reference": {
+    "instructions": 158,
+    "inline_variable_bytes": 9,
+    "persistent_state_bytes_including_overlaid_vector": 12
+  },
+  "instruction_saving": 190,
+  "instruction_saving_percent": 39.91596638655462,
+  "whole_image_saving": 182,
+  "app_gate_instruction_bytes": 29,
+  "matched_benchmark_bridge": {
+    "rc1_instruction_bytes": 225,
+    "trial_instruction_bytes": 266,
+    "extra_bytes": 41
+  },
+  "steps": [
+    {
+      "name": "branding",
+      "text": 476,
+      "bss": 11,
+      "image_bytes": 101148,
+      "image_sha256": "8daa284270fd598642d03415712da68b8f5fa8dd66f24a06a93967ca762eeb8e",
+      "module_sha256": "328b54016e68c7b9b6a229666b81398ef3dafadc26358a3037de198a28a99a4d"
+    },
+    {
+      "name": "checks",
+      "text": 402,
+      "bss": 11,
+      "image_bytes": 101074,
+      "image_sha256": "3efa1f664bba9fce032fe35b15b2cc4b1703f479394d057f2ebbbb0a409588f8",
+      "module_sha256": "8d663766eb417cada028a75e94e182f6f917cbf433114aa28b5d80e85fd4968e"
+    },
+    {
+      "name": "wrappers",
+      "text": 315,
+      "bss": 9,
+      "image_bytes": 100987,
+      "image_sha256": "9cf7a04e0cfe5e6fc796908955d157fba4e28b4481ee6d6370ac4543905b0798",
+      "module_sha256": "6101aa1d55240d25f2ec8f9826a181375390af8647f37eacfba6c01c325f4f89"
+    },
+    {
+      "name": "trim",
+      "text": 286,
+      "bss": 9,
+      "image_bytes": 100958,
+      "image_sha256": "894ea631d7f2cce7997f1bcfcede07fe988bcf2f2adf1127dcf16d4e654b0316",
+      "module_sha256": "3f7d25e0a498a91a81ffb68d665d2300cd8a00d26fa463b046fee31cf5a75f82"
+    }
+  ],
+  "clean_rebuild_identical": true,
+  "common_measurement_objects": {
+    "stock": {
+      "main.o": "a312b71cb4898a38db55933b8e117c4729fa13ef72f332a2df2f5b8ecf40dfc0",
+      "platform.o": "537c1637ae826f720be163320c042296a2ebfc01faa37a0a81ea5e784d8a27f2"
+    },
+    "rc1": {
+      "main.o": "a312b71cb4898a38db55933b8e117c4729fa13ef72f332a2df2f5b8ecf40dfc0",
+      "platform.o": "537c1637ae826f720be163320c042296a2ebfc01faa37a0a81ea5e784d8a27f2"
+    },
+    "trim": {
+      "main.o": "a312b71cb4898a38db55933b8e117c4729fa13ef72f332a2df2f5b8ecf40dfc0",
+      "platform.o": "537c1637ae826f720be163320c042296a2ebfc01faa37a0a81ea5e784d8a27f2"
+    }
+  },
+  "warnings": {
+    "baseline": 31,
+    "trial": 31,
+    "identical": true
+  },
+  "source_scope": "Only sender module and version header change MOS source versus released RC1; all other MOS objects except main branding are byte-identical.",
+  "physical": false,
+  "hardware_pending": true
+}

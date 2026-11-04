@@ -17,6 +17,8 @@ app=out/'appliance';app.mkdir();source=out/'source';source.mkdir()
 def snapshot(src,dst):shutil.copytree(src,dst,ignore=shutil.ignore_patterns('bin','obj','build','__pycache__','.git'))
 snapshot(build/'trim',source/'trial-mos')
 snapshot(base/'rc1-003/firmware',source/'published-rc1-mos')
+snapshot(base/'rc1-003/fixture',source/'published-rc1-functional')
+shutil.copyfile(base/'rc1-003/build-info.json',source/'published-rc1-build-info.json')
 for n in ('functional','example'):snapshot(build/n,source/n)
 shutil.copyfile(build/'functional/bin/test.bin',app/'test.bin');shutil.copyfile(build/'functional/checks.bin',app/'checks.bin');shutil.copyfile(build/'example/bin/example.bin',app/'example.bin')
 shutil.copyfile(base/'rc1-003/fixture/bin/test.bin',app/'checkrc.bin')
@@ -87,4 +89,6 @@ for name,cohort in (('functional',functional),('perf',perf)):
 manifest={str(p.relative_to(app)):dict(bytes=p.stat().st_size,sha256=h(p)) for p in sorted(app.rglob('*')) if p.is_file()}
 (app/'SHA256SUMS').write_text(''.join(v['sha256']+'  '+k+'\n' for k,v in manifest.items()))
 (out/'package.json').write_text(json.dumps(dict(source_commit=info['source_commit'],MOS_sha256=h(app/'mos-trim.bin'),MOS_crc32=f'{crc:08X}',private=True,published=False,hardware_pending=True,files=manifest,model_cells=8,model_receiver_bytes=sum(x['receiver_bytes'] for x in functional_results+perf_results)),indent=2)+'\n')
+files=[p for p in sorted(out.rglob('*')) if p.is_file()]
+(out/'SHA256SUMS').write_text(''.join(h(p)+'  '+str(p.relative_to(out))+'\n' for p in files))
 print(out)
