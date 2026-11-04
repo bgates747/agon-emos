@@ -2,7 +2,8 @@
 
 This trial keeps the background sender while cutting its MOS instructions by
 40%. It trusts a documented caller contract and moves extra C callback saves
-into the application. It is unpublished; hardware performance remains pending.
+into the application. It is unpublished; the [matched Console8 comparison](hardware-results.md) now
+confirms preserved performance with the smaller sender.
 Published RC1, its assets/tag and main are unchanged.
 
 | Component | Published RC1 | TRIM Trial1 | Difference |

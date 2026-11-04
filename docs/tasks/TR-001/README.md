@@ -95,8 +95,13 @@ and [plain-command hardware protocol](hardware.md). Firmware source is pinned
 to df2066832ecb6a6a33a817acb8b9f41d609e44cc. The candidate and all matching
 fixtures are deployed; physical measurements remain explicitly pending below.
 
-TR-008 [ ] Analyze the returned stock-VDP Console8 reports from the matched
+TR-008 [x] Analyze the returned stock-VDP Console8 reports from the matched
 stock/RC1/trim series. Verify exact ROM/app identities, byte checks, counters,
 calculation checksums, clocks and completeness before comparing throughput and
 useful work. Preserve failed/extra attempts and prior historical series.
 Any new release promotion requires a separate decision; do not retag RC1.
+
+Returned run complete: [Console8 results R0054–R0059](hardware-results.md).
+All expected logged cases passed, all245760bytes were verified, and report
+number60 is next. The smaller sender preserves measured performance. Release
+promotion remains a separate decision; published RC1 and main are unchanged.

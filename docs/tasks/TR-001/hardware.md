@@ -36,3 +36,6 @@ The trial may stay installed while Console8 is dedicated to UART testing.
 Restore when needed with `flash mos mos-stock.bin` and stock VDP. This trial is
 unpublished; published RC1/main/tag/assets remain unchanged. Hardware stability
 and performance of the new trial remain pending this run.
+
+Run completed: [R0054–R0059 results](hardware-results.md). All expected logged
+cases passed; report60 is next. The procedure above is retained for reference.

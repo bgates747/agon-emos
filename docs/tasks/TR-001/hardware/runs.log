@@ -1,0 +1,39 @@
+PERF1 campaign; earlier UART reports archived in project workspace; first report R0042.
+R0042 START build=1ad95f651c6e017d mode=0
+R0042 PASS build=1ad95f651c6e017d mode=0
+R0043 START build=1ad95f651c6e017d mode=1
+R0043 PASS build=1ad95f651c6e017d mode=1
+R0044 START build=1ad95f651c6e017d mode=2
+R0044 PASS build=1ad95f651c6e017d mode=2
+R0045 START build=2080fb37153fbf9a mode=0
+R0045 PASS build=2080fb37153fbf9a mode=0
+R0046 START build=aa2a7706b769fdd7 mode=2
+R0046 PASS build=aa2a7706b769fdd7 mode=2
+PERF2 campaign: 5 no-argument fixtures, 9 trials each; complete PERF1 package in previous/.
+R0047 START PERF2 build=833c545b96cf71b1 case=official-stock
+R0047 PASS PERF2 build=833c545b96cf71b1 case=official-stock
+R0048 START PERF2 build=990087cdc5a8c011 case=eirene-stock
+R0048 PASS PERF2 build=990087cdc5a8c011 case=eirene-stock
+R0049 START PERF2 build=c4e9e58476662072 case=eirene-scalar
+R0049 PASS PERF2 build=c4e9e58476662072 case=eirene-scalar
+R0050 START PERF2 build=8bf3c708db5cc463 case=eirene-otirx
+R0050 PASS PERF2 build=8bf3c708db5cc463 case=eirene-otirx
+R0051 START PERF2 build=01fece108b8b19e0 case=previous-otirx
+R0051 PASS PERF2 build=01fece108b8b19e0 case=previous-otirx
+RC1 campaign: exact branded image CRC32 3F792F8D; two test runs, first report R0052. Earlier reports archived on Pi and Oryx.
+R0052 START RC1 build=77e90fa738100d1d
+R0052 PASS RC1 build=77e90fa738100d1d
+R0053 START RC1 build=77e90fa738100d1d
+R0053 PASS RC1 build=77e90fa738100d1d
+R0054 START PERF2 build=b95b9be3e2e56644 case=official-stock
+R0054 PASS PERF2 build=b95b9be3e2e56644 case=official-stock
+R0055 START RC1 build=77e90fa738100d1d
+R0055 PASS RC1 build=77e90fa738100d1d
+R0056 START PERF2 build=14f7c04a9c789f79 case=published-rc1
+R0056 PASS PERF2 build=14f7c04a9c789f79 case=published-rc1
+R0057 START TRIM1 build=4e7e57eb5d051cfc
+R0057 PASS TRIM1 build=4e7e57eb5d051cfc
+R0058 START TRIM1 build=4e7e57eb5d051cfc
+R0058 PASS TRIM1 build=4e7e57eb5d051cfc
+R0059 START PERF2 build=c72c04748b34e5b7 case=trim-trial1
+R0059 PASS PERF2 build=c72c04748b34e5b7 case=trim-trial1

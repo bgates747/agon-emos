@@ -12,7 +12,9 @@ The exact branded RC1 image passed the final stock-VDP Console8 check.
 The working tree develops a separate, unpublished **TRIM Trial1**, reducing
 sender size and moving extra callback protection into the app. It has different
 caller preconditions; see [TR-001](docs/tasks/TR-001/README.md) and the
-[trial contract](experiments/uart0-trim/contract.md). It is not yet hardware qualified.
+[trial contract](experiments/uart0-trim/contract.md). It passed the [matched stock-VDP Console8 comparison](docs/tasks/TR-001/hardware-results.md):
+about40% fewer sender instruction bytes, retaining RC1 performance. It remains
+an unpublished trial with different caller preconditions.
 [Download the RC1 prerelease](https://github.com/bgates747/eirene-mos/releases/tag/3.1.0_uart0_rc_1);
 [qualification and artifact pins](docs/tasks/RC-001/publication.md).
 

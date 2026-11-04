@@ -44,3 +44,7 @@ The example prints a result but writes no report. Continue numbering for any
 retry; retain failed/incomplete attempts. Final analysis must match each new
 build/ROM and compare the same stock-VDP trial conditions, keeping the older
 receiver-fixed hardware series distinct.
+
+Subsequent physical run completed: [hardware results](hardware-results.md).
+All six expected logged cases passed; the pending statements above describe
+the deployment state before that returned run.
