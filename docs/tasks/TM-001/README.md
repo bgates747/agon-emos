@@ -183,3 +183,13 @@ Official MOS and unmodified Eirene are essentially equal here. Minimal Eirene
 OTIRX provides64.51% more paced foreground calculation than official stock,
 versus51.15% for the earlier full implementation; none improves bulk rate over
 stock in this matched fixture. No requested cases remain missing. Next report47.
+
+## Five no-argument suites and bulk-work measurement
+
+The next measurement tranche is implemented and deployed: each MOS has its own
+plain command, covering bulk-only, paced-plus-work and bulk-plus-work. See
+[the task](bulk-work.md) and [qualification/deployment](bulk-work-ready.md).
+All ten real-firmware Flexe cells passed; the Console8 package was read back
+and verified. New physical execution of all five apps and analysis remain
+BW-005. Old PERF1 hardware results stay historical; no PERF2 hardware speedup
+is claimed before the returned reports are inspected.

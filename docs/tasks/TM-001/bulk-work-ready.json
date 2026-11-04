@@ -1,0 +1,101 @@
+{
+  "date": "2026-11-03",
+  "source_commit": "79e830af6f7a250a0bbdce83fb856f166a3cd68c",
+  "branch": "codex/uart0-async",
+  "qualified": true,
+  "physical_results_pending": true,
+  "emulator_cells": 10,
+  "receiver_bytes": 737280,
+  "plain_commands_tested": true,
+  "common_core_objects_identical": true,
+  "deployment": {
+    "time_utc": "2026-11-04T00:39:12.301288+00:00",
+    "volume": "AGONC8",
+    "uuid": "8658-1C23",
+    "path": "/test/mos-uart0",
+    "files": 70,
+    "readback_verified": true,
+    "first_report": 47,
+    "previous_package": "previous/",
+    "firmware_flashed": false
+  },
+  "cases": [
+    {
+      "case": "official-stock",
+      "command": "stock",
+      "name": "Official stock MOS 3.0.2",
+      "build": "833c545b96cf71b1",
+      "transport": 0,
+      "app": "stock.bin",
+      "app_sha256": "af93ef6b113a44922e24bc70e2f15a48602e0bcbe5cb73ea465dd8fdc84b5c1e",
+      "source": "stock.json",
+      "firmware": "mos-stock.bin",
+      "MOS_sha256": "d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae"
+    },
+    {
+      "case": "eirene-stock",
+      "command": "eirene",
+      "name": "Unmodified Eirene",
+      "build": "990087cdc5a8c011",
+      "transport": 0,
+      "app": "eirene.bin",
+      "app_sha256": "5dadd187d3dec3c35d819feea68ad8cfac593d2c11433ba26bd48a3cf95d7d67",
+      "source": "eirene.json",
+      "firmware": "mos-eirene.bin",
+      "MOS_sha256": "2110243ec967b16426933f8ffbd411649e51eb47dea780a49f1644e5421e2a64"
+    },
+    {
+      "case": "eirene-scalar",
+      "command": "scalar",
+      "name": "Minimal Eirene scalar async",
+      "build": "c4e9e58476662072",
+      "transport": 1,
+      "app": "scalar.bin",
+      "app_sha256": "d673b4635bf7dfc22fcc84f2260763c74a05de5581d9e9c35620f6fedcfa7c7e",
+      "source": "scalar.json",
+      "firmware": "mos-scalar.bin",
+      "MOS_sha256": "383167c7ae6220472378b366c63c81b9df5e3e63fe5d827233d4c2276c287965"
+    },
+    {
+      "case": "eirene-otirx",
+      "command": "otirx",
+      "name": "Minimal Eirene OTIRX async",
+      "build": "8bf3c708db5cc463",
+      "transport": 1,
+      "app": "otirx.bin",
+      "app_sha256": "450ba19a2c58085fa02efe91bb0c26209c4d865663bfb83cee4d1806321d29fd",
+      "source": "otirx.json",
+      "firmware": "mos-otirx.bin",
+      "MOS_sha256": "7db662439e33badd561cefe26e7a7a643d9f932da1031bce20d60217cd1e03af"
+    },
+    {
+      "case": "previous-otirx",
+      "command": "ours",
+      "name": "Previous full OTIRX borrowed/direct",
+      "build": "01fece108b8b19e0",
+      "transport": 2,
+      "app": "ours.bin",
+      "app_sha256": "2562bf509cac627a191a62a4695569c695617e938ac01b5f5da383e59e54ef2d",
+      "source": "ours.json",
+      "firmware": "mos-ours.bin",
+      "MOS_sha256": "cb1d0f4e066395533a2f07c7454246fa3a1ed46134bf155b883bb8c6e8353128"
+    }
+  ],
+  "evidence": {
+    "build/tm001/perf2-flexe001/analysis.json": "0ff4407004ff6bb74dc3036f84e55836b09d2aa869c650deac4b423957b7fc7d",
+    "build/tm001/perf2-flexe001/results.json": "a22f0746c52175d51101510b7634b28d970f2201c8392c1afd2330ced646327e",
+    "build/tm001/perf2-flexe001/release.json": "49ce38c57a32bdba9cc5df779bce35bdee0b5820b0808e484f713287d974a098",
+    "build/tm001/perf2-deploy001/before.tar.gz": "10e3ef6429c4a1a1ba6153f7c45178990156da4518166b02edd7d66f8945fb4b",
+    "build/tm001/perf2-deploy001/deployment.json": "76700dcd5c6dfea827bcd4640704fb813a30c70b437cb5db4a370cd01e0b9ecd",
+    "build/tm001/perf2-deploy001/prepared.json": "64a7116e7e7646d1147f906e5fee86822ea6cf23b0f3efb142e6609baf753649",
+    "build/tm001/perf2-deploy001/qualification.json": "dc83904ce6ad4461840e9e92b0868dd7455a1319e851e0d960d92e9f471ec0c2",
+    "build/tm001/perf2-summary-check/perf2-comparison.json": "6e70b7c9be05863f1bde6da66634eecb429197a38fbc1636d7315888d7b80122"
+  },
+  "scheduling": {
+    "released_generation": 228,
+    "next_agent_checked_out_generation": 229,
+    "next_agent": "agon-6502",
+    "immediate_chat_sender_available": false,
+    "mailbox_handoff": "2026-11-03_19-38-17_agon-mos_perf2-release228"
+  }
+}
