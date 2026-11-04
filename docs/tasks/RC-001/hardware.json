@@ -1,0 +1,186 @@
+{
+  "analysis": {
+    "passed": true,
+    "physical": true,
+    "board": "Heber Agon Console8",
+    "source_commit": "47dd56129c0043931bb32f7d329c0392a0b8a809",
+    "MOS_sha256": "49873fb817f47cc76f50b8cec1c3d9cde7b252ac2ec844e08e745bdaf1c5eeab",
+    "installed_ROM_prefix_bytes": 101140,
+    "installed_ROM_prefix_crc32": "3F792F8D",
+    "reports": [
+      {
+        "file": "R0052.log",
+        "report_number": 52,
+        "build": "77e90fa738100d1d",
+        "sha256": "cd8647b07004e4ce289de474f2d99b9ba5d95a056bfccdf8ae280d628f49c9df",
+        "passed": true,
+        "receiver_bytes": 8192
+      },
+      {
+        "file": "R0053.log",
+        "report_number": 53,
+        "build": "77e90fa738100d1d",
+        "sha256": "cd8647b07004e4ce289de474f2d99b9ba5d95a056bfccdf8ae280d628f49c9df",
+        "passed": true,
+        "receiver_bytes": 8192
+      }
+    ],
+    "receiver_bytes": 16384,
+    "failed_or_missing_reports": [],
+    "next_report": 54,
+    "operator_report": "Tests done, all appeared to pass; final run followed the agreed stock-VDP protocol",
+    "VDP": {
+      "name": "Stock Bistromathics 2.16.0",
+      "basis": "agreed final-run protocol and Author completion report",
+      "independently_fingerprinted": false,
+      "staged_stock_sha256": "b807beef35823b13a0a056f11b7464cd1b1c6356dce0e4098b78ebe059ded35f"
+    },
+    "cold_boot_banner_and_example": {
+      "basis": "Author overall test-completion report",
+      "independently_logged": false
+    },
+    "emulator_tests": {
+      "run": false,
+      "waived_by_Author": true
+    },
+    "keyboard_hook_installed": true,
+    "keyboard_events_injected": false,
+    "performance_remeasured": false,
+    "receive_recovery_race_retested": false,
+    "card_modified": false,
+    "archive_sha256": "6cb81fabe030447d8aa2a643651658cd43fa4ea0c36fb0f98f2ca52af87b648a"
+  },
+  "receipt": {
+    "archived_utc": "2026-11-04T01:37:55.970239+00:00",
+    "mount": {
+      "target": "/run/media/smith/AGONC8",
+      "source": "/dev/sda1",
+      "fstype": "vfat",
+      "label": "AGONC8",
+      "uuid": "8658-1C23"
+    },
+    "files": {
+      "R0052.log": {
+        "bytes": 641,
+        "sha256": "cd8647b07004e4ce289de474f2d99b9ba5d95a056bfccdf8ae280d628f49c9df"
+      },
+      "R0053.log": {
+        "bytes": 641,
+        "sha256": "cd8647b07004e4ce289de474f2d99b9ba5d95a056bfccdf8ae280d628f49c9df"
+      },
+      "SHA256SUMS": {
+        "bytes": 1680,
+        "sha256": "4b182018786aa8b72be1b9eb5a334b4c9de1e321a1f2ddd739ab8ba6d380724a"
+      },
+      "build-info.json": {
+        "bytes": 7499,
+        "sha256": "abe3d11c52aaceed0f22049bb21393919a3e1bb7fa083f62098b817d7551756d"
+      },
+      "checks.bin": {
+        "bytes": 122880,
+        "sha256": "e1e9fccd360487bb18f6efbc66c944aaa3ba081e7b4676cbb6d95cbd7c89ad34"
+      },
+      "example.bin": {
+        "bytes": 8309,
+        "sha256": "74f940aa5686dfe391ee2a913a8d8d3decd57626c1035cd7b8ec7b456ea637e2"
+      },
+      "licenses/CREDITS.txt": {
+        "bytes": 1400,
+        "sha256": "b8edb70f8f0bbde603f3a5dfb748a970b5c54d3af16dd08d349fed19f0dee1bc"
+      },
+      "licenses/DIAGNOSTIC-VDP-LICENSE.txt": {
+        "bytes": 1069,
+        "sha256": "fae2cacdc47dc5ed8efbd052201834108167942f0b524b8238327e9fbe13fd25"
+      },
+      "licenses/EIRENE-MOS-LICENSE.txt": {
+        "bytes": 1069,
+        "sha256": "fae2cacdc47dc5ed8efbd052201834108167942f0b524b8238327e9fbe13fd25"
+      },
+      "licenses/ESP-IDF-LICENSE": {
+        "bytes": 11358,
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      },
+      "licenses/MOS-LICENSE.txt": {
+        "bytes": 1069,
+        "sha256": "fae2cacdc47dc5ed8efbd052201834108167942f0b524b8238327e9fbe13fd25"
+      },
+      "licenses/RX-FIX-CREDITS.txt": {
+        "bytes": 817,
+        "sha256": "b236bf837922ae619bcb7d124c5fce2b204e3f32c234887641bbd52169ca744d"
+      },
+      "licenses/TEST-LICENSE.txt": {
+        "bytes": 1065,
+        "sha256": "0db98d06c58378ac21408c94149b1b675c44a8ebff8a32cb8fb875c9ed033bf3"
+      },
+      "licenses/VDP-LICENSE.txt": {
+        "bytes": 1069,
+        "sha256": "fae2cacdc47dc5ed8efbd052201834108167942f0b524b8238327e9fbe13fd25"
+      },
+      "mos-rc1.bin": {
+        "bytes": 101140,
+        "sha256": "49873fb817f47cc76f50b8cec1c3d9cde7b252ac2ec844e08e745bdaf1c5eeab"
+      },
+      "mos-rc1.map": {
+        "bytes": 76513,
+        "sha256": "5f315f6aa14e76d468c09bea3a0d461a3323d9ae117866bfb2daf7d9d614e5c6"
+      },
+      "mos-stock.bin": {
+        "bytes": 108490,
+        "sha256": "d564243283972690933a4554296ad6202ca4ef54572279533a942960846bebae"
+      },
+      "next.txt": {
+        "bytes": 4,
+        "sha256": "08680581317723db336f15d21ab3aebd6af9657fe7c9a91681a775fe035283b9"
+      },
+      "readme.txt": {
+        "bytes": 1212,
+        "sha256": "27f7bc14f0e7f6a39fe922f2ab4c1c8b770e503c9833f117540d94c89abc5eda"
+      },
+      "runs.log": {
+        "bytes": 1497,
+        "sha256": "41bfeb3edfb0abaab5207d2c2e058dc6345b3a9e6a7659290f487ef3c19ec480"
+      },
+      "test.bin": {
+        "bytes": 24304,
+        "sha256": "f946fe5151a465fda36564ece33f023d387bb4c121114b775ef0748bfc780547"
+      },
+      "vdp-stock.bin": {
+        "bytes": 1077840,
+        "sha256": "b807beef35823b13a0a056f11b7464cd1b1c6356dce0e4098b78ebe059ded35f"
+      },
+      "vdp-test.bin": {
+        "bytes": 1080608,
+        "sha256": "201ad8ab4af807c261cb92634286b2fbaedcf3879f140e820b60ab54cf707e2a"
+      }
+    },
+    "archive_sha256": "6cb81fabe030447d8aa2a643651658cd43fa4ea0c36fb0f98f2ca52af87b648a",
+    "immutable_deployed_files_unchanged": true,
+    "changed_existing_files": [
+      "next.txt",
+      "runs.log"
+    ],
+    "new_files": [
+      "R0052.log",
+      "R0053.log"
+    ],
+    "card_modified": false
+  },
+  "final_package": {
+    "source_commit": "47dd56129c0043931bb32f7d329c0392a0b8a809",
+    "MOS_sha256": "49873fb817f47cc76f50b8cec1c3d9cde7b252ac2ec844e08e745bdaf1c5eeab",
+    "test_sha256": "f946fe5151a465fda36564ece33f023d387bb4c121114b775ef0748bfc780547",
+    "example_sha256": "74f940aa5686dfe391ee2a913a8d8d3decd57626c1035cd7b8ec7b456ea637e2",
+    "zip_name": "3.1.0_uart0_rc_1.zip",
+    "zip_sha256": "334726c7f2bccb6e002792e73636b93f2668885ddb34649ce106b405e6855318",
+    "zip_bytes": 1212597,
+    "hardware_passed": true,
+    "VDP": "Stock Bistromathics 2.16.0; operator protocol evidence",
+    "reports": [
+      "R0052.log",
+      "R0053.log"
+    ],
+    "receiver_bytes": 16384,
+    "firmware_and_app_sources_unchanged": true,
+    "published": false
+  }
+}

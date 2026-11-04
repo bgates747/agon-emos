@@ -49,3 +49,15 @@ python3 experiments/uart0-release/package.py rc1-003 - rc1-package001 --hardware
 ```
 
 The prepared stopped profiles were not executed; their reservation was cancelled.
+
+Final hardware returned at build/tm001/rc1-hardware001 is verified with:
+
+```sh
+python3 experiments/uart0-release/verify_hardware.py build/tm001/rc1-hardware001 build/tm001/rc1-003
+python3 experiments/uart0-release/finalize.py build/tm001/rc1-package001 build/tm001/rc1-hardware001 build/tm001/rc1-final001
+```
+
+The final agreed Console8 protocol used stock Bistromathics VDP2.16.0,
+superseding the initial staged matched-VDP instructions. R0052/R0053 passed.
+Finalization updates only release documentation/evidence and the ZIP manifest;
+it checks that frozen sources and MOS/app binaries remain unchanged.

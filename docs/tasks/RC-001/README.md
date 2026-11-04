@@ -24,7 +24,7 @@ Correct the inherited README build/toolchain instructions for Eirene. Keep
 startup/reset/RST18/RX service source unchanged. Document board/VDP and API
 qualification boundaries, installation, normal flash utility and recovery.
 
-RC-003 [ ] Build the exact branded image on Oryx with the pinned AgonDev
+RC-003 [x] Build the exact branded image on Oryx with the pinned AgonDev
 compiler. Verify unchanged sender/startup source and object evidence against
 the physical candidate. The Author waived branded-image emulation: the final
 Console8 check suffices. The unused reservation is cancelled; no emulator was
@@ -52,8 +52,8 @@ bytes rather than replacing a published artifact silently.
 The previous physical evidence is
 [TM-001 PERF2](../TM-001/hardware-perf2-r01.md):45trials and368640receiver bytes,
 minimal OTIRX85.5% of no-traffic calculation rate during bulk sending and64.06%
-more paced calculation than stock. Those results describe the existing
-experimental build; the exact branded RC remains to be checked. Real apps,
+more paced calculation than stock. Those measurements describe the pre-branding build. The exact branded RC has
+now passed the focused final stock-VDP Console8 check; see hardware.md. Real apps,
 EMOS fit, other boards and electrical CTS margins are outside that evidence.
 
 Completion: all five tasks checked with immutable source/artifact pins and a
@@ -69,3 +69,8 @@ Prepared: [build, draft and verified SD deployment](prepared.md). RC-001,
 RC-002 and RC-004 are complete. RC-003 has reproducible exact artifacts and
 the deployed fixture but awaits the manual C8 result. RC-005 has a staged
 draft/ZIP and awaits that result before publication.
+
+Final hardware result: [stock-VDP Console8 reports](hardware.md). The Author
+substituted stock Bistromathics2.16.0 for the earlier matched-VDP protocol.
+R0052/R0053 passed and all independent deployment identities match. RC-003 is
+complete; final package/notes contain these results and the stock-VDP scope.

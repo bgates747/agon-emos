@@ -8,7 +8,7 @@ remain upstream Eirene paths; legacy applications retain synchronous output.
 **Candidate: Eirene MOS3.1.0 UART0 RC1**, based on upstream3.1.0_beta_1.
 This is a candidate in bgates747's fork, not an upstream Eirene release.
 Development and candidate tags stay on `codex/uart0-async`; `main` tracks upstream.
-Exact branded-image hardware qualification and publication status:
+The exact branded image passed the final stock-VDP Console8 check; publication status:
 [RC task](docs/tasks/RC-001/README.md).
 
 The pre-branding implementation passed the five-MOS Console8 comparison:
@@ -24,9 +24,11 @@ The async syscall is fork-local; no upstream ABI allocation is implied.
 Only Console8 and the documented Flexe configurations are covered by our
 qualification. EMOS, other boards and real application audio deadlines remain
 separate work. The transport uses ordinary VDP commands; its sender adds no
-VDP protocol extension. Receiver checks/performance used the matched2.16.0 VDP
-with the independently proposed receive-recovery fix; qualification of stock
-VDP under identical stress is not implied. That fix is separate from the sender.
+VDP protocol extension. The exact RC passed two focused regression runs on stock Bistromathics VDP
+2.16.0. Earlier performance benchmarks used the matched receiver-fixed VDP;
+their timings are not stock-VDP measurements. See the
+[final hardware record](docs/tasks/RC-001/hardware.md). The separate receiver
+fix remains independent of this sender.
 
 Part of the official Agon Platform organisation firmware for all Agon computers.
 
