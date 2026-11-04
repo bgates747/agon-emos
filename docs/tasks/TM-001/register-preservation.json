@@ -1,0 +1,10 @@
+{
+  "source_commit": "47dd56129c0043931bb32f7d329c0392a0b8a809",
+  "stock_Eirene": "86b694260e3be3b391284ce4aa8ecc758f7f34e9",
+  "stock_official_project_main": "9fd5aa1",
+  "direct_syscall_push_pop_bytes": 20,
+  "extra_callback_register_save_bytes": 24,
+  "bytes_are_measured": true,
+  "net_savings_measured": false,
+  "firmware_changed": false
+}
