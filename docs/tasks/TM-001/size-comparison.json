@@ -1,0 +1,86 @@
+{
+  "date": "2026-11-03",
+  "measurement": "assembled bytes; no execution",
+  "Tom_original_sha256": "93e5ddad8e72f1b22541c16e15cd0600e820204f02e13a559c2a6f6b423f5bd4",
+  "Tom": {
+    "helper_image_bytes": 167,
+    "instruction_bytes": 158,
+    "inline_reserved_data_bytes": 9,
+    "persistent_writable_state_bytes": 12,
+    "writable_JP_operand_bytes_already_in_instruction_count": 3,
+    "full_demo_image_bytes": 947,
+    "MOS_integrated": false,
+    "OTIRX": false
+  },
+  "RC1": {
+    "instruction_ROM_bytes": 476,
+    "persistent_BSS_bytes": 11,
+    "total_MOS_image_bytes": 101140,
+    "unmodified_Eirene_image_bytes": 100660,
+    "net_ROM_image_growth_bytes": 480,
+    "net_rodata_change_bytes": 4,
+    "syscall_table_size_growth_bytes": 0,
+    "code_growth_vs_Tom_bytes": 318,
+    "code_size_ratio": 3.0126582278481013
+  },
+  "provenance": {
+    "original_sha256": "93e5ddad8e72f1b22541c16e15cd0600e820204f02e13a559c2a6f6b423f5bd4",
+    "original": "docs/tasks/TM-001/reference/async_vdu.asm",
+    "transformations": [
+      "GNU assembler directive/equate spellings",
+      "Global names for ez80asm scoped @labels; numeric directional labels",
+      "Immediate-expression bracket and hex-literal syntax",
+      "Preserve byte-boundary .align 0x40 as GNU .balign 0x40 in full demo only"
+    ],
+    "algorithm_changes": false,
+    "helper_start": "data_pos",
+    "helper_includes": "init/send/ISR/refill/exit, 9 bytes variable storage and saved-vector JP trampoline",
+    "demo_excluded_from_helper": true
+  },
+  "files": {
+    "build/tm001/tom-size001/provenance.json": {
+      "bytes": 644,
+      "sha256": "b6ded96bcd91f7469e38a311b40c5074f8b065f950cb5da4fe81f92fc638e642"
+    },
+    "build/tm001/tom-size001/tom-full-symbols.txt": {
+      "bytes": 607,
+      "sha256": "ba0692f00a67a29efe0f68268462e8f984d2314a37c72964fc82b7cf004a5d5a"
+    },
+    "build/tm001/tom-size001/tom-full.asm": {
+      "bytes": 3190,
+      "sha256": "ce54fbf568d32c09750b224b73f749855dfbf13c775252ebfddd3c9f15f1b98a"
+    },
+    "build/tm001/tom-size001/tom-full.bin": {
+      "bytes": 947,
+      "sha256": "6cb2aa8adb87d05c2e939c330eb3eac55e01a2bdb11372de779c5b9e9f3fb6f6"
+    },
+    "build/tm001/tom-size001/tom-full.map": {
+      "bytes": 6295,
+      "sha256": "e5eeada13faa37a460cafef7b1341d83429c291dd6a485b6f13ebb53aa408196"
+    },
+    "build/tm001/tom-size001/tom-full.o": {
+      "bytes": 2500,
+      "sha256": "b36ad3346fa81438306b80b94fcd2c5eb80b1ce622a2ba0bc9e50c775cc42286"
+    },
+    "build/tm001/tom-size001/tom-helper-disassembly.txt": {
+      "bytes": 3340,
+      "sha256": "4e4e7462eade069fdd1e2984bab972fb55c566702635e37fc1af2faab7352f31"
+    },
+    "build/tm001/tom-size001/tom-helper.asm": {
+      "bytes": 1923,
+      "sha256": "0fa11d3c88794cf13799ca106113d60116c0e7aeb2424ea11b45a7e346c7d69f"
+    },
+    "build/tm001/tom-size001/tom-helper.bin": {
+      "bytes": 167,
+      "sha256": "b331f6588fe77e9112cde7e71120ff362c74393d1b1bf32e1cee7b382d700d00"
+    },
+    "build/tm001/tom-size001/tom-helper.map": {
+      "bytes": 6541,
+      "sha256": "727c2915a4f06ce9f23770a6b7a82f0a0cc60d555d79508d9dd7609649ac03b0"
+    },
+    "build/tm001/tom-size001/tom-helper.o": {
+      "bytes": 1388,
+      "sha256": "45b1fee668f33fd9146f373cf09b40c72d0a07732cfd06d52eae68c1658fb439"
+    }
+  }
+}
