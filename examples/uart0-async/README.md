@@ -1,10 +1,10 @@
 # Small C/AgonDev UART0 example
 
-This working-tree example targets the unpublished TRIM trial. The RC1 tag and
+This working-tree example targets the RC2. The RC1 tag and
 published package retain their original example and stronger callback contract.
-With the matching trial MOS installed, type `example` from its directory.
+With the matching RC2 MOS installed, type `example` from its directory.
 It checks the ROM CRC, submits one source, calculates while MOS sends it, then
-finishes before printing TRIM1 EXAMPLE PASS and a work counter/checksum.
+finishes before printing RC2 EXAMPLE PASS and a work counter/checksum.
 
 The C callback only posts a flag. Its fixed-target assembly gate preserves
 IX/IY and alternate registers outside MOS. A different C callback needs its own

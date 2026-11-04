@@ -5,18 +5,22 @@ candidate, with interrupt-driven16-byte OTIRX refills. An aware application can
 calculate while MOS transmits its borrowed buffer. Ordinary startup and RST18
 remain upstream Eirene paths; legacy applications retain synchronous output.
 
-**Published candidate: Eirene MOS3.1.0 UART0 RC1**, based on upstream3.1.0_beta_1.
-This is a candidate in bgates747's fork, not an upstream Eirene release.
-Development and candidate tags stay on `codex/uart0-async`; `main` tracks upstream.
-The exact branded RC1 image passed the final stock-VDP Console8 check.
-The working tree develops a separate, unpublished **TRIM Trial1**, reducing
-sender size and moving extra callback protection into the app. It has different
-caller preconditions; see [TR-001](docs/tasks/TR-001/README.md) and the
-[trial contract](experiments/uart0-trim/contract.md). It passed the [matched stock-VDP Console8 comparison](docs/tasks/TR-001/hardware-results.md):
-about40% fewer sender instruction bytes, retaining RC1 performance. It remains
-an unpublished trial with different caller preconditions.
-[Download the RC1 prerelease](https://github.com/bgates747/eirene-mos/releases/tag/3.1.0_uart0_rc_1);
-[qualification and artifact pins](docs/tasks/RC-001/publication.md).
+**Candidate: Eirene MOS3.1.0 UART0 RC2**, the smaller implementation based on
+upstream3.1.0_beta_1. RC1 remains the verified, more guarded alternative; its
+tag, binaries and evidence are preserved. RC2 trusts documented caller context
+and moves extra C callback register saves into an app-side gate.
+[RC2 prerelease](https://github.com/bgates747/eirene-mos/releases/tag/3.1.0_uart0_rc_2);
+[RC1 prerelease](https://github.com/bgates747/eirene-mos/releases/tag/3.1.0_uart0_rc_1).
+Both remain on codex/uart0-async; main tracks upstream.
+
+The trimmed implementation passed the matched Console8 stock-VDP comparison:
+[results](docs/tasks/TR-001/hardware-results.md). It retains about86% of the
+no-traffic foreground calculation rate while sending flat out and completes
+64.6% more work than official stock MOS during paced sending. Its sender has
+286 instruction bytes versus RC1's476; the C gate costs29 app bytes. Bulk speed
+is essentially unchanged. These are calculation-capacity measurements, not
+exclusive CPU profiling. RC2 branding is the only MOS change after that run;
+its sender and other checked objects are identical to the qualified image.
 
 The pre-branding implementation passed the five-MOS Console8 comparison:
 [physical results](docs/tasks/TM-001/hardware-perf2-r01.md). It kept85.5% of the
