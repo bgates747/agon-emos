@@ -3,11 +3,12 @@ from pathlib import Path
 import argparse,hashlib,json,statistics
 from metrics import read_report
 parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('directory',type=Path);parser.add_argument('--kind',choices=('hardware','emulator'),default='emulator');parser.add_argument('--allow-incomplete',action='store_true');args=parser.parse_args()
-root=args.directory;registry=json.loads((root/'cases.json').read_text());cases=registry['cases'];groups={c['case']:[] for c in cases};runs=[];failed=[];historical=[]
+root=args.directory;registry=json.loads((root/'cases.json').read_text());cases=registry['cases'];groups={c['case']:[] for c in cases};runs=[];failed=[];historical=[];other=[]
 h=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
 for path in sorted(root.glob('R[0-9][0-9][0-9][0-9].log')):
  s=path.read_text()
- if 'PERF2 build=' not in s:historical.append(path.name);continue
+ if 'PERF2 build=' not in s:
+  (historical if 'PERF1 build=' in s else other).append(path.name);continue
  if 'PERF2 FAIL' in s or 'PERF2 PASS' not in s:
   failed.append(dict(file=path.name,sha256=h(path),reason='Failed or incomplete PERF2 attempt; retained for inspection'));continue
  d=read_report(s);matches=[c for c in cases if c['case']==d['case'] and c['build']==d['build']];assert len(matches)==1,(path,'Unknown PERF2 build/case')
@@ -31,5 +32,5 @@ for r in rows:
   s=scenario['scenario'];scenario['wire_gain_over_stock_percent']=100*(scenario['wire_Bps']/reference['scenarios'][s]['wire_Bps']-1) if reference else None
   baseline=reference['scenarios'][s]['credited_work_per_second'] if reference else 0
   scenario['work_gain_over_stock_percent']=100*(scenario['credited_work_per_second']/baseline-1) if baseline else None
-result=dict(kind=args.kind,report_version=2,work_steps=1,complete=not missing,missing_cases=missing,failed_attempts=failed,historical_PERF1_reports=historical,reference=registry['reference'],runs=runs,rows=rows,bulk_work_count_is_conservative_lower_bound=True)
+result=dict(kind=args.kind,report_version=2,work_steps=1,complete=not missing,missing_cases=missing,failed_attempts=failed,historical_PERF1_reports=historical,other_reports=other,reference=registry['reference'],runs=runs,rows=rows,bulk_work_count_is_conservative_lower_bound=True)
 (root/'perf2-comparison.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
