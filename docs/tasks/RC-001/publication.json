@@ -1,0 +1,56 @@
+{
+  "client_date": "2026-11-03",
+  "release_url": "https://github.com/bgates747/eirene-mos/releases/tag/3.1.0_uart0_rc_1",
+  "published_at_utc": "2026-11-04T01:43:16Z",
+  "tag": "3.1.0_uart0_rc_1",
+  "source_commit": "47dd56129c0043931bb32f7d329c0392a0b8a809",
+  "prerelease": true,
+  "stable": false,
+  "main_unchanged": true,
+  "refs": {
+    "refs/heads/main": "86b694260e3be3b391284ce4aa8ecc758f7f34e9",
+    "refs/tags/3.1.0_uart0_rc_1": "47dd56129c0043931bb32f7d329c0392a0b8a809"
+  },
+  "package": {
+    "source_commit": "47dd56129c0043931bb32f7d329c0392a0b8a809",
+    "MOS_sha256": "49873fb817f47cc76f50b8cec1c3d9cde7b252ac2ec844e08e745bdaf1c5eeab",
+    "test_sha256": "f946fe5151a465fda36564ece33f023d387bb4c121114b775ef0748bfc780547",
+    "example_sha256": "74f940aa5686dfe391ee2a913a8d8d3decd57626c1035cd7b8ec7b456ea637e2",
+    "zip_name": "3.1.0_uart0_rc_1.zip",
+    "zip_sha256": "334726c7f2bccb6e002792e73636b93f2668885ddb34649ce106b405e6855318",
+    "zip_bytes": 1212597,
+    "hardware_passed": true,
+    "VDP": "Stock Bistromathics 2.16.0; operator protocol evidence",
+    "reports": [
+      "R0052.log",
+      "R0053.log"
+    ],
+    "receiver_bytes": 16384,
+    "firmware_and_app_sources_unchanged": true,
+    "published": true,
+    "release_url": "https://github.com/bgates747/eirene-mos/releases/tag/3.1.0_uart0_rc_1",
+    "published_at_utc": "2026-11-04T01:43:16Z"
+  },
+  "assets": [
+    {
+      "name": "3.1.0_uart0_rc_1.zip",
+      "bytes": 1212597,
+      "digest": "sha256:334726c7f2bccb6e002792e73636b93f2668885ddb34649ce106b405e6855318",
+      "download_url": "https://github.com/bgates747/eirene-mos/releases/download/3.1.0_uart0_rc_1/3.1.0_uart0_rc_1.zip"
+    },
+    {
+      "name": "3.1.0_uart0_rc_1.zip.sha256",
+      "bytes": 87,
+      "digest": "sha256:223c95a388832eba68c36d49d1c0eaa89eb8e320ac2ce4048d263ab648b61f4f",
+      "download_url": "https://github.com/bgates747/eirene-mos/releases/download/3.1.0_uart0_rc_1/3.1.0_uart0_rc_1.zip.sha256"
+    }
+  ],
+  "hardware_reports": [
+    "R0052.log",
+    "R0053.log"
+  ],
+  "receiver_bytes": 16384,
+  "VDP": "Stock Bistromathics 2.16.0 under agreed operator protocol",
+  "emulator_run": false,
+  "card_modified": false
+}

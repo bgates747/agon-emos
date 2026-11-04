@@ -1,5 +1,8 @@
 # RC1 prepared and deployed — 2026-11-03
 
+Historical preparation record. Current status: [published RC1](publication.md).
+The final run used stock VDP; see [returned hardware evidence](hardware.md).
+
 The selected minimal OTIRX implementation is frozen, branded and packaged as
 Eirene MOS3.1.0 UART0 RC1. It remains on codex/uart0-async; main is unchanged.
 The [GitHub prerelease draft](https://github.com/bgates747/eirene-mos/releases/tag/untagged-b2b61fb060995849c351)

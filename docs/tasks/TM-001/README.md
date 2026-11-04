@@ -210,3 +210,7 @@ The source and exact branded image are frozen, the prerelease draft/ZIP is
 prepared, and the final no-argument Console8 check is deployed. The Author
 waived branded-image emulation. Publication waits on the physical result;
 main remains upstream and no stable/upstream acceptance is implied.
+
+The final RC1 Console8 check on stock Bistromathics VDP2.16.0 passed
+R0052/R0053. [RC1 is published as a fork prerelease](../RC-001/publication.md)
+from frozen source47dd561; main is unchanged. RC promotion is complete.

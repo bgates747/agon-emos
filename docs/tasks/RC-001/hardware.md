@@ -48,3 +48,5 @@ the draft's pending status. Its firmware and every frozen MOS/generated-app
 source and binary remain byte-for-byte unchanged from the qualified package.
 Final ZIP and checksum are at build/tm001/rc1-final001/ on Pi and Oryx.
 RC-003 is complete. RC-005 publication is now authorized by its existing task.
+
+[RC-005 publication is now complete](publication.md).

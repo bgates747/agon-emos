@@ -1,12 +1,14 @@
 # RC-001: Eirene MOS 3.1.0 UART0 RC1
 
+**Status: complete; [published prerelease and pins](publication.md).**
+
 Author authorized preparation on2026-11-03 after the complete five-MOS physical
 comparison. Promote the small Tom-derived OTIRX implementation, not the larger
 historical sender. Applications explicitly opt in through the new syscall;
 ordinary startup and synchronous RST18 stay unchanged. Retain Eirene's existing
 AgonDev toolchain. Do not modify the old official-MOS ZDS II project.
 
-Release title: Eirene MOS 3.1.0 UART0 RC1. Proposed tag:3.1.0_uart0_rc_1.
+Release title: Eirene MOS 3.1.0 UART0 RC1. Tag:3.1.0_uart0_rc_1.
 Banner: Eirene UART0 MOS Version 3.1.0 RC 1.
 Retain upstream major/minor/patch3.1.0; change its existing candidate type to RC
 and candidate number to1. This is our fork's UART0 candidate, not an upstream
@@ -42,7 +44,7 @@ returned old appliance before any SD replacement, retain sequential numbering
 and use /test/mos-uart0 with concise readme.txt. Preserve history in project
 archives rather than accumulating active SD variants.
 
-RC-005 [ ] After the exact-image hardware check passes, publish a GitHub
+RC-005 [x] After the exact-image hardware check passes, publish a GitHub
 prerelease in bgates747/eirene-mos from the frozen branch commit, with tag
 3.1.0_uart0_rc_1 and pinned assets. A draft may be staged in advance. Do not
 mark latest/stable, merge main or claim upstream acceptance. If the new image
@@ -65,12 +67,8 @@ final Console8 qualification suffices. The card is mounted and deployment is
 authorized. The unused reservation is withdrawn; its stopped profiles are
 preparation evidence, not executed checks.
 
-Prepared: [build, draft and verified SD deployment](prepared.md). RC-001,
-RC-002 and RC-004 are complete. RC-003 has reproducible exact artifacts and
-the deployed fixture but awaits the manual C8 result. RC-005 has a staged
-draft/ZIP and awaits that result before publication.
-
-Final hardware result: [stock-VDP Console8 reports](hardware.md). The Author
-substituted stock Bistromathics2.16.0 for the earlier matched-VDP protocol.
-R0052/R0053 passed and all independent deployment identities match. RC-003 is
-complete; final package/notes contain these results and the stock-VDP scope.
+Historical preparation: [build, draft and verified SD deployment](prepared.md).
+The final protocol used stock Bistromathics2.16.0, superseding the earlier
+matched-VDP instruction. [R0052/R0053 passed](hardware.md). The exact RC and
+finalized source/test ZIP are [published as a prerelease](publication.md);
+all RC tasks are complete. main remains unchanged.

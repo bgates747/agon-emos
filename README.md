@@ -8,8 +8,9 @@ remain upstream Eirene paths; legacy applications retain synchronous output.
 **Candidate: Eirene MOS3.1.0 UART0 RC1**, based on upstream3.1.0_beta_1.
 This is a candidate in bgates747's fork, not an upstream Eirene release.
 Development and candidate tags stay on `codex/uart0-async`; `main` tracks upstream.
-The exact branded image passed the final stock-VDP Console8 check; publication status:
-[RC task](docs/tasks/RC-001/README.md).
+The exact branded image passed the final stock-VDP Console8 check.
+[Download the RC1 prerelease](https://github.com/bgates747/eirene-mos/releases/tag/3.1.0_uart0_rc_1);
+[qualification and artifact pins](docs/tasks/RC-001/publication.md).
 
 The pre-branding implementation passed the five-MOS Console8 comparison:
 [physical results](docs/tasks/TM-001/hardware-perf2-r01.md). It kept85.5% of the
