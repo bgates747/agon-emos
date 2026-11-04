@@ -1,0 +1,17 @@
+TM001 build=4e7e57eb5d051cfc
+MODE async
+TRIM1 MOS bytes=100958 CRC32=D5CC99AE expected=D5CC99AE
+Ordinary RST18 before opt-in PASS
+Comparator negative/positive PASS
+Zero-length refusal; context is a caller precondition PASS
+Boundary lengths1/15/16/17/255/256/257/1024 and NULL callback PASS
+Transfer: GP prefix plus8192payloadbytes; checking concurrent RX
+Single source/BUSY/callback/input-hook/RX-during-TX PASS
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+Receiver verification quarter complete
+VERIFY8192 PASS
+Ordinary RST18 after finish PASS
+TM001 MINIMAL PASS
+TRIM1 PASS
