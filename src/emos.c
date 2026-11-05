@@ -18,6 +18,9 @@
 #if defined(EMOS_CONTROLLER_INPUT)
 #include "emos_controller.h"
 #include "emos_net.h"
+#ifdef EMOS_NETWORK_PARALLEL
+#include "emos_netp.h"
+#endif
 #endif
 #if defined(EMOS_EXEXT_STREAM)
 #include "emos_exext.h"
@@ -218,10 +221,20 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
     if (mosletRequest && (strcmp(namespaceName,"ext") || strcmp(providerName,"sdlink")))
         return EMOS_UNSAFE_CALLER;
     if (strcmp(namespaceName,"ext") == 0) {
+#ifdef EMOS_NETWORK_PARALLEL
+        if(!strcmp(providerName,"netp")){
+            if(emosBusy)return EMOS_BUSY;
+            emosBusy=TRUE;result=emos_netp_gateway(request);emosBusy=FALSE;return result;
+        }
+#endif
 #if defined(EMOS_CONTROLLER_INPUT)
         if(!strcmp(providerName,"net")){
+#ifdef EMOS_NETWORK_PARALLEL
+            return EMOS_UNAVAILABLE; /* Explicit parallel profile, no UART fallback. */
+#else
             if(emosBusy)return EMOS_BUSY;
             emosBusy=TRUE;result=emos_net_gateway(request);emosBusy=FALSE;return result;
+#endif
         }
         if(!strcmp(providerName,"controller")){
             if(emosBusy)return EMOS_BUSY;
@@ -258,7 +271,9 @@ BYTE emos_application_enter(UINT8 *image, UINT24 address) {
     emos_uartdiag_reset();
 #if defined(EMOS_CONTROLLER_INPUT)
     emos_controller_reset();
+#if !defined(EMOS_NETWORK_PARALLEL)
     emos_net_reset();
+#endif
 #endif
     emos_sdlink_reset();
 #ifdef EMOS_BENCH_TELEMETRY
@@ -286,7 +301,9 @@ void emos_application_leave(BYTE previousPolicy) {
     emos_uartdiag_reset();
 #if defined(EMOS_CONTROLLER_INPUT)
     emos_controller_reset();
+#if !defined(EMOS_NETWORK_PARALLEL)
     emos_net_reset();
+#endif
 #endif
     emos_sdlink_reset();
 #ifdef EMOS_BENCH_TELEMETRY
@@ -411,6 +428,9 @@ int emos_request_mode(BYTE mode) {
 	if (mode > EMOS_MODE_EXCLUSIVE_EXTENDED) return FR_INVALID_PARAMETER;
     /* EMOS-001: no route mutation until explicit async finish restores owner. */
     if (emos_uart0_async_owned()) return EMOS_BUSY;
+#ifdef EMOS_NETWORK_PARALLEL
+    if (emos_netp_owned()) return EMOS_BUSY;
+#endif
 	/* INTEG-011: an application may explicitly retain the two displays at a
      * complete VDU boundary. Default/mixed-mode transitions remain CLI-only. */
     if (emosBusy || (emosPolicy != EMOS_POLICY_CORE && (!emos_console_keep ||

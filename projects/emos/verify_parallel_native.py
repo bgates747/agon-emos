@@ -17,9 +17,9 @@ from verify_parallel import (
     verify_linked, verify_source,
 )
 
-def verify_native(source, elf, nm, objdump, *, qualification=False, stream=False):
+def verify_native(source, elf, nm, objdump, *, qualification=False, stream=False, network=False):
     verify_source(source)
-    verify_linked(elf, nm, objdump, allow_native_payload=True, allow_exext_stream=stream)
+    verify_linked(elf, nm, objdump, allow_native_payload=True, allow_exext_stream=stream, allow_upload_payload=network)
     symbols = linked_symbols(nm, elf)
     addresses = require_global_text_symbols(symbols, (
         "_emos_parallel_native_payload", "_emos_parallel_native_bytes",
@@ -31,7 +31,7 @@ def verify_native(source, elf, nm, objdump, *, qualification=False, stream=False
     raw = disassemble_global_extent(objdump, elf, "_emos_parallel_native_bytes")
     coordinator = disassemble_global_extent(objdump, elf, "_emos_parallel_native_coordinate")
     count = direct_transfer_count(whole, addresses["_emos_parallel_native_coordinate"])
-    if count != (1 if qualification or stream else 0):
+    if count != (1 if qualification or stream or network else 0):
         raise ParallelError("private coordinator acquired an unreviewed activation caller")
     if qualification:
         q = require_global_text_symbols(symbols, ("_emos_parallel_probe", "_emos_uartdiag_gateway"))
@@ -41,6 +41,17 @@ def verify_native(source, elf, nm, objdump, *, qualification=False, stream=False
             direct_transfer_count(whole,q["_emos_parallel_probe"]) != 1 or
             direct_transfer_count(gateway,q["_emos_parallel_probe"]) != 1):
             raise ParallelError("qualification activation escaped its sole MOSlet gateway owner")
+    elif network:
+        # NETP is the sole new admission caller; neither a probe nor the old
+        # UART NM service may be linked into this explicit composition.
+        require_global_text_symbols(symbols, ("_emos_netp_gateway", "_emos_netp_link_open",
+            "_emos_netp_link_submit", "_emos_netp_link_take", "_emos_netp_link_release",
+            "_emos_parallel_advance"))
+        if any(name in symbols for name in ("_emos_net_gateway", "_emos_net_packet", "_emos_parallel_probe", "_emos_parallel_block_offer")):
+            raise ParallelError("netp composition retained an alternate activation/carrier")
+        binding = disassemble_global_extent(objdump, elf, "_transfer")
+        if direct_transfer_count(binding, addresses["_emos_parallel_native_coordinate"]) != 1:
+            raise ParallelError("netp coordinator escaped its sole admitted binding")
     elif "_emos_parallel_probe" in symbols:
         raise ParallelError("unactivated native profile links qualification service")
     native_address = addresses["_emos_parallel_native_payload"]

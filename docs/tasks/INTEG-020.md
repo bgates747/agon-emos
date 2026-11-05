@@ -7,7 +7,7 @@ direct ABI delegation on2026-11-05. No installation or emulator changes selected
 
 ## Scope and work
 
-I20-001 Publish this owner plan before source edits. [ ]
+I20-001 Publish this owner plan before source edits. [x]
 
 I20-002 Add an optional ext.netp gateway with full caller-span validation,
   no retained app pointer/callback, boot-local nonwrapping session, one pending
@@ -35,3 +35,16 @@ committed Legacy/onboard route, admission and bounded physical lifetime only.
 No queue, checksum, game logic, renderer or automatic replay. IRQ-off and UART0
 CTS coexistence require measurement. Old ExExt-only admission is not permission
 for a Legacy service. Pending physical bindings are explicit, not claimed ready.
+
+
+## Source checkpoint
+
+The optional gateway and NP metadata binding are implemented; native C SDK223B
+application state and real-gateway sanitizer checks pass. Physical entry/return
+reuses the SD-upload sequencer;108 paired donor coordinator cases and15 upload
+pair cases pass with modeled byte I/O. The exact physical loop and register guards
+remain, with no new callback or checksum. One token replaces duplicate resident
+copies, including ownership retained on a post-admission fault. The uninstalled
+raw native image is131002B/70free; full profile guards, identified image and RFC25
+splice remain pending. Stored initialized-RAM bytes are now included in the
+linker’s physical-ROM bound. No target operation or firmware adoption occurred.

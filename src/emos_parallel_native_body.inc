@@ -1,3 +1,5 @@
+; INTEG-020: activate the retained byte loop in the native Eirene build.
+; Dialect-only refresh: INCLUDE/segments/IF/hex; instruction/ownership logic unchanged.
 ;
 ; PORT-008 F02c3 private raw bytes, called only by the guarded C binding.
 ; EMOS clocks BOTH directions. TX: data then falling sample, rising recovery.
@@ -18,13 +20,13 @@
 ; Both directions remain CPU-clocked; this is not autonomous/async payload TX.
 ; READY is an abort LEVEL check, not a per-byte receiver acknowledgement.
 ;
-            INCLUDE "equs.inc"
+            .include "equs.inc"
             .ASSUME ADL = 1
-            DEFINE .STARTUP, SPACE = ROM
-            SEGMENT .STARTUP
-            IF EMOS_STREAM_TIMING_IO
+            ; native .text below replaces the former ZDS ROM segment
+            .text
+            .if EMOS_STREAM_TIMING_IO
             XREF _emos_stream_timing_last_raw
-            ENDIF
+            .endif
             XDEF _emos_parallel_native_bytes
 _emos_parallel_native_bytes:
             PUSH IY
@@ -46,16 +48,16 @@ _emos_parallel_native_bytes:
             ; DE remains the admitted length and all caller registers restore.
             LD B, 16
 native_start_clocks:
-            LD C, 090h
+            LD C, 0x90
             CALL native_pulse
             DJNZ native_start_clocks
             XOR A, A
             OUT0 (PC_DDR), A
-            LD C, 030h
+            LD C, 0x30
             CALL native_control
             ; Guarded length is 1..4096. First B=0 means a full 256-byte
             ; page; otherwise count that partial page before the full pages.
-            LD C, 010h
+            LD C, 0x10
             LD B, E
             LD A, E
             OR A, A
@@ -74,10 +76,10 @@ native_send:
             ; EI admits interrupts again between bytes; no epoch-cached latch.
             DI
             IN0 A, (PD_DR)
-            AND 04Fh
+            AND 0x4f
             OR A, C
             OUT0 (PD_DR), A
-            OR A, 020h
+            OR A, 0x20
             OUT0 (PD_DR), A
             EI
             INC HL
@@ -92,30 +94,30 @@ native_send_masked:
             LD A, (HL)
             OUT0 (PC_DR), A
             IN0 A, (PD_DR)
-            AND 04Fh
+            AND 0x4f
             OR A, C
             OUT0 (PD_DR), A
-            OR A, 020h
+            OR A, 0x20
             OUT0 (PD_DR), A
             INC HL
             DJNZ native_send_masked
             DEC D
             JR NZ, native_send_masked
 native_send_done:
-            IF EMOS_STREAM_TIMING_IO
+            .if EMOS_STREAM_TIMING_IO
             ; Timing profile only: final forward payload edge has passed.
             ; Low read latches high. Never probe each byte, and never replace
             ; this value with a reverse reply or the inactive EOF tail.
-            IN0 A, (084h)
+            IN0 A, (0x84)
             LD (_emos_stream_timing_last_raw), A
-            IN0 A, (085h)
+            IN0 A, (0x85)
             LD (_emos_stream_timing_last_raw+1), A
-            ENDIF
+            .endif
             JP native_success
 native_receive_start:
-            LD C, 030h
+            LD C, 0x30
             CALL native_control
-            LD C, 010h
+            LD C, 0x10
             LD B, E
             LD A, E
             OR A, A
@@ -130,10 +132,10 @@ native_receive:
             JP NZ, native_fault
             DI
             IN0 A, (PD_DR)
-            AND 04Fh
+            AND 0x4f
             OR A, C
             OUT0 (PD_DR), A
-            OR A, 020h
+            OR A, 0x20
             OUT0 (PD_DR), A
             EI
             IN0 A, (PC_DR)
@@ -148,10 +150,10 @@ native_receive_masked:
             BIT 4, A
             JP NZ, native_fault
             IN0 A, (PD_DR)
-            AND 04Fh
+            AND 0x4f
             OR A, C
             OUT0 (PD_DR), A
-            OR A, 020h
+            OR A, 0x20
             OUT0 (PD_DR), A
             IN0 A, (PC_DR)
             LD (HL), A
@@ -163,11 +165,11 @@ native_success:
             LD B, 0
             JR native_finish
 native_fault:
-            LD B, 0E5h
+            LD B, 0xe5
 native_finish:
-            LD A, 0FFh
+            LD A, 0xff
             OUT0 (PC_DDR), A
-            LD C, 0B0h
+            LD C, 0xb0
             CALL native_control
             ; The exact physical PRX-06 proof kept CLOCK running after VALID
             ; release and used length EOF. Native level-delimited RX instead
@@ -176,7 +178,7 @@ native_finish:
             ; E is scratch here; B retains success/fault and DE is restored.
             LD E, 16
 native_end_clocks:
-            LD C, 090h
+            LD C, 0x90
             CALL native_pulse
             DEC E
             JR NZ, native_end_clocks
@@ -196,10 +198,10 @@ native_pulse:
             PUSH AF
             DI
             IN0 A, (PD_DR)
-            AND 04Fh
+            AND 0x4f
             OR A, C
             OUT0 (PD_DR), A
-            OR A, 020h
+            OR A, 0x20
             OUT0 (PD_DR), A
             POP AF
             JP PO, native_pulse_iff_off
@@ -211,7 +213,7 @@ native_control:
             PUSH AF
             DI
             IN0 A, (PD_DR)
-            AND 04Fh
+            AND 0x4f
             OR A, C
             OUT0 (PD_DR), A
             POP AF
@@ -219,4 +221,4 @@ native_control:
             EI
 native_iff_off:
             RET
-            END
+; end native shared body

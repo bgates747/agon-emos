@@ -87,6 +87,15 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
         if (length != CONSOLE_SIZE || !waiting || accepted ||
             p[2] != request[2] ||
             p[3] != (BYTE)(waiting | 0x80)) return;
+#ifdef EMOS_NETWORK_PARALLEL
+        if(request[0]=='N'&&request[1]=='P'&&request[2]==PARALLEL_WIRE_VERSION){
+            if(memcmp(p,request,3)||memcmp(p+8,request+8,2)||p[12]!=request[12]||
+               (request[3]!=0x20&&memcmp(p+4,request+4,4))||
+               (request[3]==0x20&&!p[13]&&!(p[4]|p[5]|p[6]|p[7]))||
+               p[11]||p[10]>142)return;
+            memcpy(request,p,CONSOLE_SIZE);accepted=1;return;
+        }
+#endif
 #if defined(EMOS_EXEXT_STREAM)
         if (request[2] == PARALLEL_WIRE_VERSION &&
             (waiting == PARALLEL_STREAM_START || waiting == PARALLEL_STREAM_POLL ||
@@ -95,11 +104,14 @@ void emos_console_packet(BYTE command, BYTE *p, BYTE length) {
                 p[11]>16 || (p[11]==16 && p[10])) return;
         } else
 #endif
+#if !defined(EMOS_NETWORK_PARALLEL) || defined(EMOS_PARALLEL_PROBE)
         if (request[2] == PARALLEL_WIRE_VERSION && waiting == PARALLEL_OFFER) {
             /* Length and direction are admission identity. Completion uses
              * the physical return handshake, without a later wire receipt. */
             if (!parallel_block_matches(request,p,(BYTE)(waiting|0x80))) return;
-        } else {
+        } else
+#endif
+        {
             if (!(request[2] == PARALLEL_WIRE_VERSION ? parallel_session_valid(p) : console_valid(p)) ||
                 p[13] || memcmp(p+4,request+4,4)) return;
             if (waiting == CONSOLE_PREPARE || waiting == CONSOLE_PREPARE_KEEP) {
@@ -253,6 +265,7 @@ BYTE emos_parallel_session_negotiate(t_emosParallelHandover *h,
     return 1;
 }
 
+#if !defined(EMOS_NETWORK_PARALLEL) || defined(EMOS_PARALLEL_PROBE)
 /* Private foreground block transaction, not a GPIO entry or application API.
  * The physical coordinator retains the offer through completion and owns
  * drain/park/native/return. An ACK only starts the existing handover machine.
@@ -267,6 +280,7 @@ BYTE emos_parallel_block_offer(t_emosParallelHandover *h, t_parallelSession *s,
     if (exchange(PARALLEL_OFFER) && emos_parallel_session_admit(h,mode,s,offer,request)) return 1;
     emos_parallel_session_cancel(h,s); return 0;
 }
+#endif
 #if defined(EMOS_EXEXT_STREAM)
 /* Queue/status control carries no VDU or returned packet payload. */
 BYTE emos_parallel_stream_control(t_parallelSession *s, BYTE op, UINT16 *pending) {
@@ -309,5 +323,16 @@ BYTE emos_parallel_probe(BYTE *out, UINT16 length, BYTE reverse) {
      * logical session cancellation alone does not disconnect UART outputs. */
     emos_parallel_boot_block_end(0);
     return 0;
+}
+#endif
+
+#ifdef EMOS_NETWORK_PARALLEL
+/* Existing foreground serializer reservation, fixed metadata only. */
+BYTE emos_netp_control(BYTE *p){
+    BYTE ok;
+    if(PARALLEL_CONSOLE_BUSY||waiting||!emos_keyboard_parallel_reserved())return 0;
+    memcpy(request,p,CONSOLE_SIZE);ok=exchange(p[3]);
+    if(ok)memcpy(p,request,CONSOLE_SIZE);
+    return ok;
 }
 #endif

@@ -11,11 +11,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for name in ("source", "elf", "nm", "objdump"):
         parser.add_argument("--"+name, type=Path, required=True)
+    parser.add_argument("--network",action="store_true")
     args = parser.parse_args()
     verify_source(args.source)
-    verify_linked(args.elf,args.nm,args.objdump,allow_upload_payload=True)
+    verify_linked(args.elf,args.nm,args.objdump,allow_upload_payload=True,allow_native_payload=args.network)
     symbols = linked_symbols(args.nm, args.elf)
-    if any(name in symbols for name in ("_emos_parallel_native_bytes", "_emos_parallel_native_coordinate")):
+    if args.network:
+        from verify_parallel_native import verify_native
+        verify_native(args.source,args.elf,args.nm,args.objdump,network=True)
+    elif any(name in symbols for name in ("_emos_parallel_native_bytes", "_emos_parallel_native_coordinate")):
         raise ParallelError("upload profile retained unused bounded-block payload code")
     addresses = require_global_text_symbols(symbols, (
         "_emos_parallel_upload_begin", "_emos_parallel_upload_read",

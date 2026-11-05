@@ -24,7 +24,15 @@ void emos_parallel_upload_abandon(void) {
         uploadOwned=0;
     }
 }
+/* Shared physical entry/return for upload slices and the bounded network block.
+ * This owns only the existing transition; each caller retains its admission,
+ * payload, error and logical-lease policy. No second byte engine or GPIO owner. */
+#ifdef EMOS_NETWORK_PARALLEL
+BYTE emos_parallel_advance(BYTE *parked, BYTE ending) {
+#else
 static BYTE advance(BYTE ending) {
+    BYTE *parked=&uploadParked;
+#endif
     t_emosParallelHandover *h=emos_parallel_boot_handover();
     t_emosDeadline d;
     BYTE done, action;
@@ -36,10 +44,10 @@ static BYTE advance(BYTE ending) {
             BYTE r=emos_keyboard_parallel_park();
             if(r==UART_POLL_EMPTY)continue;
             if(r!=UART_POLL_READY)break;
-            uploadParked=1;done|=EPH_QUIET;
+            *parked=1;done|=EPH_QUIET;
         }
         if(h->phase==EPH_ENTRY_RELEASE || h->phase==EPH_BLOCK_RELEASE) {
-            if(!uploadParked || PC_DDR!=0xFF || PC_ALT1 || PC_ALT2)break;
+            if(!*parked || PC_DDR!=0xFF || PC_ALT1 || PC_ALT2)break;
             done|=EPH_RELEASED;
         }
         if(h->phase==EPH_LOCAL_ARM)done|=EPH_ARMED;
@@ -57,10 +65,10 @@ static BYTE advance(BYTE ending) {
         if(action==EPH_LIVE) {
             emos_parallel_boot_block_end(1);
             if(emos_keyboard_parallel_release()!=UART_POLL_READY)break;
-            uploadOwned=0;return FR_OK;
+            return FR_OK;
         }
     }
-    emos_parallel_upload_abandon();return FR_TIMEOUT;
+    return FR_TIMEOUT;
 }
 BYTE emos_parallel_upload_begin(UINT32 length) {
     t_emosParallelHandover *h=emos_parallel_boot_handover();
@@ -74,7 +82,13 @@ BYTE emos_parallel_upload_begin(UINT32 length) {
         emos_parallel_boot_block_end(0);return EMOS_UNAVAILABLE;
     }
     uploadRemaining=length;uploadOwned=1;uploadStarted=uploadParked=uploadFailed=0;
-    return advance(0);
+    #ifdef EMOS_NETWORK_PARALLEL
+    {BYTE result=emos_parallel_advance(&uploadParked,0);
+#else
+    {BYTE result=advance(0);
+#endif
+    if(result)emos_parallel_upload_abandon();
+    return result;}
 }
 BYTE emos_parallel_upload_read(BYTE *buffer, UINT24 length) {
     t_emosParallelHandover *h=emos_parallel_boot_handover();
@@ -105,5 +119,11 @@ BYTE emos_parallel_upload_end(BYTE abort) {
      * lowers CLOCK. Changing both together can create an extra sampled byte. */
     emos_parallel_boot_handover()->validN=1;
     emos_parallel_io_write_control(0xA0);
-    return advance(1);
+    #ifdef EMOS_NETWORK_PARALLEL
+    {BYTE result=emos_parallel_advance(&uploadParked,1);
+#else
+    {BYTE result=advance(1);
+#endif
+    if(result)emos_parallel_upload_abandon();else uploadOwned=0;
+    return result;}
 }

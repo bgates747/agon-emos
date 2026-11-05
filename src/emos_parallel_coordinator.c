@@ -1,3 +1,48 @@
+/* INTEG-020 reuses the installed upload transition in the explicit netp
+ * composition. Other retained profiles keep their original coordinator. */
+#ifdef EMOS_NETWORK_PARALLEL
+/* PORT-008 LC02: synchronous admitted physical owner.
+ * Entry is AFTER exact block ACK under the existing serializer reservation.
+ * EMOS owns capability/mode admission; no arbitrary application GPIO bypass
+ * is supplied here.
+ * Ordinary input is retained through normal parking. Uncertain/faulted work
+ * revokes admission and holds the physical fence/reservation until reset.
+ */
+#include "emos_parallel_handover.h"
+#include "emos_parallel.h"
+#include "emos_keyboard.h"
+#include "uart.h"
+#include "emos_z80_io.h"
+#include "emos_phase_timing.h"
+extern BYTE emos_parallel_native_payload(t_emosParallelHandover *, BYTE,
+    BYTE, BYTE *, UINT24);
+extern BYTE emos_parallel_advance(BYTE *,BYTE);
+BYTE emos_parallel_native_coordinate(t_parallelSession *s, const BYTE *offer,
+    BYTE *buffer, UINT24 capacity) {
+    t_emosParallelHandover *h = emos_parallel_boot_handover();
+    BYTE parked=0;
+    UINT24 length;
+    /* No mutation on refusal, including nested/IRQ-disabled contenders. */
+    if (!s || !offer || !buffer || !emos_keyboard_parallel_reserved() ||
+        s->phase != PARALLEL_SESSION_ACTIVE || h->phase != EPH_DRAIN ||
+        h->failed || !parallel_block_matches(offer,offer,PARALLEL_OFFER) || offer[3] != PARALLEL_OFFER ||
+        offer[12] > 1 || offer[13] || memcmp(s->bytes, offer+4, 6)) return 0;
+    length = (UINT24)offer[10] | ((UINT24)offer[11] << 8);
+    if (!length || length > 4096 || capacity < length ||
+        !emos_parallel_boot_block_begin()) return 0;
+    /* INTEG-020: reuse the installed upload owner's physical transition loop.
+     * Entry stops at BLOCK; the guarded native leaf owns exact payload clocks;
+     * return stops only after pad release, UART restore and peer READY high.
+     * Both phases retain its finite deadline; no duplicate handover sequencer. */
+    if(!emos_parallel_advance(&parked,0) &&
+       emos_parallel_native_payload(h,parked,offer[12],buffer,length)==EMOS_PARALLEL_OK &&
+       !emos_parallel_advance(&parked,1))return 1;
+    emos_parallel_session_cancel(h,s);
+    emos_parallel_boot_block_end(0);
+    return 0; /* Destination stays provisional; reset required after fault. */
+}
+
+#else
 /* PORT-008 LC02: synchronous admitted physical owner.
  * Entry is AFTER exact block ACK under the existing serializer reservation.
  * EMOS owns capability/mode admission; no arbitrary application GPIO bypass
@@ -88,3 +133,5 @@ BYTE emos_parallel_native_coordinate(t_parallelSession *s, const BYTE *offer,
     emos_parallel_boot_block_end(0);
     return 0; /* Destination stays provisional; reset required after fault. */
 }
+
+#endif

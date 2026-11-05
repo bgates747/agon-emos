@@ -52,6 +52,14 @@ ALL_OBJS=$(patsubst $(SRCDIR)/%.asm, $(OBJDIR)/%.o, $(wildcard $(SRCDIR)/*.asm))
 # EMOS-001 explicit resident composition: no automatic inclusion of experiments.
 EMOS_C := emos emos_admission emos_telemetry emos_sdlink emos_console emos_keyboard emos_uart_flow emos_parallel emos_parallel_engine emos_parallel_handover emos_parallel_boot emos_parallel_startup emos_controller emos_net emos_parallel_upload
 EMOS_ASM := emos_console_io emos_keyboard_io emos_parallel_io emos_parallel_upload_io
+# NET-004 optional carrier; explicit binding must supply all link_* functions.
+ifeq ($(EMOS_NETWORK_PARALLEL),1)
+EMOS_C := $(filter-out emos_net,$(EMOS_C))
+EMOS_C += emos_netp emos_netp_link emos_parallel_coordinator emos_parallel_native
+EMOS_ASM += emos_parallel_native_io
+CFLAGS += -DEMOS_NETWORK_PARALLEL
+endif
+
 OBJS = $(filter-out $(OBJDIR)/emos%.o,$(ALL_OBJS)) $(addprefix $(OBJDIR)/,$(addsuffix .o,$(EMOS_C) $(EMOS_ASM)))
 CFLAGS += -DEMOS_CONTROLLER_INPUT=1 -DEMOS_PARALLEL_UPLOAD=1 -DEMOS_PARALLEL_NATIVE_COORDINATOR=1
 # Source/build identities remain fail-closed exploratory values. Not deployable.

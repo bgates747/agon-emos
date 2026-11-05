@@ -101,7 +101,9 @@ void emos_keyboard_fault(void) {
     uart1_keyboard_stop();
 #if defined(EMOS_CONTROLLER_INPUT)
     emos_controller_reset();
+#if !defined(EMOS_NETWORK_PARALLEL)
     emos_net_reset();
+#endif
 #endif
     #ifdef EMOS_BENCH_TELEMETRY
     async_abort();
@@ -158,7 +160,9 @@ void emos_keyboard_tick(void) {
 }
 void emos_keyboard_dispatch(void) {
 #if defined(EMOS_CONTROLLER_INPUT)
+#if !defined(EMOS_NETWORK_PARALLEL)
     if(emos_key_rx.command==0x8f){emos_net_packet(emos_key_rx.payload,emos_key_rx.length);return;}
+#endif
     if(emos_key_rx.command==0x8e){emos_controller_packet(emos_key_rx.payload,emos_key_rx.length);return;}
 #endif
     if (emos_key_rx.command == 0x8D) { emos_sdlink_packet(emos_key_rx.payload,emos_key_rx.length); return; }
