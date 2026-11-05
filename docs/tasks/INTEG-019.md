@@ -39,3 +39,14 @@ mandatory linked checks. Added1964B ROM,148B static RAM; unidentified ROM130123B
 free949B. This is not installed firmware or a physical timing claim. The endpoint
 uses32-bit queries and bounded142B reply storage. Extender owns matched evidence
 and a later fresh identified build/deployment plan.
+
+## Author-requested resident reduction
+
+I19-REDUCE-001 [ ] Preserve the checked1964B-addition candidate, never flash it.
+The Author asks why the work is not in application space and explicitly allows
+continuing the offload. Consult the consumer about its already-owned callback;
+move mailbox/correlation/timeouts into the app. Resident retains minimal admitted
+carrier forwarding and borrows the existing MOS reply callback, with no new
+application pointer registry. Existing input lifetime is a synchronous immutable
+application buffer. Measure actual native savings and repeat all mandatory gates
+before selecting a new identified development revision.
