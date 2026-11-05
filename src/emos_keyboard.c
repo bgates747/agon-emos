@@ -7,6 +7,7 @@
 #include "emos_keyboard.h"
 #if defined(EMOS_CONTROLLER_INPUT)
 #include "emos_controller.h"
+#include "emos_net.h"
 #endif
 #include "uart.h"
 #include "emos_console.h"
@@ -100,6 +101,7 @@ void emos_keyboard_fault(void) {
     uart1_keyboard_stop();
 #if defined(EMOS_CONTROLLER_INPUT)
     emos_controller_reset();
+    emos_net_reset();
 #endif
     #ifdef EMOS_BENCH_TELEMETRY
     async_abort();
@@ -114,6 +116,7 @@ void emos_keyboard_fault(void) {
 void emos_keyboard_tick(void) {
 #if defined(EMOS_CONTROLLER_INPUT)
     emos_controller_tick();
+    emos_net_tick();
 #endif
     if (uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
     emos_parallel_boot_tick();
@@ -156,6 +159,7 @@ void emos_keyboard_tick(void) {
 }
 void emos_keyboard_dispatch(void) {
 #if defined(EMOS_CONTROLLER_INPUT)
+    if(emos_key_rx.command==0x8f){emos_net_packet(emos_key_rx.payload,emos_key_rx.length);return;}
     if(emos_key_rx.command==0x8e){emos_controller_packet(emos_key_rx.payload,emos_key_rx.length);return;}
 #endif
     if (emos_key_rx.command == 0x8D) { emos_sdlink_packet(emos_key_rx.payload,emos_key_rx.length); return; }

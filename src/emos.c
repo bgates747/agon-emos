@@ -17,6 +17,7 @@
 #include "emos_console.h"
 #if defined(EMOS_CONTROLLER_INPUT)
 #include "emos_controller.h"
+#include "emos_net.h"
 #endif
 #if defined(EMOS_EXEXT_STREAM)
 #include "emos_exext.h"
@@ -218,6 +219,10 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
         return EMOS_UNSAFE_CALLER;
     if (strcmp(namespaceName,"ext") == 0) {
 #if defined(EMOS_CONTROLLER_INPUT)
+        if(!strcmp(providerName,"net")){
+            if(emosBusy)return EMOS_BUSY;
+            emosBusy=TRUE;result=emos_net_gateway(request);emosBusy=FALSE;return result;
+        }
         if(!strcmp(providerName,"controller")){
             if(emosBusy)return EMOS_BUSY;
             emosBusy=TRUE;result=emos_controller_gateway(request);emosBusy=FALSE;return result;
@@ -253,6 +258,7 @@ BYTE emos_application_enter(UINT8 *image, UINT24 address) {
     emos_uartdiag_reset();
 #if defined(EMOS_CONTROLLER_INPUT)
     emos_controller_reset();
+    emos_net_reset();
 #endif
     emos_sdlink_reset();
 #ifdef EMOS_BENCH_TELEMETRY
@@ -280,6 +286,7 @@ void emos_application_leave(BYTE previousPolicy) {
     emos_uartdiag_reset();
 #if defined(EMOS_CONTROLLER_INPUT)
     emos_controller_reset();
+    emos_net_reset();
 #endif
     emos_sdlink_reset();
 #ifdef EMOS_BENCH_TELEMETRY

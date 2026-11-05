@@ -19,3 +19,12 @@ those units are ported directly; never include both in one translation unit.
 
 Compatibility and full byte validation remain unqualified until the task
 checks pass and the Author separately authorizes deployment.
+
+## Network admission development successor
+
+INTEG-019 adds the ext.net fixed provider in experimental r03 on corrected
+native r02 source16ec1f78. The application owns codec/poll/game decisions; P4
+owns sockets. Existing async UART, keyboard, controller, SD and parallel units
+remain. Root firmware-check passes all five mandatory link gates; ROM adds1964B
+and static RAM148B. Identified compilation and physical matched qualification
+are separate; prior installed r02 remains the rollback until a deliberate flash.
