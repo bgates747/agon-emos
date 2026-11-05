@@ -44,6 +44,11 @@ def verify(image, linked):
     exact('emos_keyboard_tick_entry', saved + call('_emos_keyboard_tick') + restored + b'\xc9')
     exact('_emos_keyboard_effect', b'\xdd\xe5\xfd\xe5\x21\x09\x00\x00\x39\xed\x17' +
           call('emos_keyboard_payload') + b'\xfd\xe1\xdd\xe1\xc9')
+    # INTEG-019: UART1 NM completion borrows its private payload through the
+    # existing application vector. No stock KEY effect or second registry.
+    exact('_emos_reply_callback', b'\xdd\xe5\xdd\x21\x00\x00\x00\xdd\x39\xfd\xe5\xdd\x17\x06\x2a'+
+          address('_user_kbvector')+b'\x01\x00\x00\x00\xb7\xed\x42\x28\x06\x01'+
+          address('net_callback_done')+b'\xc5\xe9\xfd\xe1\xdd\xe1\xc9')
     # The callback receives DE and can modify this UART's payload before the
     # sysvars are written; its pointer is held on the stack, not UART0 scratch.
     exact('emos_keyboard_payload', b'\xd5\x2a'+address('_user_kbvector') +

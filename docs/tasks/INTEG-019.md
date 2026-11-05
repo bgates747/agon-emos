@@ -50,3 +50,13 @@ carrier forwarding and borrows the existing MOS reply callback, with no new
 application pointer registry. Existing input lifetime is a synchronous immutable
 application buffer. Measure actual native savings and repeat all mandatory gates
 before selecting a new identified development revision.
+
+### Reduced software evidence
+
+The actual P4/service/app pipeline passes ASan/UBSan, including a reply delivered
+before SUBMIT returns, previous-vector snapshot, expiry and explicit release.
+Native C/router assembly and all five linked checks pass; the keyboard linked
+checker now verifies the borrowed callback trampoline exactly. No old controller
+code or UART behavior changes. Unidentified ROM129031B versus130123B for the first
+network candidate:1092B saved. Static network state4B versus148B. Freeze as r04;
+identified strings and like-for-like baseline overhead are measured separately.

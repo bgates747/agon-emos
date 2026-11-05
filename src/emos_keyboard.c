@@ -116,7 +116,6 @@ void emos_keyboard_fault(void) {
 void emos_keyboard_tick(void) {
 #if defined(EMOS_CONTROLLER_INPUT)
     emos_controller_tick();
-    emos_net_tick();
 #endif
     if (uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
     emos_parallel_boot_tick();

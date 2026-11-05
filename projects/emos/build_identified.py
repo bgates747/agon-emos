@@ -23,6 +23,6 @@ def main():
  for value in [identity['source_identity'],build,identity['status']]:assert value.encode()+b'\0' in image,value
  (out/'ROM.bin').write_bytes(image+b'\xff'*(131072-len(image)))
  (out/(build+'.bin')).write_bytes(image)
- m={'build_id':build,'source_identity':identity['source_identity'],'status':identity['status'],'source_commit':commit,'rom_used':len(image),'rom_free':131072-len(image),'scope':'identified native wrapper/all4mandatorylinkedchecks; no installation','outputs':{f:{'bytes':(out/f).stat().st_size,'sha256':hashlib.sha256((out/f).read_bytes()).hexdigest()} for f in ['mos.bin','mos.elf','mos.map','mos.elf.map','ROM.bin']}}
+ m={'build_id':build,'source_identity':identity['source_identity'],'status':identity['status'],'source_commit':commit,'rom_used':len(image),'rom_free':131072-len(image),'scope':'identified native wrapper/all5mandatorylinkedchecks; no installation','outputs':{f:{'bytes':(out/f).stat().st_size,'sha256':hashlib.sha256((out/f).read_bytes()).hexdigest()} for f in ['mos.bin','mos.elf','mos.map','mos.elf.map','ROM.bin']}}
  (out/'manifest.json').write_text(json.dumps(m,indent=2)+'\n');print(json.dumps(m,indent=2))
 if __name__=='__main__':main()
