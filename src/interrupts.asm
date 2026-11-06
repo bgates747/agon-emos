@@ -26,6 +26,7 @@
 			XREF	_vdp_protocol_data
 
 			XREF	UART0_serial_RX
+            XREF fill_uart0_tx_fifo
 			XREF	UART0_serial_TX
 			XREF	mos_api
 			XREF	vdp_protocol
@@ -63,6 +64,14 @@ _vblank_handler:	DI
 ;
 _uart0_handler:		DI
 			PUSH		AF
+.if EMOS_UART0_RFC25
+            ; Tom ffab9c9: TX consumes only this AF plus its own BC/DE/HL.
+            ; RX below retains the full EMOS index/alternate-register saves.
+            in0 a,(UART0_IIR)
+            and 0x0e
+            cp 2
+            jp z,fill_uart0_tx_fifo
+.endif
 			PUSH		BC
 			PUSH		DE
 			PUSH		HL

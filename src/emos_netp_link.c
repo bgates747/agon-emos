@@ -12,6 +12,9 @@
 #include "emos_parallel_handover.h"
 #include "emos_netp_transport.h"
 #include "emos_netp_control.h"
+#if NETP_CONTROL_VERSION != PARALLEL_WIRE_VERSION
+#error NP local EX view requires the same format version
+#endif
 extern BYTE emos_netp_control(BYTE *);
 static t_parallelSession session;
 static BYTE transaction[4],unusable;
@@ -65,8 +68,10 @@ static BYTE transfer(BYTE *data,BYTE capacity,UINT16 *length,BYTE reverse){
         return p[13];
     }
     if(actual<14||actual>capacity||actual>EMOS_NETP_MAX)return fail();
-    memset(offer,0,16);memcpy(offer,"EX",2);offer[2]=PARALLEL_WIRE_VERSION;offer[3]=PARALLEL_OFFER;
-    memcpy(offer+4,session.bytes,4);memcpy(offer+8,p+8,4);offer[12]=reverse;
+    /* The acknowledged NP format4 already has the same sequence/count,
+     * direction and zeroed reserved bytes as the existing local EX view. */
+    memcpy(offer,p,16);memcpy(offer,"EX",2);offer[3]=PARALLEL_OFFER;
+    memcpy(offer+4,session.bytes,4);
     memcpy(ack,offer,16);ack[3]=PARALLEL_ACK;
     /* NP ACK is the single payload admission. Reuse the exact existing local
      * block transition without a second wire OFFER/ACK or per-byte handshake. */

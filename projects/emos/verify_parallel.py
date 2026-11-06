@@ -155,6 +155,13 @@ def disassemble_global_extent(objdump: Path, elf: Path, symbol: str) -> str:
         text=True,
         stdout=subprocess.PIPE,
     ).stdout.lower()
+    # A global assembly entry need not have the C ABI's leading underscore.
+    # Stop at its actual ELF symbol boundary while retaining local branch labels.
+    table = subprocess.run([str(objdump), "-t", str(elf)], check=True, text=True,
+                           stdout=subprocess.PIPE).stdout.lower()
+    global_text = {fields[-1] for line in table.splitlines()
+                   if len(fields := line.split()) >= 5
+                   and fields[1] == "g" and ".text" in fields}
     wanted = symbol.lower()
     selected: list[str] = []
     active = False
@@ -162,7 +169,7 @@ def disassemble_global_extent(objdump: Path, elf: Path, symbol: str) -> str:
         label = re.match(r"^\s*[0-9a-f]+\s+<([^>]+)>:$", line)
         if label:
             name = label.group(1)
-            if active and name.startswith("_") and name != wanted:
+            if active and (name.startswith("_") or name in global_text) and name != wanted:
                 break
             if name == wanted:
                 active = True

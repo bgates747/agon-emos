@@ -31,6 +31,7 @@
 			.text
 			XDEF	mos_api
 			XREF	uart0_async_write,uart0_async_finish
+            XREF emos_uart0_rfc25_submit
 
 			XREF	SWITCH_A		; In misc.asm
 			XREF	SET_AHL24
@@ -197,7 +198,11 @@ mos_api_block1_start:	DW	mos_api_getkey		; 0x00
 			DW	mos_api_unpackrtc	; 0x23
 			DW	mos_api_flseek_p	; 0x24
 
-			DW	mos_api_not_implemented	; 0x25
+			.if EMOS_UART0_RFC25
+            DW mos_api_uart0_rfc25 ; 0x25 low-ROM table trampoline
+.else
+            DW mos_api_not_implemented ; 0x25
+.endif
 			DW	mos_api_not_implemented	; 0x26
 			DW	mos_api_not_implemented	; 0x27
 
@@ -229,8 +234,13 @@ mos_api_block1_start:	DW	mos_api_getkey		; 0x00
 
 			DW	mos_api_clear_vdp_flags	; 0x40
 			DW	mos_api_wait_vdp_flags	; 0x41
+.if EMOS_UART0_RFC25
+            DW mos_api_not_implemented ; 0x42 historical trial excluded
+            DW mos_api_not_implemented ; 0x43 no resident finish service
+.else
 			DW	uart0_async_write	; 0x42 experimental UART0
 			DW	uart0_async_finish	; 0x43 experimental UART0
+.endif
 			DW	mos_api_not_implemented	; 0x44
 			DW	mos_api_not_implemented	; 0x45
 			DW	mos_api_not_implemented	; 0x46
@@ -2403,3 +2413,10 @@ mos_function_block_start:
 			D24	_emos_gateway	; 0x20 stable resident Core gateway
 
 mos_function_block_size:	EQU 	($ - mos_function_block_start) / 3
+
+.if EMOS_UART0_RFC25
+; SWITCH_A table stores 16-bit addresses. Keep this trampoline in mos_api's
+; low ROM; the optional C/assembly owner itself may link above64KiB.
+mos_api_uart0_rfc25:
+            JP emos_uart0_rfc25_submit
+.endif

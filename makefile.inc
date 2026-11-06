@@ -55,9 +55,23 @@ EMOS_ASM := emos_console_io emos_keyboard_io emos_parallel_io emos_parallel_uplo
 # NET-004 optional carrier; explicit binding must supply all link_* functions.
 ifeq ($(EMOS_NETWORK_PARALLEL),1)
 EMOS_C := $(filter-out emos_net,$(EMOS_C))
-EMOS_C += emos_netp emos_netp_link emos_parallel_coordinator emos_parallel_native
+EMOS_C += emos_app_span emos_netp emos_netp_link emos_parallel_coordinator emos_parallel_native
 EMOS_ASM += emos_parallel_native_io
 CFLAGS += -DEMOS_NETWORK_PARALLEL
+endif
+
+# INTEG-021 replaces the historical trial only in the explicit paired profile.
+ifeq ($(EMOS_UART0_RFC25),1)
+ifneq ($(EMOS_NETWORK_PARALLEL),1)
+$(error RFC25 matched composition requires EMOS_NETWORK_PARALLEL=1)
+endif
+ALL_OBJS := $(filter-out $(OBJDIR)/uart0_async.o,$(ALL_OBJS))
+EMOS_C += emos_uart0_rfc25
+EMOS_ASM += emos_uart0_rfc25_io
+CFLAGS += -DEMOS_UART0_RFC25=1
+ASMFLAGS += --defsym EMOS_UART0_RFC25=1
+else
+ASMFLAGS += --defsym EMOS_UART0_RFC25=0
 endif
 
 OBJS = $(filter-out $(OBJDIR)/emos%.o,$(ALL_OBJS)) $(addprefix $(OBJDIR)/,$(addsuffix .o,$(EMOS_C) $(EMOS_ASM)))

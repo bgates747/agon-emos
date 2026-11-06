@@ -27,7 +27,11 @@ static volatile BYTE state,requested_at,received_at;
 static UINT24 token;
 static BYTE cache[CONTROLLER_RESULT_SIZE];
 void emos_controller_reset(void){state=CLOSED;}
+#ifdef EMOS_NETWORK_PARALLEL
+#define range emos_application_span
+#else
 static BYTE range(UINT24 p,UINT24 n){return p>=0x040000&&p<0x0b0000&&n<=0x0b0000-p;}
+#endif
 static BYTE healthy(void){return uart1_keyboard_owned==1&&emos_key_source==EMOS_KEY_EXTENDER&&!emos_key_faulted;}
 static BYTE expired(void){
     return state>=WAITING&&(BYTE)(emos_keyboard_clock()-(state==WAITING?requested_at:received_at))>=30;

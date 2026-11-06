@@ -11,7 +11,7 @@
 extern volatile BYTE emosVduBackend;
 #define active emos_netp_token
 
-static __attribute__((noinline)) BYTE range(UINT24 p,UINT24 n){return p>=0x040000&&p<0x0b0000&&n<=0x0b0000-p;}
+#define range emos_application_span
 /* The carrier retains token ownership across an unclean app return. No app
  * pointer survives; a new OPEN refuses until positive RELEASE or hardware reset. */
 BYTE emos_netp_owned(void){return active!=0;}
@@ -47,7 +47,8 @@ UINT24 emos_netp_gateway(t_emosGatewayRequest*r){
         if((result==FR_OK&&(length<14||length>cap))||
            (result==EMOS_NETP_SMALL&&(length<=cap||length>EMOS_NETP_MAX)))result=EMOS_NETP_FAULT;
         if(!result||result==EMOS_NETP_SMALL){
-            r->outputLength[0]=(BYTE)length;r->outputLength[1]=(BYTE)(length>>8);
+            /* Validated <=142, upper bytes were cleared on entry. */
+            r->outputLength[0]=(BYTE)length;
         }
     }
     return result;

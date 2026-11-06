@@ -293,8 +293,15 @@ char * mos_trim(char * s, bool removeLeadingAsterisks, bool removeTrailingSpaces
 	return s;
 }
 
+#ifdef EMOS_UART0_RFC25
+BYTE emos_rfc25_application; /* Actual executable dispatch mode, not MB inference. */
+#endif
 int mos_runBin(UINT24 addr, char * args) {
 	UINT8 mode = mos_execMode((UINT8 *)addr);
+#ifdef EMOS_UART0_RFC25
+    BYTE previousAdl=emos_rfc25_application;
+    emos_rfc25_application=(mode==1);
+#endif
 	BYTE previousPolicy = emos_application_enter((UINT8 *)addr, addr);
 	int result;
 	switch (mode) {
@@ -309,6 +316,9 @@ int mos_runBin(UINT24 addr, char * args) {
 			break;
 	}
 	emos_application_leave(previousPolicy);
+#ifdef EMOS_UART0_RFC25
+    emos_rfc25_application=previousAdl;
+#endif
 	return result;
 }
 
