@@ -1,84 +1,32 @@
-# INTEG-022 — Failure-only control TX attribution
+# UART1 networking with guarded UART0 RFC25
 
-Retain the first UART1 transmit failure before normal recovery changes pads.
-This diagnostic composition supports Extender NET-004/N04-011 and is not a new
-production API or transport remedy. Source/finite builds are selected by the
-Smith-authorized MechAgon driver; physical actions require a stopped handoff.
+Prepare the smallest matched composition for Smith's explicit conditional
+MechAgon UART1 selection after its final parallel attempt. This changes compile
+selection only; public NET-003 and guarded RFC25 behavior remain unchanged.
+No installation, emulator change or physical invocation belongs to this task.
 
-I22-001 Publish the task before implementation. [x]
+I22-01 Publish this plan before source changes. Preserve the parallel profile,
+  all its link guards, private snapshots and historical binaries. [x]
 
-I22-002 Add a default-off diagnostic build flag and a private fixed RAM record.
-Capture only status samples already taken by the native sender, original and
-remaining count, first reason and elapsed/fuse state before error/recovery
-writes. Retain first failure until reset, with no extra UART reads or logging. [x]
+I22-02 Permit guarded RFC25 alongside the existing UART-NM composition; link
+  the shared application-span helper once and retain its existing bounds.
+  Reject a control-TX diagnostic without its original parallel composition. [ ]
 
-I22-003 Reuse the existing foreground deadline helper rather than duplicating
-console reply timeout arithmetic, retaining600-clock/262144-no-progress bounds.
-Fit the complete matched ROM without dropping any feature or transport guard;
-return concrete options before a feature tradeoff. [x]
+I22-03 Build through the identified repository wrapper and mandatory linked
+  validators, using a new normal Pi FIFO tranche. Prove ROM fit, UART-NM symbols,
+  NM callback classifier, API25 admitted-result semantics and previous-vector
+  chaining. Record exact ROM/map/source/configuration; no hardware claim. [ ]
 
-I22-004 Use normal compiler FIFO; run all six matched linked validators and
-focused deadline/trace checks, and retain exact default/diagnostic ROM/BSS/maps.
-Private fixture readers require the actual new map; public native198 does not
-assume private snapshot addresses. [x]
+I22-04 Return the matched source/artifact and SDK facts to Extender/MechAgon.
+  Deployment remains conditional on the actual final parallel result and new
+  physical readiness. No implicit carrier fallback or guessed map address. [ ]
 
-I22-005 Supply source/build/layout and stopping-point evidence to Extender.
-No automatic flash, test replay, emulator or production promotion. [x]
+## Existing contracts
 
-References: official MOS v3.0.2, official VDP v2.16.0, official docs
-f9806bd3cbff6ed5d1c08bef1d51fed11764b86b (MOS UART1/API interrupt ownership);
-matched native source c9c8b6be316b5ebb64da1f16773ec3c886349267;
-src/emos_keyboard_io.asm, src/emos_keyboard.c and src/emos_console.c.
-The historical first-fault record accepted0/fault_requested1 with600 elapsed
-is consistent with control transmit failure, not proof of a particular wire
-level, UART error, rendering defect or production correction.
-
-## Private diagnostic layout
-
-`EMOS_CONTROL_TX_DIAGNOSTIC=1` selects19 BSS bytes: mutable3-byte sample scratch
-and an immutable16-byte first-failure record, exported as `_emos_tx_fault` only
-for exact-image owner diagnosis. Default builds contain neither. There is no
-new public API, callback or user flow. `--control-tx-diagnostic` records the
-selection in the identified-build manifest; consumers must use its actual map.
-
-| Offset | Bytes | Meaning |
-|---|---:|---|
-| 0 | 1 | Commit/reason:0 absent,1 deadline,2 UART line error,3 ownership unavailable,4 keyboard fault |
-| 1 | 2 | Original block length:3 identifies prefix,16 identifies fixed control body |
-| 3 | 1 | Ignored native argument-slot padding |
-| 4 | 2 | Bytes remaining, including the retained current byte |
-| 6 | 1 | Ignored native count-register upper byte |
-| 7 | 1 | Last existing UART1 LSR sample |
-| 8 | 1 | Last existing Port C sample |
-| 9 | 1 | Sample validity for the last attempt:bit0 LSR,bit1 Port C |
-| 10 | 1 | Deadline's last clock sample |
-| 11 | 2 | Deadline elapsed, raw clock units |
-| 13 | 3 | Remaining no-progress fuse, native little endian |
-
-Byte0 is committed last, only on failure, before UART error-stop writes and
-before the caller's fail() recovery. A later failure cannot replace the record.
-If Port C validity is absent, do not interpret its stale/zero byte as live CTS.
-The error branch's ordinary subsequent Port C read is unchanged and is not the
-pre-stop sample. UART result follows the existing convention:2 for line error,
-0 for other failures; no record is committed on success. Diagnostic RAM stores
-add execution cost; no timing equivalence or throughput claim is made.
-
-The actual C deadline/reply host test passes wrap,600-boundary,stalled-clock
-fuse,progress reset,ready and keyboard-fault cases with sanitizers. The new
-linked checker binds the initializer's exact six-byte layout, first-fault
-commit/branch/register saves, stack count source and unchanged UART read/guard
-inventory. These are source/host/link checks, not native instruction execution
-or hardware qualification. All six original mandatory validators remain active.
-
-The first complete exploratory diagnostic fit is131050 bytes/22 free, without
-feature removal. It reuses one deadline initializer and the existing deadline
-step across console/startup/physical return. Exact clean identified default and
-diagnostic builds/maps still follow; do not deploy the exploratory image.
-
-Clean identified default130929/free143 and diagnostic131050/free22 passed all
-six inherited validators plus the new linked capture/layout check under compiler200.
-Source7155287 is the exact build source; generated bytes/maps remain owner-retained.
-Both maps retain KBvector0xBC38E. Default has no trace symbols/storage; selected
-trace is0xBD09B/16 bytes. Reset clears it, so the consumer needs a selected exact-map
-first-error persistence path before the single physical reproduction. No target
-operation or hardware qualification occurred in this source/build tranche.
+NET-003 UART1 OPEN returns the actual saved keyboard callback vector and token;
+NM ISR forwarding is admitted only after SUBMIT. The application copies bounded
+replies, chains every non-NM packet and positively releases before restoring
+its callback. Guarded RFC25 owns UART0 and returns named admission/refusal in A;
+the upstream raw RFC25 IER-derived A is not the application contract. Its IRQ
+and physical UART drain bounds are unchanged. Official reference contracts and
+source pins are retained in INTEG-019/021; no new MOS operation is introduced.

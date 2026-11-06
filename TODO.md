@@ -10,3 +10,5 @@
 4. [ ] [INTEG-021 — RFC25 paired UART0 sender](docs/tasks/INTEG-021.md): minimal owner splice for matched netp/Legacy consumer, no standalone-ROM replacement.
 
 5. [ ] [INTEG-022 — Failure-only control TX attribution](docs/tasks/INTEG-022.md): default-off diagnostic record, exact complete ROM fit, retained features/guards and fresh fixture binding before target work.
+
+[I22: UART1 networking with guarded UART0 RFC25](docs/tasks/INTEG-022.md) [ ]
