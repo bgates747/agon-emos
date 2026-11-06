@@ -21,6 +21,7 @@ $(BINDIR)/$(NAME).elf: $(OBJS)
 .PHONY: firmware-check
 firmware-check: all $(BINDIR)/$(NAME).elf
 	@set -e; for check in $(FIRMWARE_LINK_CHECKS); do $(PYTHON) projects/emos/$$check $(if $(filter 1,$(EMOS_NETWORK_PARALLEL)),$$(test "$$check" != verify_parallel_upload.py || echo --network),) --source . --elf $(BINDIR)/$(NAME).elf --nm $(TOOLBINDIR)/ez80-none-elf-nm --objdump $(TOOLBINDIR)/ez80-none-elf-objdump; done
+	$(PYTHON) projects/emos/verify_control_tx.py $(if $(filter 1,$(EMOS_CONTROL_TX_DIAGNOSTIC)),--enabled,) --source . --elf $(BINDIR)/$(NAME).elf --nm $(TOOLBINDIR)/ez80-none-elf-nm
 
 # Optional generated identity is scoped to the only identity-owning C unit.
 ifneq ($(strip $(EMOS_IDENTITY_HEADER)),)

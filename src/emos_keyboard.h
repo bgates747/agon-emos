@@ -43,6 +43,8 @@ void emos_keyboard_mainboard_settings(BYTE *payload);
 /* Private reusable foreground deadline. Same fields/clock/fuse as UART TX;
  * startup release reuses it instead of adding a second timing policy. */
 typedef struct { BYTE last; UINT16 elapsed; UINT24 budget; } t_emosDeadline;
+/* One out-of-line initializer shared by console, startup and payload return. */
+void emos_keyboard_deadline_start(t_emosDeadline *d);
 BYTE emos_keyboard_deadline_step(t_emosDeadline *d);
 
 /* Target boundary. IRQ callers have all registers saved and interrupts off.

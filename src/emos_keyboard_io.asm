@@ -98,19 +98,29 @@ _emos_keyboard_transmit_block:
             LD IY, (IX+9)
             LD BC, (IX+12)
             LD IX, (IX+15)
+.ifdef EMOS_CONTROL_TX_DIAGNOSTIC
+            ; INTEG-022 diagnostic ONLY. Probe is mutable; fault is a separate
+            ; first-failure record. No public API and no new peripheral reads.
+            XOR A
+            LD (_emos_tx_probe+2), A
+.endif
             LD HL, (IX+3)
             LD E, (IX+0)
-            JR keyboard_block_count
+            JP keyboard_block_count
 keyboard_block_byte:
             LD D, (IY+0)
             INC IY
 keyboard_block_retry:
             LD A, (_emos_key_faulted)
             OR A
+.ifdef EMOS_CONTROL_TX_DIAGNOSTIC
+            JP NZ, keyboard_block_faulted
+.else
             JP NZ, keyboard_block_fail
+.endif
             LD A, (_clock)
             SUB E
-            JR NZ, keyboard_block_tick
+            JP NZ, keyboard_block_tick
             DEC HL
             LD A, L
             OR H
@@ -130,10 +140,20 @@ keyboard_block_attempt:
             OR A
             JR NZ, keyboard_block_unavailable
             IN0 A, (0x0D5)
+.ifdef EMOS_CONTROL_TX_DIAGNOSTIC
+            LD (_emos_tx_probe), A
+            PUSH AF
+            LD A, 1
+            LD (_emos_tx_probe+2), A
+            POP AF
+.endif
             AND 0x0BE           ; TX03: errors or THRE, one acknowledging sample
             CP 0x020
             JR NZ, keyboard_block_status
             IN0 A, (PC_DR)
+.ifdef EMOS_CONTROL_TX_DIAGNOSTIC
+            CALL keyboard_block_pc_sample
+.endif
             AND 0x08
             JR NZ, keyboard_block_wait
             LD A, D
@@ -143,19 +163,34 @@ keyboard_block_attempt:
 keyboard_block_count:
             LD A, B
             OR C
-            JR NZ, keyboard_block_byte
+            JP NZ, keyboard_block_byte
             LD A, 1
             JR keyboard_block_return
 keyboard_block_status:
             OR A
             JR NZ, keyboard_block_error
             IN0 A, (PC_DR)     ; clean-empty still samples CTS, exactly as C
+.ifdef EMOS_CONTROL_TX_DIAGNOSTIC
+            CALL keyboard_block_pc_sample
+.endif
 keyboard_block_wait:
             EI
-            JR keyboard_block_retry
+            JP keyboard_block_retry
 keyboard_block_unavailable:
             EI
+.ifdef EMOS_CONTROL_TX_DIAGNOSTIC
+            LD A, 3
+            JR keyboard_block_capture
+keyboard_block_faulted:
+            LD A, 4
+            JR keyboard_block_capture
+.endif
 keyboard_block_fail:
+.ifdef EMOS_CONTROL_TX_DIAGNOSTIC
+            LD A, 1            ; deadline; elapsed/budget distinguish clock/fuse
+keyboard_block_capture:
+            CALL keyboard_block_record
+.endif
             XOR A
 keyboard_block_return:
             LD (IX+3), HL
@@ -163,6 +198,10 @@ keyboard_block_return:
             POP IX
             RET
 keyboard_block_error:
+.ifdef EMOS_CONTROL_TX_DIAGNOSTIC
+            LD A, 2
+            CALL keyboard_block_record ; BEFORE stopping peer/IER or recovery
+.endif
             IN0 A, (PC_DR)
             OR 0x04
             OUT0 (PC_DR), A
@@ -195,6 +234,80 @@ keyboard_block_tick:
             CP 88              ; 600 = 0x258
             JP C, keyboard_block_attempt
             JP keyboard_block_fail
+
+.ifdef EMOS_CONTROL_TX_DIAGNOSTIC
+; Preserve the actual PC_DR sample, not another read with different timing.
+keyboard_block_pc_sample:
+            LD (_emos_tx_probe+1), A
+            PUSH AF
+            LD A, 3
+            LD (_emos_tx_probe+2), A
+            POP AF
+            RET
+; Called only on failure. Preserve sender state/result convention; byte0 is
+; committed LAST, so a valid record never names partially copied diagnostics.
+; The first fault remains immutable until ordinary reset clears BSS.
+keyboard_block_record:
+            PUSH AF
+            LD A, (_emos_tx_fault)
+            OR A
+            JR NZ, keyboard_block_record_done
+            ; Original AF stays on the stack until the final commit.
+            ; Packed native words avoid a second C snapshot/copy frame.
+            LD (_emos_tx_fault+4), BC
+            LD (_emos_tx_fault+13), HL
+            PUSH BC
+            PUSH DE
+            PUSH HL
+            LD HL, (IX+0)      ; last-clock and16-bit elapsed from this deadline
+            LD (_emos_tx_fault+10), HL
+            LD HL, 27          ; original length: record RA/AF +3 saved regs
+            ADD HL, SP
+            LD HL, (HL)
+            LD (_emos_tx_fault+1), HL
+            LD HL, _emos_tx_probe
+            LD DE, _emos_tx_fault+7
+            LD BC, 3
+            LDIR
+            POP HL
+            POP DE
+            POP BC
+            POP AF
+            LD (_emos_tx_fault), A
+            RET
+keyboard_block_record_done:
+            POP AF
+            RET
+.bss
+            XDEF _emos_tx_probe
+            XDEF _emos_tx_fault
+_emos_tx_probe: .space 3
+_emos_tx_fault: .space 16
+.text
+.endif
+
+            XDEF _emos_keyboard_deadline_start
+; INTEG-022 one shared private Deadline initializer. BYTE clock,16-bit
+; elapsed and24-bit no-progress fuse occupy exactly six native bytes.
+; C stack argument, no callee-saved registers and no additional UART read.
+_emos_keyboard_deadline_start:
+            LD HL, 3
+            ADD HL, SP
+            LD HL, (HL)
+            LD A, (_clock)
+            LD (HL), A
+            INC HL
+            XOR A
+            LD (HL), A
+            INC HL
+            LD (HL), A
+            INC HL
+            LD (HL), A
+            INC HL
+            LD (HL), A
+            INC HL
+            LD (HL), 4
+            RET
 
             XDEF _emos_keyboard_byte
             XREF _emos_key_rx

@@ -36,7 +36,7 @@ static BYTE advance(BYTE ending) {
     t_emosParallelHandover *h=emos_parallel_boot_handover();
     t_emosDeadline d;
     BYTE done, action;
-    d.last=emos_keyboard_clock();d.elapsed=0;d.budget=(UINT24)262144;
+    emos_keyboard_deadline_start(&d);
     while(emos_keyboard_deadline_step(&d)) {
         done=(PD_DR & 0x10)?EPH_READY_HIGH:0;
         if(emos_key_faulted || h->failed)break;

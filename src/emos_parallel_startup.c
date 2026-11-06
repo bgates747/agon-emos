@@ -56,7 +56,7 @@ void emos_parallel_boot_tick(void) {
 void emos_parallel_boot_connect(void) {
     t_emosDeadline d;
     BYTE opened = 0, action, requested = 0;
-    d.last = emos_keyboard_clock(); d.elapsed = 0; d.budget = (UINT24)262144;
+    emos_keyboard_deadline_start(&d);
     while (emos_keyboard_deadline_step(&d)) {
         if (requested == 0) {
             if (!(PD_DR & 0x10)) continue;

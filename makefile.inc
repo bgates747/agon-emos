@@ -19,6 +19,9 @@ CFLAGS=-mllvm -z80-gas-style -mllvm -z80-print-zero-offset -nostdinc -target $(T
 ## Assembler
 ASM=$(TOOLBINDIR)/ez80-none-elf-as
 ASMFLAGS=-march=$(ARCH) -I src
+ifeq ($(EMOS_CONTROL_TX_DIAGNOSTIC),1)
+ASMFLAGS += --defsym EMOS_CONTROL_TX_DIAGNOSTIC=1
+endif
 ## Linker
 LINKER=$(TOOLBINDIR)/ez80-none-elf-ld
 ifeq ($(LDHAS_ARG_PROCESSING),1)

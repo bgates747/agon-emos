@@ -10,12 +10,12 @@ I22-001 Publish the task before implementation. [x]
 I22-002 Add a default-off diagnostic build flag and a private fixed RAM record.
 Capture only status samples already taken by the native sender, original and
 remaining count, first reason and elapsed/fuse state before error/recovery
-writes. Retain first failure until reset, with no extra UART reads or logging. [ ]
+writes. Retain first failure until reset, with no extra UART reads or logging. [x]
 
 I22-003 Reuse the existing foreground deadline helper rather than duplicating
 console reply timeout arithmetic, retaining600-clock/262144-no-progress bounds.
 Fit the complete matched ROM without dropping any feature or transport guard;
-return concrete options before a feature tradeoff. [ ]
+return concrete options before a feature tradeoff. [x]
 
 I22-004 Use normal compiler FIFO; run all six matched linked validators and
 focused deadline/trace checks, and retain exact default/diagnostic ROM/BSS/maps.
@@ -32,3 +32,45 @@ src/emos_keyboard_io.asm, src/emos_keyboard.c and src/emos_console.c.
 The historical first-fault record accepted0/fault_requested1 with600 elapsed
 is consistent with control transmit failure, not proof of a particular wire
 level, UART error, rendering defect or production correction.
+
+## Private diagnostic layout
+
+`EMOS_CONTROL_TX_DIAGNOSTIC=1` selects19 BSS bytes: mutable3-byte sample scratch
+and an immutable16-byte first-failure record, exported as `_emos_tx_fault` only
+for exact-image owner diagnosis. Default builds contain neither. There is no
+new public API, callback or user flow. `--control-tx-diagnostic` records the
+selection in the identified-build manifest; consumers must use its actual map.
+
+| Offset | Bytes | Meaning |
+|---|---:|---|
+| 0 | 1 | Commit/reason:0 absent,1 deadline,2 UART line error,3 ownership unavailable,4 keyboard fault |
+| 1 | 2 | Original block length:3 identifies prefix,16 identifies fixed control body |
+| 3 | 1 | Ignored native argument-slot padding |
+| 4 | 2 | Bytes remaining, including the retained current byte |
+| 6 | 1 | Ignored native count-register upper byte |
+| 7 | 1 | Last existing UART1 LSR sample |
+| 8 | 1 | Last existing Port C sample |
+| 9 | 1 | Sample validity for the last attempt:bit0 LSR,bit1 Port C |
+| 10 | 1 | Deadline's last clock sample |
+| 11 | 2 | Deadline elapsed, raw clock units |
+| 13 | 3 | Remaining no-progress fuse, native little endian |
+
+Byte0 is committed last, only on failure, before UART error-stop writes and
+before the caller's fail() recovery. A later failure cannot replace the record.
+If Port C validity is absent, do not interpret its stale/zero byte as live CTS.
+The error branch's ordinary subsequent Port C read is unchanged and is not the
+pre-stop sample. UART result follows the existing convention:2 for line error,
+0 for other failures; no record is committed on success. Diagnostic RAM stores
+add execution cost; no timing equivalence or throughput claim is made.
+
+The actual C deadline/reply host test passes wrap,600-boundary,stalled-clock
+fuse,progress reset,ready and keyboard-fault cases with sanitizers. The new
+linked checker binds the initializer's exact six-byte layout, first-fault
+commit/branch/register saves, stack count source and unchanged UART read/guard
+inventory. These are source/host/link checks, not native instruction execution
+or hardware qualification. All six original mandatory validators remain active.
+
+The first complete exploratory diagnostic fit is131050 bytes/22 free, without
+feature removal. It reuses one deadline initializer and the existing deadline
+step across console/startup/physical return. Exact clean identified default and
+diagnostic builds/maps still follow; do not deploy the exploratory image.

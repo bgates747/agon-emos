@@ -40,14 +40,12 @@ static void restore_console_request(void) {
 #endif
 
 static BYTE wait_reply(volatile BYTE *flag) {
-    BYTE last = emos_keyboard_clock();
-    UINT16 ticks = 0;
-    UINT32 budget = 262144UL;
-    while (!*flag && !emos_key_faulted && ticks < 600 && budget) {
-        BYTE now = emos_keyboard_clock(), delta = (BYTE)(now - last);
-        ticks += delta; last = now;
-        if (delta) budget = 262144UL; else --budget;
-    }
+    /* INTEG-022: reuse the actual foreground UART deadline, already used by
+     * startup/physical return. Same600 clock units/262144 stalled samples;
+     * avoid a second 32-bit arithmetic implementation in scarce ROM. */
+    t_emosDeadline d;
+    emos_keyboard_deadline_start(&d);
+    while (!*flag && !emos_key_faulted && emos_keyboard_deadline_step(&d)) { }
     return *flag && !emos_key_faulted;
 }
 /* Parallel controls use the reserved serializer; never bypass its owner. */

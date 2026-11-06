@@ -208,9 +208,7 @@ void emos_keyboard_byte(BYTE value) {
 /* INTEG-014 E05: 262144 fits native 24 bits. Preserve the exact poll
  * limit without pulling 32-bit arithmetic helpers into every byte attempt. */
 typedef t_emosDeadline Deadline;
-static void deadline_start(Deadline *d) {
-    d->last = emos_keyboard_clock(); d->elapsed = 0; d->budget = (UINT24)262144;
-}
+/* Shared native initializer is in emos_keyboard_io.asm; retain one layout. */
 BYTE emos_keyboard_deadline_step(Deadline *d) {
     BYTE now = emos_keyboard_clock(), delta = (BYTE)(now - d->last);
     /* Most attempts share a clock tick: avoid rewriting unchanged fields. */
@@ -276,7 +274,7 @@ BYTE emos_keyboard_select(BYTE source) {
     transitioning = 1;
     previous_fault = emos_key_faulted;
     emos_keyboard_unlock(irq);
-    deadline_start(&d);
+    emos_keyboard_deadline_start(&d);
     if (source == EMOS_KEY_MAINBOARD) {
         emos_keyboard_mainboard_layout(layout);
         stop_requested = 1;
@@ -321,7 +319,7 @@ BYTE emos_keyboard_layout(BYTE value) {
     if (emos_key_source == EMOS_KEY_MAINBOARD) {
         emos_keyboard_mainboard_layout(value); ok = 1;
     } else {
-        deadline_start(&d);
+        emos_keyboard_deadline_start(&d);
         ok = setting(value, &d);
         if (ok && emos_key_source == EMOS_KEY_EXTENDER) {
             /* The native USB candidate supports UK/US. An ordered poll after
@@ -420,7 +418,7 @@ BYTE emos_keyboard_parallel_release(void) {
 static BYTE send_reserved(const BYTE *data, UINT16 length) {
     BYTE ok;
     Deadline d;
-    deadline_start(&d);
+    emos_keyboard_deadline_start(&d);
     ok = transmit_block(data, length, &d);
     if (!ok) fault_requested = 1; /* Partial packets cannot be safely replayed. */
     return ok ? EMOS_KEY_OK : EMOS_KEY_TIMEOUT;
