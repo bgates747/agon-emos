@@ -66,7 +66,9 @@ endif
 # INTEG-021 replaces the historical trial only in the explicit paired profile.
 ifeq ($(EMOS_UART0_RFC25),1)
 ifneq ($(EMOS_NETWORK_PARALLEL),1)
-$(error RFC25 matched composition requires EMOS_NETWORK_PARALLEL=1)
+# INTEG-023: the guarded UART0 owner also supports the explicit UART1-NM
+# composition. Link the common application-span contract exactly once.
+EMOS_C += emos_app_span
 endif
 ALL_OBJS := $(filter-out $(OBJDIR)/uart0_async.o,$(ALL_OBJS))
 EMOS_C += emos_uart0_rfc25

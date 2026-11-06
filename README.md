@@ -5,7 +5,13 @@ qualification is implied. Native Eirene RC2 is the foundation; EMOS retains
 routing, input, controller, SD utility and private parallel-upload ownership.
 Use `make firmware-check` for offline builds and the owner identity wrapper
 for a separately authorized identified candidate. See docs/tasks/EMOS-001.md.
-The original foundation README follows as preserved attribution/history.
+The explicit guarded RFC25 profile also supports UART1 NET-003 messaging,
+selected by `--uart0-rfc25` without `--network-parallel` in the identified
+builder. Its mandatory linked checks preserve API25 admission-result semantics
+and prove UART-NM callback symbols with no resident NETP owner. This source
+composition is not installed or hardware-qualified; see
+[INTEG-023](docs/tasks/INTEG-023.md). The original foundation README follows
+as preserved attribution/history.
 
 # Eirene MOS — UART0 development
 

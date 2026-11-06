@@ -5,7 +5,7 @@ import argparse,datetime,hashlib,json,re,shutil,subprocess
 
 def main():
  p=argparse.ArgumentParser();p.add_argument('--output',required=True,type=Path);p.add_argument('--toolchain',required=True,type=Path);p.add_argument('--python',required=True,type=Path);p.add_argument("--network-parallel",action="store_true");p.add_argument("--uart0-rfc25",action="store_true");p.add_argument('--control-tx-diagnostic',action='store_true');a=p.parse_args()
- if a.uart0_rfc25 and not a.network_parallel:p.error("RFC25 requires the explicit matched parallel profile")
+ if a.control_tx_diagnostic and not a.network_parallel:p.error("Control-TX diagnostic requires its original parallel composition")
  root=Path(__file__).resolve().parents[2];commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip()
  if subprocess.check_output(['git','status','--porcelain'],cwd=root,text=True):raise SystemExit('Refuse identified build from dirty native source')
  identity=json.loads((root/'port/eirene-identity.json').read_text());assert identity['status']=='experimental'

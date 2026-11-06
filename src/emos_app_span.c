@@ -1,6 +1,6 @@
 #include "emos_sdlink.h"
 
-#ifdef EMOS_NETWORK_PARALLEL
+#if defined(EMOS_NETWORK_PARALLEL) || defined(EMOS_UART0_RFC25)
 /* INTEG-020/021 shared ordinary-application bounds. Controller, netp and RFC25
  * use the same RAM contract; do not inline duplicate 24-bit checks per service.
  * Unsigned offset rejects addresses outside that span before count subtraction. */
