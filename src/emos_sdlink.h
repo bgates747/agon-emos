@@ -5,7 +5,7 @@
 #define EMOS_SDLINK_LIMIT 240
 /* Private Core helper shared with the gateway; not a MOS API slot. */
 BYTE emos_application_context(void);
-#ifdef EMOS_NETWORK_PARALLEL
+#if defined(EMOS_NETWORK_PARALLEL) || defined(EMOS_UART0_RFC25)
 BYTE emos_application_span(UINT24 address,UINT24 length);
 #endif
 UINT24 emos_read24(const BYTE *data);

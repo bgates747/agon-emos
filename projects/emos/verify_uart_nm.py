@@ -3,7 +3,7 @@
 import argparse
 from pathlib import Path
 from verify_abi import symbols
-from verify_parallel import disassemble_global_extent
+from verify_parallel import disassemble_global_extent, direct_transfer_count
 
 def main():
     p=argparse.ArgumentParser(description=__doc__)
@@ -15,7 +15,8 @@ def main():
     for name in ('_emos_netp_gateway','_emos_netp_link_open','_emos_netp_token'):
         assert name not in s,name
     packet=disassemble_global_extent(a.objdump,a.elf,'_emos_net_packet')
-    assert '_emos_reply_callback' in packet
+    # This eZ80 objdump emits numeric conditional CALL operands without names.
+    assert direct_transfer_count(packet,s['_emos_reply_callback'])==1
     assert a.elf.with_suffix('.bin').stat().st_size<=131072
     print('UART-NM admission/callback and guarded RFC25 linked; no NETP owner; ROM fits')
 
