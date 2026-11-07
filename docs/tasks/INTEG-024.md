@@ -125,3 +125,18 @@ mandatoryPortCinventory refused the two new privateSTOPleaves; no check skipped.
 Add exact gatedtwo-PC_DRwriter inventory, with independent native IFF/health/EI
 sequence validation; retain319failure. NewlinkedROMfit preliminary130422/free650,
 not a checked identifiedartifact. Newnormalcompilertranche required.
+
+## Bounded UART0 derivative selected and integrated
+
+Incorporates UART owner05b8b10/5f568c1 bounded CTS derivative. Exact native
+blocked/rearm leaves are retained, with optional saved VBlank hook. EMOS
+ownership checks retry pending before IER/TEMT: empty FIFO while deferred is
+still BUSY. Accepted new submission clears pending only after admission; final
+copy clears before callback. No cancellation/route reset API is added; all
+route/mode requests use the existing ownership refusal, and actual reboot
+clears BSS. No source can be retired by masking TX interrupt alone.
+
+Full linked validators must check finite no-copy defer/rearm, CTS-before-count,
+three correct return frames and live-pending ownership before installation.
+The standalone generic cost+52/+1BSS does not predict this combined ROM size.
+No physical qualification, measured latency gain or76 cause is claimed.

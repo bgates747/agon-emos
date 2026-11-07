@@ -25,11 +25,27 @@ def main():
   rows=[(op,arg) for _,op,arg in instructions(disassemble_global_extent(a.objdump,a.elf,label))]
   assert ('otirx','') in rows,label
  raw=disassemble_global_extent(a.objdump,a.elf,'fill_uart0_tx_fifo')
- assert raw.count('reti.lil')==2 and raw.count('otirx')==2
+ assert raw.count('reti.lil')==3 and raw.count('otirx')==2
  # The ownership guard is a bounded foreground read, no wait, callback or EI.
  owned=[(op,arg) for _,op,arg in instructions(disassemble_global_extent(a.objdump,a.elf,'_emos_uart0_async_owned'))]
  assert ('in0','a,(0xc1)') in owned and ('in0','a,(0xc5)') in owned
  assert not any(op in ('call','ei','di','otirx') for op,_ in owned)
+ # Exact bounded donor defer/rearm and EMOS pending-before-IER ownership.
+ pending=addr('uart0_tx_retry_pending')
+ exact('uart0_tx_defer',bytes.fromhex('ed38c1 e6fd ed39c1 3e01 32')+pending+bytes.fromhex('f1 fb 5bed4d'))
+ exact('uart0_async_retry',bytes.fromhex('3a')+pending+bytes.fromhex('b7 c8 ed38a2 ed6408 c0 af 32')+pending+bytes.fromhex('ed38c1 f602 ed39c1 c9'))
+ head=s['fill_uart0_tx_fifo']
+ assert image[head:head+7]==bytes.fromhex('ed38a2 ed6408 20')
+ assert head+8+int.from_bytes(image[head+7:head+8],'little',signed=True)==s['uart0_tx_defer']
+ gate=s['_emos_uart0_async_owned'];seq=bytes.fromhex('3a')+pending+bytes.fromhex('b7 20')
+ off=image.find(seq,gate,gate+32);ier=image.find(bytes.fromhex('ed38c1'),gate,gate+48)
+ assert gate<off<ier,'Pending borrow must precede IER/TEMT completion'
+ assert off+7+int.from_bytes(image[off+6:off+7],'little',signed=True)==s['rfc25_busy']
+ vb=s['_vblank_handler'];call=b'\xcd'+addr('uart0_async_retry')
+ assert image[vb:vb+80].count(call)==1,'Bounded rearm missing from saved VBlank'
+ source=(a.source/'src/emos_uart0_rfc25_io.asm').read_text().lower()
+ assert 'wait_cts' not in source,'Unbounded optional TX wait remains'
+ assert source.index('ld (uart0_tx_retry_pending),a')>source.index('jr nz,rfc25_return')
  assert len(image)<=131072
  print('EMOS RFC25 low-ROM API/TX-before-RX saves/fullFIFO/tail ownership/ROM verified; hardware service gaps unqualified')
 if __name__=='__main__':main()

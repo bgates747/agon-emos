@@ -27,6 +27,9 @@
 
 			XREF	UART0_serial_RX
             XREF fill_uart0_tx_fifo
+.if EMOS_UART0_RFC25
+            XREF uart0_async_retry
+.endif
 			XREF	UART0_serial_TX
 			XREF	mos_api
 			XREF	vdp_protocol
@@ -52,6 +55,9 @@ _vblank_handler:	DI
 			LD		A, (_clock + 3)
 			ADC		A, 0
 			LD		(_clock + 3), A
+.if EMOS_UART0_RFC25
+            CALL uart0_async_retry
+.endif
             CALL emos_keyboard_tick_entry
 			POP		HL
 			POP		DE
