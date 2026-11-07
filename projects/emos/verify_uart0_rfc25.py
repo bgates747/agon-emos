@@ -20,6 +20,9 @@ def main():
  for name in ('source','elf','nm','objdump'):p.add_argument('--'+name,type=Path,required=True)
  a=p.parse_args();s=symbols(a.nm,a.elf);image=a.elf.with_suffix('.bin').read_bytes()
  def addr(name):return s[name].to_bytes(3,'little')
+ def marker(event):
+  if '_emos_neta_diag_emit' not in s:return b''
+  return bytes.fromhex('f5 3e')+bytes([event])+b'\xcd'+addr('_emos_neta_diag_emit')+b'\xf1'
  def exact(name,data):
   at=s[name];assert image[at:at+len(data)]==data,name
  table=s['mos_api_block1_start'];trampoline=s['mos_api_uart0_rfc25'];assert trampoline<65536
@@ -51,9 +54,12 @@ def main():
  assert not any(op in ('call','ei','di','otirx') for op,_ in owned)
  # Exact bounded donor defer/rearm and EMOS pending-before-IER ownership.
  pending=addr('uart0_tx_retry_pending')
- exact('uart0_tx_defer',bytes.fromhex('ed38c1 e6fd ed39c1 3e01 32')+pending+bytes.fromhex('f1 fb 5bed4d'))
+ exact('uart0_tx_defer',bytes.fromhex('ed38c1 e6fd ed39c1 3e01 32')+pending+marker(0x82)+bytes.fromhex('f1 fb 5bed4d'))
  exact('uart0_async_retry',bytes.fromhex('3a')+pending+bytes.fromhex('b7 c8 ed38a2 ed6408 c0 af 32')+pending+bytes.fromhex('ed38c1 f602 ed39c1 c9'))
  head=s['fill_uart0_tx_fifo']
+ if marker(2):
+  assert image[head:head+8]==marker(2)
+  head+=8
  assert image[head:head+7]==bytes.fromhex('ed38a2 ed6408 20')
  assert head+8+int.from_bytes(image[head+7:head+8],'little',signed=True)==s['uart0_tx_defer']
  vb=s['_vblank_handler'];call=b'\xcd'+addr('uart0_async_retry')

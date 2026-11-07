@@ -9,6 +9,10 @@ extern volatile BYTE emos_neta_rx_hold;
 BYTE emos_neta_lock(void);
 void emos_neta_unlock(BYTE);
 BYTE emos_neta_rx_resume(void);
+#ifdef EMOS_UART1_RX_DIAGNOSTIC
+/* Experimental marker association; no app recorder/timer lives in ROM. */
+extern volatile UINT24 emos_neta_diag_hook;
+#endif
 BYTE emos_neta_open(UINT24);
 BYTE emos_neta_start(void);
 BYTE emos_neta_progress(void);

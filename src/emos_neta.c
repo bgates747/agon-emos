@@ -14,6 +14,9 @@
 typedef BYTE (*Hook)(BYTE,BYTE);
 static Hook hook;
 static BYTE demand;
+#ifdef EMOS_UART1_RX_DIAGNOSTIC
+volatile UINT24 emos_neta_diag_hook;
+#endif
 /* RX-R01: keep peer STOP across the complete foreground gateway exclusion,
  * not merely while its nested RX drain runs. Engine and buffers stay in app. */
 volatile BYTE emos_neta_rx_hold;
@@ -63,13 +66,21 @@ BYTE emos_neta_start(void){
 }
 BYTE emos_neta_close(void){
     BYTE r=emos_neta_progress();if(r)return r;
-    hook=0;demand=0;irq_demand();emos_keyboard_app_release(0);return FR_OK;
+    hook=0;
+#ifdef EMOS_UART1_RX_DIAGNOSTIC
+    emos_neta_diag_hook=0;
+#endif
+    demand=0;irq_demand();emos_keyboard_app_release(0);return FR_OK;
 }
 void emos_neta_abort(void){
     BYTE irq=emos_keyboard_lock(),live=demand!=0;
     if(hook){
         if(live)(void)hook(2,0); /* retain first app fault, never source release */
-        hook=0;demand=0;irq_demand();emos_keyboard_app_release(live);
+        hook=0;
+#ifdef EMOS_UART1_RX_DIAGNOSTIC
+        emos_neta_diag_hook=0;
+#endif
+        demand=0;irq_demand();emos_keyboard_app_release(live);
     }
     emos_keyboard_unlock(irq);
 }

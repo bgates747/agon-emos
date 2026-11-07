@@ -92,6 +92,16 @@ ASMFLAGS += --defsym EMOS_UART1_APP=1
 EMOS_C += emos_neta
 endif
 
+# Diagnostic private OPEN7 / app marker bridge, never an ordinary profile default.
+ifeq ($(EMOS_UART1_RX_DIAGNOSTIC),1)
+ifneq ($(EMOS_UART1_APP),1)
+$(error EMOS_UART1_RX_DIAGNOSTIC requires EMOS_UART1_APP)
+endif
+CFLAGS += -DEMOS_UART1_RX_DIAGNOSTIC=1
+ASMFLAGS += --defsym EMOS_UART1_RX_DIAGNOSTIC=1
+EMOS_ASM += emos_neta_diag_io
+endif
+
 OBJS = $(filter-out $(OBJDIR)/emos%.o,$(ALL_OBJS)) $(addprefix $(OBJDIR)/,$(addsuffix .o,$(EMOS_C) $(EMOS_ASM)))
 CFLAGS += -DEMOS_CONTROLLER_INPUT=1 -DEMOS_PARALLEL_UPLOAD=1 -DEMOS_PARALLEL_NATIVE_COORDINATOR=1
 # Source/build identities remain fail-closed exploratory values. Not deployable.

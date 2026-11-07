@@ -1,3 +1,4 @@
+.include "emos_neta_diag.inc"
 ;
 ; Title:	AGON MOS - Interrupt handlers
 ; Author:	Dean Belfield
@@ -48,6 +49,7 @@ _vblank_handler:	DI
 			PUSH		BC
 			PUSH		DE
 			PUSH		HL
+            EMOS_DIAG_MARK 4
 			LD 		HL, (_clock)		; Increment the 32-bit clock counter
 			LD		BC, 2			; By 2, effectively timing in centiseconds
 			ADD		HL, BC
@@ -59,6 +61,7 @@ _vblank_handler:	DI
             CALL uart0_async_retry
 .endif
             CALL emos_keyboard_tick_entry
+            EMOS_DIAG_MARK 0x84
 			POP		HL
 			POP		DE
 			POP		BC
@@ -89,10 +92,12 @@ _uart0_handler:		DI
             PUSH BC
             PUSH DE
             PUSH HL
+            EMOS_DIAG_MARK 1
             CALL		UART0_serial_RX
 			LD		C, A
 			LD		HL, _vdp_protocol_data
 			CALL		vdp_protocol
+            EMOS_DIAG_MARK 0x81
             POP HL
             POP DE
             POP BC

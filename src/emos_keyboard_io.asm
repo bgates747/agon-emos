@@ -1,3 +1,4 @@
+.include "emos_neta_diag.inc"
 ; EMOS-001 maintained native port from EMOS6ececd56; initial dialect conversion
 ; by mos-agondev zds2gas. Review/source changes belong here, not generated trees.
 ;
@@ -365,7 +366,14 @@ keyboard_rx_discard:
             LD A, (_emos_key_rx+2)
             CP 241
             RET NC
+ .ifdef EMOS_UART1_RX_DIAGNOSTIC
+            EMOS_DIAG_MARK 0x10
+            CALL _emos_keyboard_dispatch
+            EMOS_DIAG_MARK 0x90
+            RET
+ .else
             JP _emos_keyboard_dispatch
+ .endif
 keyboard_rx_header:
             BIT 7, C
             RET Z
@@ -418,12 +426,14 @@ _uart1_keyboard_irq:
             IN0 A, (PC_DR)
             OR 0x04
             OUT0 (PC_DR), A
+            EMOS_DIAG_MARK 3
             LD B, 16
 keyboard_irq_drain:
             IN0 C, (0x0D5)
             LD A, C
             AND 0x09E
             JR Z, keyboard_irq_no_error
+            EMOS_DIAG_MARK 0x40
 .ifdef EMOS_UART1_APP
             PUSH BC
             PUSH BC
@@ -444,17 +454,23 @@ keyboard_irq_no_error:
             RET NZ
             DJNZ keyboard_irq_drain
 .ifdef EMOS_UART1_APP
+            EMOS_DIAG_MARK 0x21
+            EMOS_DIAG_MARK 0x83
             ; RX cap reached: C is data, not a clean LSR. Never TX from it.
             JP _uart1_keyboard_irq_done
 .endif
 keyboard_irq_complete:
+            EMOS_DIAG_MARK 0x22
 .ifdef EMOS_UART1_APP
+            EMOS_DIAG_MARK 0x11
             PUSH BC
             PUSH BC
             CALL _emos_neta_service
             POP BC
             POP BC
+            EMOS_DIAG_MARK 0x91
 .endif
+            EMOS_DIAG_MARK 0x83
             JP _uart1_keyboard_irq_done
 
 _emos_keyboard_lock:
@@ -614,6 +630,7 @@ _emos_neta_lock:
             OR 0x04
             OUT0 (PC_DR), A
 neta_lock_enabled:
+            EMOS_DIAG_MARK 5
             LD A, 1
             RET
 neta_lock_disabled:
@@ -631,6 +648,7 @@ _emos_neta_unlock:
             OR A
             RET Z
             CALL _emos_neta_rx_resume
+            EMOS_DIAG_MARK 0x85
             OR A
             LD A, 0
             LD (_emos_neta_rx_hold), A

@@ -48,8 +48,18 @@ static UINT24 net_gateway(t_emosGatewayRequest*r,BYTE async){
     if(!n||!range(in,n))return FR_INVALID_PARAMETER;
     op=*(BYTE*)in;
     /* TAKE is application-local now; the former resident operation1 refuses. */
-    if((op!=0&&op!=2&&op!=3&&!(async&&op==4))||(op==2?(n<5+AGON_NET_HEADER||n>AGON_NET_INPUT):n!=(op==0&&async?4:1))||
+    if((op!=0&&op!=2&&op!=3&&!(async&&op==4))||(op==2?(n<5+AGON_NET_HEADER||n>AGON_NET_INPUT):n!=(op==0&&async?4:1)
+#ifdef EMOS_UART1_RX_DIAGNOSTIC
+       &&!(op==0&&async&&n==7)
+#endif
+)||
        (op==0?(cap!=7||!range(out,7)):(out||cap)))return FR_INVALID_PARAMETER;
+#ifdef EMOS_UART1_RX_DIAGNOSTIC
+    /* Validate before claiming either association, including NULL markers.
+     * Four-byte OPEN is the explicit unobserved control. */
+    if(op==0&&async&&n==7&&emos_read24((BYTE*)in+4)&&
+       !emos_application_span(emos_read24((BYTE*)in+4),1))return FR_INVALID_PARAMETER;
+#endif
     irq=NET_LOCK(async);if(!irq){emos_keyboard_unlock(irq);return EMOS_BUSY;}
     #ifdef EMOS_UART1_APP
     /* The two provider identities never share one admitted transaction. */
@@ -73,7 +83,12 @@ static UINT24 net_gateway(t_emosGatewayRequest*r,BYTE async){
         else if(token==(UINT24)0xffffff)result=EMOS_UNAVAILABLE;
         else{
             #ifdef EMOS_UART1_APP
-            if(async){result=emos_neta_open(emos_read24((BYTE*)in+1));if(result){NET_UNLOCK(irq,async);return result;}}
+            if(async){result=emos_neta_open(emos_read24((BYTE*)in+1));if(result){NET_UNLOCK(irq,async);return result;}
+#ifdef EMOS_UART1_RX_DIAGNOSTIC
+                /* Same owner lock: marker and service hook publish atomically. */
+                emos_neta_diag_hook=n==7?emos_read24((BYTE*)in+4):0;
+#endif
+            }
             async_owner=async;
 #endif
             ++token;memcpy((BYTE*)out,&token,3);((BYTE*)out)[3]=0;

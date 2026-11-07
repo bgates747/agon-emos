@@ -147,3 +147,27 @@ request can be interrupted between pending and IER/TEMT reads. The bounded
 ownership helper now captures IFF/DI and preserves BC around the entire locked
 snapshot, restoring only caller IFF. This closes an identified EMOS race; no
 physical76 attribution. No app-return cancellation is implemented or qualified.
+
+## First-overrun diagnostic derivative (source preparation, Nov7)
+
+1. Preserve failed consumer83 source954e3c54/fullROM8de66 and original raw
+   evidence. Measured receiver OE recurred; service/flow-control cause unknown.
+2. Add default-OFF EMOS_UART1_RX_DIAGNOSTIC. The app owns its native marker,
+   timer and128-byte record. EMOS owns validated OPEN7 association, original
+   UART samples and bounded register-native context bridge. OPEN4 stays NULL.
+3. Preserve source/drain/refused-close lifetime and every linked validator;
+   OFF code composition, ON ROM/BSS fit and linked marker paths must pass.
+4. Coordinate raw B remaining and six parser bytes with the caller. No extra
+   LSR read, resident recorder, automatic physical replay or installed change.
+5. Cross-component contract: Extender docs/tasks/NET-004/
+   EMOS-ASYNC-RX-DIAGNOSTIC-R01.md. Physical selection remains a later gate.
+
+Checked source checkpoint: compiler358 actual app C lifecycle/sanitizers and
+three draft-dispatch source negative controls, native app assembly/link and
+allmandatory EMOS OFF/ON validators PASS22.503s. Optional ON adds399ROM/+3BSS
+(raw130835 versus130436 before identified header). App recorder includes
+1610bytes standalone linked text/166BSS, including its128B record and providers;
+not a consumer whole-app delta. No executed native IRQ/register/PRT claim.
+Identified ON/bit-exact identity-matched OFF build and physical qualification
+remain pending; nothing installed. New record/API is owned by Extender's
+include/agon/rxdiag, generic U1 core and emitter unchanged.

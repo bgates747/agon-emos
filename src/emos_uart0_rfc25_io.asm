@@ -1,3 +1,4 @@
+.include "emos_neta_diag.inc"
 ; INTEG-021: Tom Morton ffab9c9 TX, MIT upstream Eirene source.
 ; INTEG-024 bounded CTS derivative: UART owner05b8b10, donor97311c43.
 ; One CTS sample before source/count mutation; defer AF/EI/RETI unchanged.
@@ -97,6 +98,7 @@ rfc25_busy:
 
 ; Interrupt-driven UART0 transmission
 fill_uart0_tx_fifo:
+            EMOS_DIAG_MARK 2
             in0 a,(PD_DR)
             tst a,8
             jr nz,uart0_tx_defer
@@ -121,6 +123,7 @@ fill_uart0_tx_fifo:
 			pop hl
 			pop de
 			pop bc
+            EMOS_DIAG_MARK 0x82
 			pop af	; saved by _uart0_handler
 			ei
 			reti.lil
@@ -143,6 +146,7 @@ fill_uart0_tx_fifo:
 			pop hl
 			pop de
 			pop bc
+            EMOS_DIAG_MARK 0x82
 			pop af	; saved by _uart0_handler
 			ei
 			reti.lil
@@ -152,6 +156,7 @@ uart0_tx_defer:
             out0 (UART0_IER),a
             ld a,1
             ld (uart0_tx_retry_pending),a
+            EMOS_DIAG_MARK 0x82
             pop af
             ei
             reti.lil
