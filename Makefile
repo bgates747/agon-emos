@@ -19,7 +19,7 @@ endif
 endif
 
 ifeq ($(EMOS_UART1_APP),1)
-FIRMWARE_LINK_CHECKS += verify_neta.py verify_neta_diag.py
+FIRMWARE_LINK_CHECKS += verify_neta.py verify_neta_diag.py verify_uart0_rx_protection.py
 endif
 
 $(BINDIR)/$(NAME).elf: $(OBJS)

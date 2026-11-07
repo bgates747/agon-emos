@@ -171,3 +171,7 @@ not a consumer whole-app delta. No executed native IRQ/register/PRT claim.
 Identified ON/bit-exact identity-matched OFF build and physical qualification
 remain pending; nothing installed. New record/API is owned by Extender's
 include/agon/rxdiag, generic U1 core and emitter unchanged.
+
+## Selected competing UART0 reserve protection
+
+Extender NET-004 receive-protection-r01 selects early STOP across UART0 RX/TX while an admitted app owns UART1, a distinct private hold, bounded RX-first tail and capped-RX continuation through existing owner tick/progress. Ordinary non-app UART0 stays unchanged. A cap does not imply empty or positive close; first LSR error and source/drain/reply/close obligations remain authoritative. All UART0 RX/TX/defer/final-callback exits must preserve full context through the new guarded tail, without nested EI. Source/native fit checks precede any separately frozen isolation case; no actual92 replay or baud/default change. Exact external pre-code plan, evidence and source pins remain in the Extender owner task.

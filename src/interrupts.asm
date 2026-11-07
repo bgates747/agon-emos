@@ -73,6 +73,10 @@ _vblank_handler:	DI
 ;
 _uart0_handler:		DI
 			PUSH		AF
+.ifdef EMOS_UART1_APP
+            XREF _emos_neta_uart0_enter, _emos_neta_uart0_exit
+            CALL _emos_neta_uart0_enter
+.endif
 .if EMOS_UART0_RFC25
             ; Tom ffab9c9: TX consumes only this AF plus its own BC/DE/HL.
             ; RX below retains the full EMOS index/alternate-register saves.
@@ -98,6 +102,9 @@ _uart0_handler:		DI
 			LD		HL, _vdp_protocol_data
 			CALL		vdp_protocol
             EMOS_DIAG_MARK 0x81
+.ifdef EMOS_UART1_APP
+            CALL _emos_neta_uart0_exit
+.endif
             POP HL
             POP DE
             POP BC

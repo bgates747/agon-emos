@@ -358,13 +358,14 @@ void uart1_keyboard_irq(void) {
  * policy. Keep the profile-dependent telemetry dispatch in maintained C. */
 #ifdef EMOS_UART1_APP
 extern volatile BYTE emos_neta_rx_hold;
+extern BYTE emos_neta_rx_ready(void);
 #endif
 void uart1_keyboard_irq_done(void) {
     if (uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
 #ifdef EMOS_UART1_APP
     /* RX-R01: nested foreground RX returns through masked C frames. Only
      * the paired native gateway tail may advertise readiness in that scope. */
-    if (emos_neta_rx_hold) return;
+    if (!emos_neta_rx_ready()) return;
 #endif
     RESETREG(PC_DR, PORTPIN_TWO);
 #ifdef EMOS_BENCH_TELEMETRY

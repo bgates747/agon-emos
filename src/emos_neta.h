@@ -5,7 +5,9 @@
 UINT24 emos_neta_gateway(t_emosGatewayRequest*);
 /* Private scoped foreground exclusion. False-IFF entry is a pure refusal;
  * the paired native tail keeps receiver STOP until immediately before EI. */
-extern volatile BYTE emos_neta_rx_hold;
+extern volatile BYTE emos_neta_rx_hold, emos_neta_uart0_hold, emos_neta_rx_deferred;
+BYTE emos_neta_rx_ready(void);
+BYTE emos_neta_uart0_rx(void);
 BYTE emos_neta_lock(void);
 void emos_neta_unlock(BYTE);
 BYTE emos_neta_rx_resume(void);

@@ -556,6 +556,12 @@ def verify_linked(
         if not all(n in symbols for n in ("_emos_neta_lock", "_emos_neta_unlock", "_emos_neta_rx_resume")):
             raise ParallelError("incomplete optional scoped RX owner")
         rts_portc_writes.update({"_emos_neta_lock": [0x9E], "_emos_neta_unlock": [0x9E]})
+    # RX protection: only these exact native IRQ guard leaves add PC2 writes.
+    # Their admission/full-save/health/return bytes are checked independently.
+    if "_emos_neta_uart0_enter" in symbols or "_emos_neta_uart0_exit" in symbols:
+        if not all(n in symbols for n in ("_emos_neta_uart0_enter", "_emos_neta_uart0_exit", "_emos_neta_uart0_rx")):
+            raise ParallelError("incomplete UART0 receive-protection guard")
+        rts_portc_writes.update({"_emos_neta_uart0_enter": [0x9E], "_emos_neta_uart0_exit": [0x9E]})
     observed_rts_writes = {name: [] for name in rts_portc_writes}
     allowed_portc_writers = {
         "__init",

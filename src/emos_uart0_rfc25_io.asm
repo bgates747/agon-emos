@@ -124,6 +124,10 @@ fill_uart0_tx_fifo:
 			pop de
 			pop bc
             EMOS_DIAG_MARK 0x82
+.ifdef EMOS_UART1_APP
+            XREF _emos_neta_uart0_exit
+            CALL _emos_neta_uart0_exit
+.endif
 			pop af	; saved by _uart0_handler
 			ei
 			reti.lil
@@ -147,6 +151,10 @@ fill_uart0_tx_fifo:
 			pop de
 			pop bc
             EMOS_DIAG_MARK 0x82
+.ifdef EMOS_UART1_APP
+            XREF _emos_neta_uart0_exit
+            CALL _emos_neta_uart0_exit
+.endif
 			pop af	; saved by _uart0_handler
 			ei
 			reti.lil
@@ -157,6 +165,10 @@ uart0_tx_defer:
             ld a,1
             ld (uart0_tx_retry_pending),a
             EMOS_DIAG_MARK 0x82
+.ifdef EMOS_UART1_APP
+            XREF _emos_neta_uart0_exit
+            CALL _emos_neta_uart0_exit
+.endif
             pop af
             ei
             reti.lil

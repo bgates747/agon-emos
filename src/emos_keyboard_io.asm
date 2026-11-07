@@ -454,12 +454,23 @@ keyboard_irq_no_error:
             RET NZ
             DJNZ keyboard_irq_drain
 .ifdef EMOS_UART1_APP
+            ; Capped is not clean-empty: never reopen READY or close from it.
+            LD A, (_emos_neta_hook+2)
+            OR A
+            JR Z, keyboard_irq_cap_done
+            LD A, 1
+            LD (_emos_neta_rx_deferred), A
+keyboard_irq_cap_done:
             EMOS_DIAG_MARK 0x21
             EMOS_DIAG_MARK 0x83
             ; RX cap reached: C is data, not a clean LSR. Never TX from it.
             JP _uart1_keyboard_irq_done
 .endif
 keyboard_irq_complete:
+.ifdef EMOS_UART1_APP
+            XOR A
+            LD (_emos_neta_rx_deferred), A
+.endif
             EMOS_DIAG_MARK 0x22
 .ifdef EMOS_UART1_APP
             EMOS_DIAG_MARK 0x11
@@ -615,6 +626,67 @@ emos_keyboard_tick_entry:
             ; Check entry IFF before touching an outer hold. Assert STOP close
             ; to DI, before owner validation/START/service can take time.
             XREF _emos_neta_rx_hold
+            XREF _emos_neta_hook
+            XREF _emos_neta_uart0_hold
+            XREF _emos_neta_rx_deferred
+            XREF _emos_neta_uart0_rx
+            XDEF _emos_neta_uart0_enter
+            XDEF _emos_neta_uart0_exit
+; Private UART0 IRQ guard. AF is already saved by that vector; entry uses A
+; only, before its long saves/parser/TX work. No nested EI or LSR sample.
+_emos_neta_uart0_enter:
+            LD A, (_emos_neta_hook+2)
+            OR A
+            RET Z
+            LD A, (_uart1_keyboard_owned)
+            CP 1
+            RET NZ
+            LD A, (_emos_key_faulted)
+            OR A
+            RET NZ
+            LD A, 1
+            LD (_emos_neta_uart0_hold), A
+            IN0 A, (PC_DR)
+            OR 0x04
+            OUT0 (PC_DR), A
+            RET
+; TX's small RFC25 save is insufficient for the RX parser/app hook. Preserve
+; full primary/index/shadow context here on the active guard path only. This
+; is a bounded RX pass, never a CTS wait or a second IRQ-enable boundary.
+_emos_neta_uart0_exit:
+            LD A, (_emos_neta_uart0_hold)
+            OR A
+            RET Z
+            PUSH BC
+            PUSH DE
+            PUSH HL
+            PUSH IX
+            PUSH IY
+            EX AF, AF'
+            PUSH AF
+            EXX
+            PUSH BC
+            PUSH DE
+            PUSH HL
+            CALL _emos_neta_uart0_rx
+            OR A
+            JR Z, neta_uart0_restore
+            IN0 A, (PC_DR)
+            AND 0x0FB
+            OUT0 (PC_DR), A
+neta_uart0_restore:
+            POP HL
+            POP DE
+            POP BC
+            EXX
+            POP AF
+            EX AF, AF'
+            POP IY
+            POP IX
+            POP HL
+            POP DE
+            POP BC
+            RET
             XREF _emos_neta_rx_resume
             XDEF _emos_neta_lock
 _emos_neta_lock:

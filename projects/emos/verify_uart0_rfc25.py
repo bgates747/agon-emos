@@ -31,7 +31,9 @@ def main():
  assert 'uart0_async_write' not in s and 'uart0_async_isr' not in s
  exact('mos_api_uart0_rfc25',b'\xc3'+addr('emos_uart0_rfc25_submit'))
  # Classify TX before the inherited RX BC/DE/HL and index/alternate saves.
- prefix=b'\xf3\xf5\xed\x38\xc2\xe6\x0e\xfe\x02\xca'+addr('fill_uart0_tx_fifo')
+ guard=b'\xcd'+addr('_emos_neta_uart0_enter') if '_emos_neta_uart0_enter' in s else b''
+ tail=b'\xcd'+addr('_emos_neta_uart0_exit') if '_emos_neta_uart0_exit' in s else b''
+ prefix=b'\xf3\xf5'+guard+b'\xed\x38\xc2\xe6\x0e\xfe\x02\xca'+addr('fill_uart0_tx_fifo')
  exact('_uart0_handler',prefix+b'\xc5\xd5\xe5\xdd\xe5\xfd\xe5\x08\xf5\xd9\xc5\xd5\xe5')
  # Final fill source release disables THRE then executes the caller thunk.
  for label in ('fill_uart0_tx_fifo','.last_fill'):
@@ -54,7 +56,7 @@ def main():
  assert not any(op in ('call','ei','di','otirx') for op,_ in owned)
  # Exact bounded donor defer/rearm and EMOS pending-before-IER ownership.
  pending=addr('uart0_tx_retry_pending')
- exact('uart0_tx_defer',bytes.fromhex('ed38c1 e6fd ed39c1 3e01 32')+pending+marker(0x82)+bytes.fromhex('f1 fb 5bed4d'))
+ exact('uart0_tx_defer',bytes.fromhex('ed38c1 e6fd ed39c1 3e01 32')+pending+marker(0x82)+tail+bytes.fromhex('f1 fb 5bed4d'))
  exact('uart0_async_retry',bytes.fromhex('3a')+pending+bytes.fromhex('b7 c8 ed38a2 ed6408 c0 af 32')+pending+bytes.fromhex('ed38c1 f602 ed39c1 c9'))
  head=s['fill_uart0_tx_fifo']
  if marker(2):
