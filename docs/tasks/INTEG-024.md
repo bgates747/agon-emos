@@ -118,3 +118,10 @@ abort/reset demand0 and otherwise fabricateidle/doublewriterrelease. Neither
 source correction proves cause/cure76OE; standaloneIRQepilogue/UART0WAIT_CTS and
 peerSTOPresponsetiming remain separate. Exactnativefit/regressions/identified
 build pending; no installation/benchcase or productionselection from this edit.
+
+FirstRXcompiler319 actualCscope/sanitizer/defaultobject/nativeapp checks passed;
+oldactualowner negativecontrol fails as expected. FullnativeROM assembled but
+mandatoryPortCinventory refused the two new privateSTOPleaves; no check skipped.
+Add exact gatedtwo-PC_DRwriter inventory, with independent native IFF/health/EI
+sequence validation; retain319failure. NewlinkedROMfit preliminary130422/free650,
+not a checked identifiedartifact. Newnormalcompilertranche required.

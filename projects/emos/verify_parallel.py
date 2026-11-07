@@ -549,6 +549,13 @@ def verify_linked(
             "native_send_masked": [0x9E],
             "native_finish": [0x9F],
         })
+    # RX-R01 optional neta foreground scope owns exactly two PC_DR writes.
+    # verify_neta separately requires IFF refusal before assertion and the
+    # complete health-checked STOP-clear/EI tail, never a broad GPIO exception.
+    if "_emos_neta_lock" in symbols or "_emos_neta_unlock" in symbols:
+        if not all(n in symbols for n in ("_emos_neta_lock", "_emos_neta_unlock", "_emos_neta_rx_resume")):
+            raise ParallelError("incomplete optional scoped RX owner")
+        rts_portc_writes.update({"_emos_neta_lock": [0x9E], "_emos_neta_unlock": [0x9E]})
     observed_rts_writes = {name: [] for name in rts_portc_writes}
     allowed_portc_writers = {
         "__init",
