@@ -12,3 +12,5 @@
 5. [ ] [INTEG-022 — Failure-only control TX attribution](docs/tasks/INTEG-022.md): default-off diagnostic record, exact complete ROM fit, retained features/guards and fresh fixture binding before target work.
 
 6. [ ] [INTEG-023 — UART1 networking with guarded UART0 RFC25](docs/tasks/INTEG-023.md): matched conditional composition; preserve NET-003 and API25 semantics.
+
+7. [ ] [INTEG-024 — Application UART1 async glue](docs/tasks/INTEG-024.md): compact owner binding and app lifetime, exact linked size/validators before separate trial.
