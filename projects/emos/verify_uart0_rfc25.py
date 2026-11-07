@@ -5,6 +5,16 @@ from pathlib import Path
 from verify_abi import symbols
 from verify_parallel import disassemble_global_extent,instructions
 
+def atomic_owned(image,s):
+ at=s['_emos_uart0_async_owned']
+ expected=bytes.fromhex('c5 ed57 f3 f5 cd')+s['rfc25_owned_locked'].to_bytes(3,'little')+bytes.fromhex('4f f1 79 c1 e0 fb c9')
+ assert image[at:at+len(expected)]==expected,'Atomic owned must preserve BC and both caller IFF states'
+ gate=s['rfc25_owned_locked'];pending=s['uart0_tx_retry_pending'].to_bytes(3,'little')
+ seq=bytes.fromhex('3a')+pending+bytes.fromhex('b7 20')
+ off=image.find(seq,gate,gate+32);ier=image.find(bytes.fromhex('ed38c1'),gate,gate+48)
+ assert gate<off<ier,'Pending borrow must precede IER/TEMT completion'
+ assert off+7+int.from_bytes(image[off+6:off+7],'little',signed=True)==s['rfc25_busy']
+
 def main():
  p=argparse.ArgumentParser(description=__doc__)
  for name in ('source','elf','nm','objdump'):p.add_argument('--'+name,type=Path,required=True)
@@ -28,7 +38,14 @@ def main():
  assert raw.count('reti.lil')==3 and raw.count('otirx')==2
  # Preserve caller IFF and BC around the COMPLETE atomic ownership snapshot.
  # Foreground mode request and already-DI admit callers use the same leaf.
- exact('_emos_uart0_async_owned',bytes.fromhex('c5 ed57 f3 f5 cd')+addr('rfc25_owned_locked')+bytes.fromhex('4f f1 79 c1 e0 fb c9'))
+ atomic_owned(image,s)
+ # Single-byte linked mutations retain address layout; this is a checker
+ # negative control, not executed IRQ/CPU or an all-interleaving simulation.
+ for name,offset in (('missing-DI',3),('unsafe-EI-on-disabled-entry',13),('lost-BC-restore',12)):
+  bad=bytearray(image);bad[s['_emos_uart0_async_owned']+offset]=0
+  try:atomic_owned(bad,s)
+  except AssertionError:pass
+  else:raise AssertionError('Atomic ownership mutant escaped: '+name)
  owned=[(op,arg) for _,op,arg in instructions(disassemble_global_extent(a.objdump,a.elf,'rfc25_owned_locked'))]
  assert ('in0','a,(0xc1)') in owned and ('in0','a,(0xc5)') in owned
  assert not any(op in ('call','ei','di','otirx') for op,_ in owned)
@@ -39,10 +56,6 @@ def main():
  head=s['fill_uart0_tx_fifo']
  assert image[head:head+7]==bytes.fromhex('ed38a2 ed6408 20')
  assert head+8+int.from_bytes(image[head+7:head+8],'little',signed=True)==s['uart0_tx_defer']
- gate=s['rfc25_owned_locked'];seq=bytes.fromhex('3a')+pending+bytes.fromhex('b7 20')
- off=image.find(seq,gate,gate+32);ier=image.find(bytes.fromhex('ed38c1'),gate,gate+48)
- assert gate<off<ier,'Pending borrow must precede IER/TEMT completion'
- assert off+7+int.from_bytes(image[off+6:off+7],'little',signed=True)==s['rfc25_busy']
  vb=s['_vblank_handler'];call=b'\xcd'+addr('uart0_async_retry')
  assert image[vb:vb+80].count(call)==1,'Bounded rearm missing from saved VBlank'
  source=(a.source/'src/emos_uart0_rfc25_io.asm').read_text().lower()
