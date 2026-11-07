@@ -14,6 +14,7 @@ the linked EMOS image; it does not infer physical baud or signal quality.
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import re
 import subprocess
@@ -122,6 +123,25 @@ def verify_linked(elf: Path, nm: Path, objdump: Path) -> None:
                 )
 
 
+def verify_halfbaud_owner(source_root: Path, elf: Path, nm: Path, objdump: Path) -> None:
+    # Task-private branch: keep UART0's original proof and additionally join the
+    # admitted UART1 literal to actual linked settings, not an ignored macro.
+    declaration = json.loads((source_root / 'port/uart1-baud-control.json').read_text())
+    if declaration != dict(schema='net004-paired-uart1-control-v1', status='experimental-source-only', uart0_baud=1152000, uart1_baud=576000, frame='8N1', flow_control='RTS/CTS', paired_firmware_required=True, ordinary_default_adoption=False):
+        raise UartBaudError('Paired half-baud source declaration mismatch')
+    uart = (source_root / 'src/uart.c').read_text()
+    selected = re.search(r'BYTE uart1_keyboard_open\(void\).*?UART settings = \{(\d+), 8, 1, 0, FCTL_HW, 0\}', uart, re.S)
+    if selected is None or int(selected.group(1)) != 576000:
+        raise UartBaudError('Owned UART1 settings must select576000/8N1/RTSCTS')
+    body = subprocess.check_output([str(objdump),'-d','--disassemble=_uart1_keyboard_open',str(elf)],text=True).lower()
+    if re.search(r'\bld\s+hl,0x0*8ca00\b',body) is None:
+        raise UartBaudError('Linked owner UART1 baud literal missing')
+    if 'ld (ix-8),hl' not in body:
+        raise UartBaudError('Linked owner UART1 settings assignment changed; review required')
+    if 18432000 // (16*576000) != 2:
+        raise UartBaudError('Half-baud divisor arithmetic mismatch')
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", required=True, type=Path)
@@ -134,6 +154,8 @@ def main() -> int:
     verify_linked(
         args.elf.resolve(), args.nm.resolve(), args.objdump.resolve()
     )
+    verify_halfbaud_owner(args.source.resolve(),args.elf.resolve(),args.nm.resolve(),args.objdump.resolve())
+    print("Experimental paired UART1 control576000/divisor2; UART0 unchanged1152000/divisor1")
     print(
         "EMOS UART baud contract: "
         f"clock={clock} baud={baud} divisor={divisor}; "

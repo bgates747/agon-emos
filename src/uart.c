@@ -239,7 +239,8 @@ BYTE uart1_try_put(BYTE value) {
 extern BYTE emos_keyboard_vector(BYTE operation);
 
 BYTE uart1_keyboard_open(void) {
-    UART settings = {1152000, 8, 1, 0, FCTL_HW, 0};
+    /* NET-004 isolated HALF-BAUD CONTROL: paired P4 required, not default. */
+    UART settings = {576000, 8, 1, 0, FCTL_HW, 0};
     if (uart1_keyboard_owned || uart1_rts_owned || (serialFlags & 0x10) ||
         UART1_IER || (PC_DDR & 0x0F) != 0x0F || (PC_ALT1 & 0x0F) ||
         (PC_ALT2 & 0x0C) || ((PC_ALT2 & 3) != 0 && (PC_ALT2 & 3) != 3))

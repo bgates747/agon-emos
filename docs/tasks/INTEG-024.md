@@ -147,3 +147,12 @@ request can be interrupted between pending and IER/TEMT reads. The bounded
 ownership helper now captures IFF/DI and preserves BC around the entire locked
 snapshot, restoring only caller IFF. This closes an identified EMOS race; no
 physical76 attribution. No app-return cancellation is implemented or qualified.
+
+## Task-private576000 paired source control
+
+Prepare a derivative of954e3c54 with only ownedUART1 literal576000/8N1/RTSCTS,
+explicit paired declaration and stronger linked owner-settings guard. UART0
+1152000 arithmetic/contract remains unchanged. No recorder/core/IRQ algorithm or
+ordinary default change. Extender owns the paired P4 derivative. No build during
+current86 live watch, install or next physical case selected; preserve8de/d9b
+and incominga25f rollback. Full native build/negative controls remain pending.
