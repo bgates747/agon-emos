@@ -43,3 +43,9 @@ App core is absent from firmware. Existing tick bounded retry/foreground later
 TEMT, one shared sample, RXcap excludes stale data and every writer/PortC guard
 retained. Native identity advances to experimentalr05; no deployment/adoption.
 Host composition/actual app link and mandatory product link checks remain pending.
+
+First compiler297: actual app/core/EMOS C sanitizer composition, synchronous peer
+control and native app link PASS. Identified firmware stopped at our new IER C
+compound assignment: AgonDev register constants are numeric, not lvalues. No ROM
+was produced/installed. Use one bounded native IN0/OUT0 helper retaining RX bits;
+unchanged failed source014d74a and logs remain. Recheck under new normal build.

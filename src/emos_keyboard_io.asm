@@ -597,6 +597,18 @@ emos_keyboard_tick_entry:
 .ifdef EMOS_UART1_APP
             XREF _emos_neta_service
             XREF _emos_neta_fault
+            XDEF _emos_neta_tx_irq
+_emos_neta_tx_irq:
+            LD HL, 3
+            ADD HL, SP
+            IN0 A, (0x0D1)
+            AND 0x0FD
+            BIT 0, (HL)
+            JR Z, neta_irq_store
+            OR 2
+neta_irq_store:
+            OUT0 (0x0D1), A
+            RET
             XDEF _emos_neta_cts
 _emos_neta_cts:
             IN0 A, (PC_DR)

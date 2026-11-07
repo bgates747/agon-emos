@@ -16,11 +16,10 @@ static Hook hook;
 static BYTE demand;
 extern BYTE emos_neta_cts(void);
 extern void uart1_keyboard_irq(void);
-static void irq_demand(void){
-    /* RX/error enables stay owned by EMOS. GPIO CTS has no UART modem IRQ. */
-    if(demand==1)UART1_IER|=UART_IER_TRANSMITINT;
-    else UART1_IER&=(BYTE)~UART_IER_TRANSMITINT;
-}
+/* Native SDK peripheral names are numeric addresses, not C lvalues.
+ * Use one bounded maintained IN0/OUT0 leaf, preserving every RX/error enable. */
+extern void emos_neta_tx_irq(BYTE);
+static void irq_demand(void){emos_neta_tx_irq(demand==1);}
 BYTE emos_neta_open(UINT24 entry){
     if(hook)return EMOS_BUSY;
     if(!emos_application_span(entry,1))return FR_INVALID_PARAMETER;
