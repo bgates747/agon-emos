@@ -104,3 +104,17 @@ Existing UART0 WAIT_CTS underDI remains conditional; preserve the consumer's
 reciprocal UART0callback+TEMT/NM guard. No fault clearing/forced close follows.
 Full source/physical result and remaining investigation are owned in Extender
 docs/tasks/NET-004/EMOS-ASYNC-PHYSICAL-R01-RESULT.md and EMOS-ASYNC-R01.md.
+
+## Selected RX-R01 correction under verified MechAgon goal
+
+Publish Extender EMOS-ASYNC-RX-R01 plan before this change. Isolated ownerworktree
+preserves exact failed76source/ROM. Optional async gateway uses one private
+scoped STOP hold entered only with originalIFFenabled/ownedUART1; nestedRXdone
+cannot reopen receive before its native pairedexit. Fullreceiverhealth includes
+pendingfault/stop/demandFAULT; falseIFF/nestedrefusal preserves outerhold and no
+EIthenCSTOP race. Old genericlocks/synchronousprofile and appengine unchanged.
+Ownerprogress rechecks hook/ownership/keyfault afterRX, because RXfault can
+abort/reset demand0 and otherwise fabricateidle/doublewriterrelease. Neither
+source correction proves cause/cure76OE; standaloneIRQepilogue/UART0WAIT_CTS and
+peerSTOPresponsetiming remain separate. Exactnativefit/regressions/identified
+build pending; no installation/benchcase or productionselection from this edit.

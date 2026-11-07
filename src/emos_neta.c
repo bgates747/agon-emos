@@ -14,6 +14,12 @@
 typedef BYTE (*Hook)(BYTE,BYTE);
 static Hook hook;
 static BYTE demand;
+/* RX-R01: keep peer STOP across the complete foreground gateway exclusion,
+ * not merely while its nested RX drain runs. Engine and buffers stay in app. */
+volatile BYTE emos_neta_rx_hold;
+BYTE emos_neta_rx_resume(void){
+    return emos_neta_rx_hold&&demand!=4&&emos_keyboard_app_rx_ready();
+}
 extern BYTE emos_neta_cts(void);
 extern void uart1_keyboard_irq(void);
 /* Native SDK peripheral names are numeric addresses, not C lvalues.
@@ -41,6 +47,9 @@ BYTE emos_neta_progress(void){
     if(!hook)return EMOS_UNAVAILABLE;
     if(uart1_keyboard_owned!=1||emos_key_faulted){emos_neta_fault(0);return EMOS_UNAVAILABLE;}
     uart1_keyboard_irq(); /* bounded RX first; shared final clean sample */
+    /* RX may fault/reset and remove the hook synchronously. Abort clears
+     * demand, which must not manufacture idle or release the guard twice. */
+    if(!hook||uart1_keyboard_owned!=1||emos_key_faulted)return EMOS_UNAVAILABLE;
     return demand==0?FR_OK:demand==4?EMOS_UNAVAILABLE:EMOS_BUSY;
 }
 BYTE emos_neta_start(void){

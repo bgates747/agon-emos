@@ -58,6 +58,7 @@ void emos_keyboard_mainboard_layout(BYTE layout);
 
 #ifdef EMOS_UART1_APP
 BYTE emos_keyboard_app_reserve(void);
+BYTE emos_keyboard_app_rx_ready(void);
 void emos_keyboard_app_release(BYTE fault);
 #endif
 #endif

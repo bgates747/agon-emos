@@ -595,6 +595,53 @@ emos_keyboard_tick_entry:
             RET
 
 .ifdef EMOS_UART1_APP
+            ; RX-R01: private foreground scope, never a replacement IRQ owner.
+            ; Check entry IFF before touching an outer hold. Assert STOP close
+            ; to DI, before owner validation/START/service can take time.
+            XREF _emos_neta_rx_hold
+            XREF _emos_neta_rx_resume
+            XDEF _emos_neta_lock
+_emos_neta_lock:
+            LD A, I
+            DI
+            JP PO, neta_lock_disabled
+            LD A, (_uart1_keyboard_owned)
+            CP 1
+            JR NZ, neta_lock_enabled
+            LD A, 1
+            LD (_emos_neta_rx_hold), A
+            IN0 A, (PC_DR)
+            OR 0x04
+            OUT0 (PC_DR), A
+neta_lock_enabled:
+            LD A, 1
+            RET
+neta_lock_disabled:
+            XOR A
+            RET
+
+            ; The health query includes pending fault/stop and owner demand.
+            ; Never EI then clear STOP in C: an intervening fault could assert
+            ; STOP and be incorrectly reopened. No LSR read or waiting here.
+            XDEF _emos_neta_unlock
+_emos_neta_unlock:
+            LD HL, 3
+            ADD HL, SP
+            LD A, (HL)
+            OR A
+            RET Z
+            CALL _emos_neta_rx_resume
+            OR A
+            LD A, 0
+            LD (_emos_neta_rx_hold), A
+            JR Z, neta_unlock_enable
+            IN0 A, (PC_DR)
+            AND 0x0FB
+            OUT0 (PC_DR), A
+neta_unlock_enable:
+            EI
+            RET
+
             XREF _emos_neta_service
             XREF _emos_neta_fault
             XDEF _emos_neta_tx_irq

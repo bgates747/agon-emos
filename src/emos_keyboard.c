@@ -372,6 +372,11 @@ void emos_keyboard_transport_release(void) {
 #ifdef EMOS_UART1_APP
 /* Async application attachment holds the ordinary serializer and Port C guard;
  * it does not select/park parallel or install a different UART/RX vector. */
+/* RX-R01 native foreground tail calls this under DI while STOP is held.
+ * A pending abort/stop is already unhealthy before key_faulted is published. */
+BYTE emos_keyboard_app_rx_ready(void){
+    return uart1_keyboard_owned==1&&!emos_key_faulted&&!fault_requested&&!stop_requested;
+}
 BYTE emos_keyboard_app_reserve(void){
     if(transitioning||preparing||fault_requested||stop_requested||emos_key_faulted||
        emos_key_rx.state||uart1_keyboard_owned!=1||
