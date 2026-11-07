@@ -79,3 +79,28 @@ P4d9bcb remain installed and retained as rollback; this new ROM is uninstalled.
 Extender owns separate EMOS-only installation/full-readback/rollback and explicit
 stopped handoffs under a new normal lease; MechAgon owns its separately frozen
 trial. No production selection or generic UART code change is made.
+
+## First selected physical trial — failed and rolled back
+
+The exact retained043a ROM was installed and independently compared at all
+131072 bytes for the selected MechAgon consumer trial. That one trial reported
+UART1 receiver overrun0x02 after source release; positive later drain/close were
+incomplete and application result6 deliberately quarantined. Original SD plus
+post-reset64KiB040000 RAM match the consumer executable/map and25first-fault
+witnesses. No generic core/emitter defect or measured IRQ blackout is established.
+
+Extender completed supported recovery, preservation beforeLOAD, existing feature
+cleanup, exact working fulla25fROM rollback/independentreadback and fresh complete
+handback. Actual normal release2026-11-07T07:48:31.562200UTC, all targetactors
+stopped; P4/native firmware/startup/listener unchanged. No replay or async
+correctness/performance/30Hz qualification. Firmware source2c47053/build identity
+and exact bytes are preserved; this is a documentation-only result update.
+
+Owner source review identifies handler-entry STOP versus pre-entry masked time,
+foreground gateway locking before RX-first service, callbacks under exclusion
+and STOP release before IRQ-return restore as correlation seams. MatchedUART1
+1152000/8N1 means16character138.889us emptyFIFO scale, not a safe blackout bound.
+Existing UART0 WAIT_CTS underDI remains conditional; preserve the consumer's
+reciprocal UART0callback+TEMT/NM guard. No fault clearing/forced close follows.
+Full source/physical result and remaining investigation are owned in Extender
+docs/tasks/NET-004/EMOS-ASYNC-PHYSICAL-R01-RESULT.md and EMOS-ASYNC-R01.md.
