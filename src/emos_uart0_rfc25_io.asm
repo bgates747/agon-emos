@@ -61,6 +61,21 @@ rfc25_unsafe:
 
 ; C ABI result A: never wait or require another IRQ to retire the FIFO tail.
 _emos_uart0_async_owned:
+ ; Mode callers may enter with IRQs enabled. Observe all states atomically:
+ ; TXIRQ may otherwise defer between pending and IER/TEMT reads.
+ push bc
+ ld a,i
+ di
+ push af
+ call rfc25_owned_locked
+ ld c,a
+ pop af
+ ld a,c
+ pop bc
+ ret po
+ ei
+ ret
+rfc25_owned_locked:
  ld a,(_emos_rfc25_owned)
  or a
  ret z

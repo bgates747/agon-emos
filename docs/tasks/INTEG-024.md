@@ -140,3 +140,10 @@ Full linked validators must check finite no-copy defer/rearm, CTS-before-count,
 three correct return frames and live-pending ownership before installation.
 The standalone generic cost+52/+1BSS does not predict this combined ROM size.
 No physical qualification, measured latency gain or76 cause is claimed.
+
+
+244030d was checked offline but withheld from deployment: foreground mode
+request can be interrupted between pending and IER/TEMT reads. The bounded
+ownership helper now captures IFF/DI and preserves BC around the entire locked
+snapshot, restoring only caller IFF. This closes an identified EMOS race; no
+physical76 attribution. No app-return cancellation is implemented or qualified.

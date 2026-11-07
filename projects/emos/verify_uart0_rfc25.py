@@ -26,8 +26,10 @@ def main():
   assert ('otirx','') in rows,label
  raw=disassemble_global_extent(a.objdump,a.elf,'fill_uart0_tx_fifo')
  assert raw.count('reti.lil')==3 and raw.count('otirx')==2
- # The ownership guard is a bounded foreground read, no wait, callback or EI.
- owned=[(op,arg) for _,op,arg in instructions(disassemble_global_extent(a.objdump,a.elf,'_emos_uart0_async_owned'))]
+ # Preserve caller IFF and BC around the COMPLETE atomic ownership snapshot.
+ # Foreground mode request and already-DI admit callers use the same leaf.
+ exact('_emos_uart0_async_owned',bytes.fromhex('c5 ed57 f3 f5 cd')+addr('rfc25_owned_locked')+bytes.fromhex('4f f1 79 c1 e0 fb c9'))
+ owned=[(op,arg) for _,op,arg in instructions(disassemble_global_extent(a.objdump,a.elf,'rfc25_owned_locked'))]
  assert ('in0','a,(0xc1)') in owned and ('in0','a,(0xc5)') in owned
  assert not any(op in ('call','ei','di','otirx') for op,_ in owned)
  # Exact bounded donor defer/rearm and EMOS pending-before-IER ownership.
@@ -37,7 +39,7 @@ def main():
  head=s['fill_uart0_tx_fifo']
  assert image[head:head+7]==bytes.fromhex('ed38a2 ed6408 20')
  assert head+8+int.from_bytes(image[head+7:head+8],'little',signed=True)==s['uart0_tx_defer']
- gate=s['_emos_uart0_async_owned'];seq=bytes.fromhex('3a')+pending+bytes.fromhex('b7 20')
+ gate=s['rfc25_owned_locked'];seq=bytes.fromhex('3a')+pending+bytes.fromhex('b7 20')
  off=image.find(seq,gate,gate+32);ier=image.find(bytes.fromhex('ed38c1'),gate,gate+48)
  assert gate<off<ier,'Pending borrow must precede IER/TEMT completion'
  assert off+7+int.from_bytes(image[off+6:off+7],'little',signed=True)==s['rfc25_busy']
