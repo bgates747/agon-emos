@@ -423,7 +423,16 @@ keyboard_irq_drain:
             IN0 C, (0x0D5)
             LD A, C
             AND 0x09E
-            JP NZ, _emos_keyboard_fault
+            JR Z, keyboard_irq_no_error
+.ifdef EMOS_UART1_APP
+            PUSH BC
+            PUSH BC
+            CALL _emos_neta_fault
+            POP BC
+            POP BC
+.endif
+            JP _emos_keyboard_fault
+keyboard_irq_no_error:
             BIT 0, C
             JR Z, keyboard_irq_complete
             IN0 C, (0x0D0)
@@ -434,7 +443,18 @@ keyboard_irq_drain:
             OR A
             RET NZ
             DJNZ keyboard_irq_drain
+.ifdef EMOS_UART1_APP
+            ; RX cap reached: C is data, not a clean LSR. Never TX from it.
+            JP _uart1_keyboard_irq_done
+.endif
 keyboard_irq_complete:
+.ifdef EMOS_UART1_APP
+            PUSH BC
+            PUSH BC
+            CALL _emos_neta_service
+            POP BC
+            POP BC
+.endif
             JP _uart1_keyboard_irq_done
 
 _emos_keyboard_lock:
@@ -573,3 +593,13 @@ emos_keyboard_tick_entry:
             POP IY
             POP IX
             RET
+
+.ifdef EMOS_UART1_APP
+            XREF _emos_neta_service
+            XREF _emos_neta_fault
+            XDEF _emos_neta_cts
+_emos_neta_cts:
+            IN0 A, (PC_DR)
+            AND 0x08
+            RET
+.endif

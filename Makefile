@@ -18,6 +18,10 @@ FIRMWARE_LINK_CHECKS += verify_uart_nm.py
 endif
 endif
 
+ifeq ($(EMOS_UART1_APP),1)
+FIRMWARE_LINK_CHECKS += verify_neta.py
+endif
+
 $(BINDIR)/$(NAME).elf: $(OBJS)
 	$(LINKER) $(LINKER_ARG) $(LINKER_EXIT) -Map=$(BINDIR)/$(NAME).elf.map -T $(LINKERCONFIG) -o $@ $(OBJS) $(LINKERLIBFLAGS)
 

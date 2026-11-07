@@ -79,6 +79,19 @@ else
 ASMFLAGS += --defsym EMOS_UART0_RFC25=0
 endif
 
+# INTEG-024 explicit app engine owner glue. No implicit old-profile change.
+ifeq ($(EMOS_UART1_APP),1)
+ifneq ($(EMOS_UART0_RFC25),1)
+$(error EMOS_UART1_APP requires the guarded UART0/UART1-NM composition)
+endif
+ifeq ($(EMOS_NETWORK_PARALLEL),1)
+$(error EMOS_UART1_APP cannot use the parallel network composition)
+endif
+CFLAGS += -DEMOS_UART1_APP
+ASMFLAGS += --defsym EMOS_UART1_APP=1
+EMOS_C += emos_neta
+endif
+
 OBJS = $(filter-out $(OBJDIR)/emos%.o,$(ALL_OBJS)) $(addprefix $(OBJDIR)/,$(addsuffix .o,$(EMOS_C) $(EMOS_ASM)))
 CFLAGS += -DEMOS_CONTROLLER_INPUT=1 -DEMOS_PARALLEL_UPLOAD=1 -DEMOS_PARALLEL_NATIVE_COORDINATOR=1
 # Source/build identities remain fail-closed exploratory values. Not deployable.
@@ -116,3 +129,4 @@ $(OBJDIR):
 clean:
 	@$(RM) -r $(BINDIR) $(OBJDIR)
 	@$(RM) src_fatfs/*.o src_umm_malloc/*.o
+

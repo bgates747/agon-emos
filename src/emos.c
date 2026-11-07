@@ -18,6 +18,9 @@
 #if defined(EMOS_CONTROLLER_INPUT)
 #include "emos_controller.h"
 #include "emos_net.h"
+#ifdef EMOS_UART1_APP
+#include "emos_neta.h"
+#endif
 #ifdef EMOS_NETWORK_PARALLEL
 #include "emos_netp.h"
 #endif
@@ -228,6 +231,12 @@ UINT24 emos_gateway(t_emosGatewayRequest *request) {
         }
 #endif
 #if defined(EMOS_CONTROLLER_INPUT)
+#ifdef EMOS_UART1_APP
+        if(!strcmp(providerName,"neta")){
+            if(emosBusy)return EMOS_BUSY;
+            emosBusy=TRUE;result=emos_neta_gateway(request);emosBusy=FALSE;return result;
+        }
+#endif
         if(!strcmp(providerName,"net")){
 #ifdef EMOS_NETWORK_PARALLEL
             return EMOS_UNAVAILABLE; /* Explicit parallel profile, no UART fallback. */

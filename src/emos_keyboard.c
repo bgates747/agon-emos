@@ -8,6 +8,9 @@
 #if defined(EMOS_CONTROLLER_INPUT)
 #include "emos_controller.h"
 #include "emos_net.h"
+#ifdef EMOS_UART1_APP
+#include "emos_neta.h"
+#endif
 #endif
 #include "uart.h"
 #include "emos_console.h"
@@ -121,6 +124,9 @@ void emos_keyboard_tick(void) {
 #endif
     if (uart1_keyboard_owned == UART_KEYBOARD_PARKED) return;
     emos_parallel_boot_tick();
+#ifdef EMOS_UART1_APP
+    emos_neta_tick();
+#endif
     if (stop_requested) {
         #ifdef EMOS_BENCH_TELEMETRY
         async_abort();
@@ -363,6 +369,20 @@ void emos_keyboard_transport_release(void) {
  * guard across drain, park and physical return.
  * Only parallel_send can emit while held; ordinary writers remain excluded.
  * A busy park attempt must NOT silently drop this transaction reservation. */
+#ifdef EMOS_UART1_APP
+/* Async application attachment holds the ordinary serializer and Port C guard;
+ * it does not select/park parallel or install a different UART/RX vector. */
+BYTE emos_keyboard_app_reserve(void){
+    if(transitioning||preparing||fault_requested||stop_requested||emos_key_faulted||
+       emos_key_rx.state||uart1_keyboard_owned!=1||
+       emos_parallel_uart1_guard_acquire()!=EMOS_PARALLEL_OK)return UART_POLL_UNAVAILABLE;
+    transitioning=1;return UART_POLL_READY;
+}
+void emos_keyboard_app_release(BYTE fault){
+    if(fault)fault_requested=1; /* partial packet cannot admit a new writer */
+    transitioning=0;emos_parallel_uart1_guard_release();
+}
+#endif
 BYTE emos_keyboard_parallel_reserve(void) {
     BYTE irq = emos_keyboard_lock(), result = UART_POLL_UNAVAILABLE;
     if (irq && !transitioning && !preparing && !fault_requested && !stop_requested &&

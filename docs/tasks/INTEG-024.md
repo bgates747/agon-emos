@@ -31,3 +31,15 @@ No new numeric MOS syscall; explicit opt-in provider via existing service ABI.
 
 State: task-first; no implementation/build/install/physical pass yet. Current
 MechAgon R02 is independently frozen and must not acquire this new driver.
+
+## First implementation candidate
+
+Optional EMOS_UART1_APP selects ext.neta through existing66B gateway; explicit
+UART-NM/RFC25 only. OPEN4B supplies an ordinary C app hook and returns existing
+7B admission; SUBMIT same wire, PROGRESS4 returns0wireidle/31busy/35fault, RELEASE
+refuses live/faulted borrow. Hook events start1/service0/fault2; service sample is
+the existing RX drain LSR plus CTS STOP in bit0; demand0idle/1TX/2retry/3tail/4fault.
+App core is absent from firmware. Existing tick bounded retry/foreground later
+TEMT, one shared sample, RXcap excludes stale data and every writer/PortC guard
+retained. Native identity advances to experimentalr05; no deployment/adoption.
+Host composition/actual app link and mandatory product link checks remain pending.
