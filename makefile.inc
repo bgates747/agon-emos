@@ -87,6 +87,17 @@ else
 ASMFLAGS += --defsym EMOS_UART0_RFC25=0
 endif
 
+# Optional bounded modem-edge refill on the paired PARLIO ROM.
+ifeq ($(EMOS_UART0_CTS_IRQ),1)
+ifneq ($(EMOS_UART0_RFC25)$(EMOS_SD_PARALLEL_READ),11)
+$(error EMOS_UART0_CTS_IRQ requires guarded RFC25 and the paired foreground SD PARLIO profile)
+endif
+ifeq ($(EMOS_NETWORK_PARALLEL),1)
+$(error EMOS_UART0_CTS_IRQ excludes the separate application-network PARLIO carrier in this profile)
+endif
+ASMFLAGS += --defsym EMOS_UART0_CTS_IRQ=1
+endif
+
 OBJS = $(filter-out $(OBJDIR)/emos%.o,$(ALL_OBJS)) $(addprefix $(OBJDIR)/,$(addsuffix .o,$(EMOS_C) $(EMOS_ASM)))
 CFLAGS += -DEMOS_CONTROLLER_INPUT=1 -DEMOS_PARALLEL_UPLOAD=1 -DEMOS_PARALLEL_NATIVE_COORDINATOR=1
 # Source/build identities remain fail-closed exploratory values. Not deployable.

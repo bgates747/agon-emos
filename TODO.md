@@ -12,3 +12,5 @@
 5. [ ] [INTEG-022 — Failure-only control TX attribution](docs/tasks/INTEG-022.md): default-off diagnostic record, exact complete ROM fit, retained features/guards and fresh fixture binding before target work.
 
 6. [ ] [INTEG-023 — UART1 networking with guarded UART0 RFC25](docs/tasks/INTEG-023.md): matched conditional composition; preserve NET-003 and API25 semantics.
+
+- [ ] [INTEG-028 — Bounded UART0 CTS progress on the foreground SD PARLIO profile](docs/tasks/INTEG-028.md)

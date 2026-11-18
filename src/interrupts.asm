@@ -52,6 +52,10 @@ _vblank_handler:	DI
 			LD		A, (_clock + 3)
 			ADC		A, 0
 			LD		(_clock + 3), A
+.ifdef EMOS_UART0_CTS_IRQ
+            XREF uart0_async_retry
+            CALL uart0_async_retry
+.endif
             CALL emos_keyboard_tick_entry
 			POP		HL
 			POP		DE
@@ -68,6 +72,12 @@ _uart0_handler:		DI
             ; Tom ffab9c9: TX consumes only this AF plus its own BC/DE/HL.
             ; RX below retains the full EMOS index/alternate-register saves.
             in0 a,(UART0_IIR)
+.ifdef EMOS_UART0_CTS_IRQ
+            ; A genuine modem status interrupt has cause 0 and bit 0 clear.
+            XREF uart0_cts_irq
+            and 0x0f
+            jp z,uart0_cts_irq
+.endif
             and 0x0e
             cp 2
             jp z,fill_uart0_tx_fifo

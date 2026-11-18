@@ -12,7 +12,7 @@ include makefile.inc
 PYTHON ?= python3
 FIRMWARE_LINK_CHECKS := verify_startup.py verify_uart_baud.py verify_parallel_upload.py verify_keyboard.py verify_console.py
 ifeq ($(EMOS_UART0_RFC25),1)
-FIRMWARE_LINK_CHECKS += verify_uart0_rfc25.py
+FIRMWARE_LINK_CHECKS += verify_uart0_rfc25.py verify_uart0_cts_irq.py
 ifneq ($(EMOS_NETWORK_PARALLEL),1)
 FIRMWARE_LINK_CHECKS += verify_uart_nm.py
 endif
