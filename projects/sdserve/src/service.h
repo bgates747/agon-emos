@@ -9,4 +9,9 @@ unsigned service_request(const uint8_t *request,unsigned length,uint8_t *reply);
 int service_exiting(void);
 void service_stop(void);
 void service_progress(void);
+#if defined(SDSERVE_PARALLEL_UPLOAD)
+void service_enable_parallel(void);
+/* Frontend owns admitted transport; this callback owns bounded FatFS slices. */
+int service_parallel_receive(FIL *file,uint32_t total,uint32_t *written,uint8_t *error);
+#endif
 #endif

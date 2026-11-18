@@ -15,6 +15,10 @@ static char root[121],target[121],part[130],meta[130],backup[130];
 static uint32_t boot_id,session,sequence,transfer,expected_size,expected_crc,offset;
 static uint8_t active,finished,exiting,fast_mode;
 static FIL stage;
+#if defined(SDSERVE_PARALLEL_UPLOAD)
+static uint8_t parallel_enabled;
+void service_enable_parallel(void) { parallel_enabled=1; }
+#endif
 /* R05-12: only foreground fast READs share this handle. Non-READ operations
  * close it before metadata/mutations; external concurrent file mutation is not
  * supported. This removes per-record filesystem setup without a wire change. */
@@ -192,7 +196,11 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
     switch(op) {
     case SD_HELLO:
         if(n) return SD_BAD_REQUEST;
-        sd_put32(out,boot_id);sd_put16(out+4,212);sd_put16(out+6,15 | 32 | (fast_mode?16|64:0));*out_n=8;return SD_OK;
+        sd_put32(out,boot_id);sd_put16(out+4,212);sd_put16(out+6,15 | 32 | (fast_mode?16|64:0)
+#if defined(SDSERVE_PARALLEL_UPLOAD)
+            | (fast_mode && parallel_enabled?128:0)
+#endif
+            );*out_n=8;return SD_OK;
     case SD_STAT: {
         if(!path_read(p,n,path)) return SD_BAD_REQUEST;
         /* Stock MOS 3.0.2 FatFS f_stat rejects the origin directory with
@@ -264,6 +272,16 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
         result=write_exact(&stage,p+8,n-8);
         if(result) { (void)close_file(&stage,result);active=0;return result; }
         offset+=n-8;sd_put32(out,transfer);sd_put32(out+4,offset);*out_n=8;return SD_OK;
+#if defined(SDSERVE_PARALLEL_UPLOAD)
+    case SD_PARALLEL_WRITE:
+        if(!parallel_enabled || !fast_mode || n!=8 || !active || finished || offset ||
+            sd_u32(p)!=transfer || sd_u32(p+4)!=expected_size ||
+            !expected_size || expected_size>32UL*1024*1024)return SD_BAD_REQUEST;
+        result=service_parallel_receive(&stage,expected_size,&offset,&fs_error);
+        if(result) { (void)close_file(&stage,result);active=0;return result; }
+        if(offset!=expected_size)return SD_INTEGRITY;
+        sd_put32(out,transfer);sd_put32(out+4,offset);*out_n=8;return SD_OK;
+#endif
     case SD_FINISH:
         if(n!=4) return SD_BAD_REQUEST;
         if(!active || sd_u32(p)!=transfer) return SD_BAD_REQUEST;
@@ -365,6 +383,9 @@ int service_init_mode(const char *scope,uint32_t boot,int fast) {
     strcpy(root,"/");if(!path_ok(scope)) return 0;
     if(reader_close(SD_OK))return 0;
     strcpy(root,scope);boot_id=boot?boot:1;session=sequence=0;
+#if defined(SDSERVE_PARALLEL_UPLOAD)
+    parallel_enabled=0;
+#endif
     move_total=move_at=0;active=finished=exiting=0;fast_mode=fast!=0;previous_size=cached_size=0;return 1;
 }
 int service_init(const char *scope,uint32_t boot) { return service_init_mode(scope,boot,0); }

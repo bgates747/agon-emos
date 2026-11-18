@@ -5,3 +5,6 @@ CFLAGS += -Wall -Wextra -Werror
 ifeq ($(SDSERVE_IDENTIFIED_BUILD),1)
 CFLAGS += -include build/build_identity.h
 endif
+
+# The same listener supports checksum-free UART and explicit PARLIO uploads.
+CFLAGS += -DSDSERVE_PARALLEL_UPLOAD=1
