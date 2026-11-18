@@ -12,22 +12,22 @@
 extern uint24_t emos_gateway_call(uint8_t *request);
 static uint8_t gateway[66],input[SD_MAX_RECORD+1],incoming[SD_MAX_RECORD];
 static uint8_t reply[SD_MAX_RECORD],presence[SD_HEADER];
-#if defined(SDSERVE_PARALLEL_UPLOAD)
-static uint8_t parallel_slice[512];
-#endif
 static uint32_t boot,last_presence;
 static uint8_t transport_failed,fast_mode;
 static void put24(uint8_t *p,uint24_t value) { p[0]=value;p[1]=value>>8;p[2]=value>>16; }
-static unsigned link_call(uint8_t operation,const uint8_t *record,unsigned length) {
-    input[0]=operation;if(length) memcpy(input+1,record,length);
+static void link_request(const uint8_t *frame,unsigned length) {
     memset(gateway,0,sizeof(gateway));gateway[0]=66;gateway[2]=1;
     gateway[4]=3;gateway[5]=6;gateway[6]=2;
     memcpy(gateway+25,"ext",3);memcpy(gateway+41,"sdlink",6);
-    put24(gateway+10,(uint24_t)input);put24(gateway+13,length+1);
+    put24(gateway+10,(uint24_t)frame);put24(gateway+13,length);
+}
+static unsigned link_call(uint8_t operation,const uint8_t *record,unsigned length) {
+    input[0]=operation;if(length) memcpy(input+1,record,length);
+    link_request(input,length+1);
     if(operation==1) { put24(gateway+16,(uint24_t)incoming);put24(gateway+19,sizeof(incoming)); }
 #if defined(SDSERVE_PARALLEL_UPLOAD)
     if(operation==8) {
-        put24(gateway+16,(uint24_t)parallel_slice);
+        put24(gateway+16,(uint24_t)(service_parallel_slice+1));
         put24(gateway+19,(uint24_t)record[0]|((uint24_t)record[1]<<8)|((uint24_t)record[2]<<16));
     }
 #endif
@@ -40,11 +40,11 @@ int service_parallel_receive(FIL *file,uint32_t total,uint32_t *written,uint8_t 
     sd_put32(args,total);*written=0;*error=0;
     if(link_call(7,args,4)) { transport_failed=1;return SD_RECOVERY_REQUIRED; }
     while(*written<total) {
-        uint24_t got=0,n=total-*written>sizeof(parallel_slice)?sizeof(parallel_slice):(uint24_t)(total-*written);
+        uint24_t got=0,n=total-*written>SD_PARALLEL_READ_BLOCK?SD_PARALLEL_READ_BLOCK:(uint24_t)(total-*written);
         put24(args,n);
         status=link_call(8,args,3);
         if(status || ((uint24_t)gateway[22]|((uint24_t)gateway[23]<<8)|((uint24_t)gateway[24]<<16))!=n) { abort=1;break; }
-        got=ffs_fwrite(file,(char *)parallel_slice,n);
+        got=ffs_fwrite(file,(char *)service_parallel_slice+1,n);
         *error=ffs_ferror(file);
         *written+=got;
         if(*error || got!=n) { if(!*error)*error=FR_DISK_ERR;abort=1;break; }
@@ -54,6 +54,14 @@ int service_parallel_receive(FIL *file,uint32_t total,uint32_t *written,uint8_t 
     status=link_call(9,&abort,1);
     if(status) { transport_failed=1;return SD_RECOVERY_REQUIRED; }
     return *error?SD_FILE_ERROR:abort?SD_RECOVERY_REQUIRED:SD_OK;
+}
+/* One private operation byte precedes the FatFS payload. The gateway sends
+ * the payload from this buffer without placing bytes in a UART record. */
+int service_parallel_send(const uint8_t *frame,unsigned length) {
+    link_request(frame,length);
+    if(!emos_gateway_call(gateway))return SD_OK;
+    transport_failed=1;
+    return SD_RECOVERY_REQUIRED;
 }
 #endif
 static void announce(uint8_t closing) {
@@ -109,7 +117,8 @@ int main(int argc,char **argv) {
             (void)link_call(3,NULL,0);
             puts("Parallel upload requires matched EMOS; listener not started.");return 1;
         }
-        puts("Parallel uploads selected; one payload admission per file.");
+        if(!link_call(10,NULL,0))service_enable_parallel_read();
+        puts("Parallel SD enabled where supported by the resident EMOS.");
     }
 #endif
     printf("%s (%s), root %s\nEscape returns to MOS.\n",SDSERVE_BUILD_ID,SDSERVE_STATUS,scope);

@@ -16,8 +16,10 @@ static uint32_t boot_id,session,sequence,transfer,expected_size,expected_crc,off
 static uint8_t active,finished,exiting,fast_mode;
 static FIL stage;
 #if defined(SDSERVE_PARALLEL_UPLOAD)
-static uint8_t parallel_enabled;
+static uint8_t parallel_enabled,parallel_read_enabled;
+uint8_t service_parallel_slice[1+SD_PARALLEL_READ_BLOCK];
 void service_enable_parallel(void) { parallel_enabled=1; }
+void service_enable_parallel_read(void) { parallel_read_enabled=1; }
 #endif
 /* R05-12: only foreground fast READs share this handle. Non-READ operations
  * close it before metadata/mutations; external concurrent file mutation is not
@@ -105,8 +107,8 @@ static int reader_close(int status) {
     if(!reader_open)return status;
     reader_open=0;return close_file(&reader,status);
 }
-static int fast_read(const char *path,uint32_t at,unsigned count,uint8_t *out,unsigned *out_n) {
-    uint8_t r;unsigned actual;int result;
+static int reader_locate(const char *path,uint32_t at) {
+    uint8_t r;int result;
     if(!reader_open || strcmp(path,reader_path)) {
         result=reader_close(SD_OK);if(result)return result;
         r=ffs_fopen(&reader,path,FA_READ);if(r)return fail(r);
@@ -115,12 +117,23 @@ static int fast_read(const char *path,uint32_t at,unsigned count,uint8_t *out,un
     }
     if(at>reader_size)return reader_close(SD_BAD_REQUEST);
     if(at!=reader_at && (r=ffs_flseek_p(&reader,&at)))return reader_close(fail(r));
-    actual=ffs_fread(&reader,(char *)out+4,count);r=ffs_ferror(&reader);
+    reader_at=at;return SD_OK;
+}
+static int reader_read(unsigned count,uint8_t *out) {
+    unsigned actual=ffs_fread(&reader,(char *)out,count);
+    uint8_t r=ffs_ferror(&reader);
     if(r)return reader_close(fail(r));
-    if(actual!=(reader_size-at<count?reader_size-at:count))return reader_close(fail(FR_DISK_ERR));
-    reader_at=at+actual;
-    if(reader_at==reader_size && (result=reader_close(SD_OK)))return result;
-    sd_put32(out,reader_size);*out_n=4+actual;return SD_OK;
+    if(actual!=count)return reader_close(fail(FR_DISK_ERR));
+    reader_at+=actual;
+    return reader_at==reader_size?reader_close(SD_OK):SD_OK;
+}
+static int fast_read(const char *path,uint32_t at,unsigned count,uint8_t *out,unsigned *out_n) {
+    int result=reader_locate(path,at);
+    if(result)return result;
+    if(reader_size-at<count)count=reader_size-at;
+    result=reader_read(count,out+4);
+    if(!result) { sd_put32(out,reader_size);*out_n=4+count; }
+    return result;
 }
 static int read_exact(FIL *f,uint8_t *p,unsigned n) {
     unsigned got=ffs_fread(f,(char *)p,n);
@@ -191,14 +204,15 @@ static int remove_if_present(const char *p) {
 static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *out_n) {
     char path[121];FILINFO info;uint8_t r,bits,metadata[20];int result;uint32_t tid;
     *out_n=0;
-    if(op!=SD_READ && (result=reader_close(SD_OK)))return result;
+    if(op!=SD_READ && op!=SD_PARALLEL_READ && (result=reader_close(SD_OK)))return result;
     if(op!=SD_MOVE)move_total=move_at=0;
     switch(op) {
     case SD_HELLO:
         if(n) return SD_BAD_REQUEST;
         sd_put32(out,boot_id);sd_put16(out+4,212);sd_put16(out+6,15 | 32 | (fast_mode?16|64:0)
 #if defined(SDSERVE_PARALLEL_UPLOAD)
-            | (fast_mode && parallel_enabled?128:0)
+            | (fast_mode && parallel_enabled?SD_CAP_PARALLEL_WRITE:0)
+            | (fast_mode && parallel_read_enabled?SD_CAP_PARALLEL_READ:0)
 #endif
             );*out_n=8;return SD_OK;
     case SD_STAT: {
@@ -231,6 +245,27 @@ static int handle(uint8_t op,const uint8_t *p,unsigned n,uint8_t *out,unsigned *
         result=close_file(&f,result);
         if(!result) { sd_put32(out,size);*out_n=4+actual; }return result;
     }
+#if defined(SDSERVE_PARALLEL_UPLOAD)
+    case SD_PARALLEL_READ: {
+        if(!fast_mode || !parallel_read_enabled)return reader_close(SD_UNSUPPORTED);
+        if(active || n<SD_PARALLEL_READ_PATH+2 || !sd_u32(p) ||
+            !path_read(p+SD_PARALLEL_READ_PATH,n-SD_PARALLEL_READ_PATH,path))
+            return reader_close(SD_BAD_REQUEST);
+        uint32_t at=sd_u32(p+4),total=sd_u32(p+8);
+        unsigned count=sd_u16(p+12);
+        if(!count || count>SD_PARALLEL_READ_BLOCK || at>total || count>total-at)
+            return reader_close(SD_BAD_REQUEST);
+        result=reader_locate(path,at);
+        if(result)return result;
+        if(reader_size!=total)return reader_close(fail(FR_DISK_ERR));
+        result=reader_read(count,service_parallel_slice+1);
+        if(result)return result;
+        service_parallel_slice[0]=10;
+        result=service_parallel_send(service_parallel_slice,count+1);
+        if(result)return reader_close(result);
+        sd_put32(out,sd_u32(p));sd_put32(out+4,at+count);*out_n=8;return SD_OK;
+    }
+#endif
     case SD_LIST: {
         DIR dir;uint32_t cursor,i=0;
         if(n<6 || !path_read(p+4,n-4,path)) return SD_BAD_REQUEST;
@@ -384,7 +419,7 @@ int service_init_mode(const char *scope,uint32_t boot,int fast) {
     if(reader_close(SD_OK))return 0;
     strcpy(root,scope);boot_id=boot?boot:1;session=sequence=0;
 #if defined(SDSERVE_PARALLEL_UPLOAD)
-    parallel_enabled=0;
+    parallel_enabled=parallel_read_enabled=0;
 #endif
     move_total=move_at=0;active=finished=exiting=0;fast_mode=fast!=0;previous_size=cached_size=0;return 1;
 }
