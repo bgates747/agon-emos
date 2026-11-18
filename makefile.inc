@@ -63,6 +63,14 @@ EMOS_ASM += emos_parallel_native_io
 CFLAGS += -DEMOS_NETWORK_PARALLEL
 endif
 
+# PORT-008: the SD listener may use the existing native byte sender on its
+# own admission. Keep the independent application-network composition off.
+ifeq ($(EMOS_SD_PARALLEL_READ),1)
+EMOS_C := $(sort $(EMOS_C) emos_parallel_native)
+EMOS_ASM := $(sort $(EMOS_ASM) emos_parallel_native_io)
+CFLAGS += -DEMOS_SD_PARALLEL_READ
+endif
+
 # INTEG-021 replaces the historical trial only in the explicit paired profile.
 ifeq ($(EMOS_UART0_RFC25),1)
 ifneq ($(EMOS_NETWORK_PARALLEL),1)

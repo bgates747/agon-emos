@@ -127,3 +127,28 @@ BYTE emos_parallel_upload_end(BYTE abort) {
     if(result)emos_parallel_upload_abandon();else uploadOwned=0;
     return result;}
 }
+
+#if defined(EMOS_SD_PARALLEL_READ)
+extern BYTE emos_parallel_native_payload(t_emosParallelHandover *,BYTE,
+    BYTE,BYTE *,UINT24);
+BYTE emos_parallel_download_send(BYTE *buffer,UINT24 length) {
+    BYTE result;
+    if(!buffer || !length || length>512)return FR_INVALID_PARAMETER;
+    result=emos_parallel_upload_begin(length);
+    if(result)return result;
+    /* The native sender releases Port C and finishes with VALID and CLOCK
+     * high. Use the common reciprocal return directly. The upload end's
+     * receive-specific VALID pulse would insert an extra pulse here. */
+    if(emos_parallel_native_payload(emos_parallel_boot_handover(),
+            uploadParked,0,buffer,length)!=EMOS_PARALLEL_OK) {
+        emos_parallel_upload_abandon();return FR_TIMEOUT;
+    }
+#if defined(EMOS_NETWORK_PARALLEL)
+    result=emos_parallel_advance(&uploadParked,1);
+#else
+    result=advance(1);
+#endif
+    if(result)emos_parallel_upload_abandon();else uploadOwned=0;
+    return result;
+}
+#endif

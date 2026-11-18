@@ -56,6 +56,17 @@ UINT24 emos_sdlink_gateway(t_emosGatewayRequest *r) {
         (capacity ? !range(output,capacity) : output != 0)) return FR_INVALID_PARAMETER;
     memset(r->outputLength, 0, 3);
     operation = *(BYTE *)input;
+#if defined(EMOS_SD_PARALLEL_READ)
+    if(operation==10) {
+        if(!active || application_owned || emos_get_mode()!=EMOS_MODE_LEGACY ||
+            emos_key_source!=EMOS_KEY_EXTENDER || emos_key_faulted ||
+            !uart1_keyboard_owned)return EMOS_UNAVAILABLE;
+        if(capacity || length>513)return FR_INVALID_PARAMETER;
+        if(emos_parallel_upload_owned())return EMOS_BUSY;
+        if(length==1)return FR_OK; /* Capability query changes no hardware. */
+        return emos_parallel_download_send((BYTE *)input+1,length-1);
+    }
+#endif
 #if defined(EMOS_PARALLEL_UPLOAD)
     if(operation>=7 && operation<=9) {
         BYTE *p=(BYTE *)input;
