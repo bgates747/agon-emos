@@ -28,6 +28,6 @@ firmware-check: all $(BINDIR)/$(NAME).elf
 
 # Optional generated identity is scoped to the only identity-owning C unit.
 ifneq ($(strip $(EMOS_IDENTITY_HEADER)),)
-$(OBJDIR)/emos.o: CFLAGS += -include $(EMOS_IDENTITY_HEADER)
-$(OBJDIR)/emos.o: $(EMOS_IDENTITY_HEADER)
+$(OBJDIR)/emos.o $(OBJDIR)/main.o: CFLAGS += -include $(EMOS_IDENTITY_HEADER)
+$(OBJDIR)/emos.o $(OBJDIR)/main.o: $(EMOS_IDENTITY_HEADER)
 endif

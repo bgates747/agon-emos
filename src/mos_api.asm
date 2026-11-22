@@ -30,6 +30,7 @@
 
 			.text
 			XDEF	mos_api
+			XREF	nmi_api
 			XREF	uart0_async_write,uart0_async_finish
             XREF emos_uart0_rfc25_submit
 
@@ -274,7 +275,7 @@ mos_api_block1_start:	DW	mos_api_getkey		; 0x00
 			DW	mos_api_not_implemented	; 0x60
 			DW	mos_api_not_implemented	; 0x61
 			DW	mos_api_not_implemented	; 0x62
-			DW	mos_api_not_implemented	; 0x63
+			DW	mos_api_nmi_r01	; 0x63, NMI API R01
 			DW	mos_api_not_implemented	; 0x64
 			DW	mos_api_not_implemented	; 0x65
 			DW	mos_api_not_implemented	; 0x66
@@ -2413,6 +2414,10 @@ mos_function_block_start:
 			D24	_emos_gateway	; 0x20 stable resident Core gateway
 
 mos_function_block_size:	EQU 	($ - mos_function_block_start) / 3
+
+; SWITCH_A selects a 16-bit low-ROM address and the jump keeps its stack frame.
+mos_api_nmi_r01:
+            JP nmi_api
 
 .if EMOS_UART0_RFC25
 ; SWITCH_A table stores 16-bit addresses. Keep this trampoline in mos_api's

@@ -77,6 +77,9 @@ _nmi:		jp ram_nmi_handler
 ;    the 64K byte boundry
 ;  - each 2-byte entry is a 2-byte vector address
 ;
+		.org	0xe0
+		.db "NM1", 0x63	; NMI API R01, legacy descriptor unchanged
+
 		.org	0x100
 __vector_table:
 		.dw __1st_jump_table + 0x00
@@ -198,5 +201,6 @@ ram_rst_30_handler:
 		jp __default_mi_handler
 ram_rst_38_handler:
 		jp rst_38_handler
+		.extern _nmi_dispatch
 ram_nmi_handler:
-		jp __default_nmi_handler
+		jp _nmi_dispatch

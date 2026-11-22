@@ -7,7 +7,12 @@
 	.global _set_vector
 
 section .text
+	.extern _nmi_reset_early
 __init:
+		; First check for a still-armed watchdog, before startup reuses RAM.
+		in0 a, (0x93)
+		bit 7, a
+		jp nz, _nmi_reset_early
 		ld a, 0xFF
 		out0 (PB_DDR), a         ; GPIO
 		out0 (PC_DDR), a         ;

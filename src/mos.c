@@ -296,8 +296,17 @@ char * mos_trim(char * s, bool removeLeadingAsterisks, bool removeTrailingSpaces
 #ifdef EMOS_UART0_RFC25
 BYTE emos_rfc25_application; /* Actual executable dispatch mode, not MB inference. */
 #endif
+/* The NMI lease belongs to one outermost ADL application at 040000h.
+ * Keep this separate from the RFC25 dispatch flag and EMOS policy state. */
+extern volatile BYTE nmi_phase;
+extern BYTE nmi_app_context;
+extern void nmi_app_leave(void);
+
 int mos_runBin(UINT24 addr, char * args) {
+	if (nmi_phase) return FR_INVALID_PARAMETER;
 	UINT8 mode = mos_execMode((UINT8 *)addr);
+	BYTE previousNmiContext = nmi_app_context;
+	nmi_app_context = (!previousNmiContext && mode == 1 && addr == 0x040000) ? 1 : 2;
 #ifdef EMOS_UART0_RFC25
     BYTE previousAdl=emos_rfc25_application;
     emos_rfc25_application=(mode==1);
@@ -315,6 +324,8 @@ int mos_runBin(UINT24 addr, char * args) {
 			result = MOS_INVALID_EXECUTABLE;
 			break;
 	}
+	if (nmi_phase) nmi_app_leave();
+	nmi_app_context = previousNmiContext;
 	emos_application_leave(previousPolicy);
 #ifdef EMOS_UART0_RFC25
     emos_rfc25_application=previousAdl;
