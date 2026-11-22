@@ -7,9 +7,10 @@
 #define		VERSION_CANDIDATE	2			// Optional
 #define		VERSION_TYPE		"RC "     // RC, Alpha, Beta, etc.
 
-#define		VERSION_VARIANT		"Eirene UART0 NMI API R01"
-#ifdef EMOS_BUILD_ID
-#define VERSION_BUILD EMOS_BUILD_ID
+#ifdef EMOS_NMI_BOOT_ID
+#define VERSION_VARIANT "Eirene UART0 r06 NMI API R01 [" EMOS_NMI_BOOT_ID "]"
+#else
+#define VERSION_VARIANT "Eirene UART0 r06 NMI API R01 [unidentified]"
 #endif
 //#define     VERSION_SUBTITLE    "Arthur"
 

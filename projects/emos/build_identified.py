@@ -11,7 +11,11 @@ def main():
  identity=json.loads((root/'port/eirene-identity.json').read_text());assert identity['status']=='experimental'
  stamp=datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d-%H-%M-%SZ');build=identity['source_identity']+'-b'+stamp
  assert re.fullmatch(r'agon-emos-eirene-r[0-9]{2,}-b\d{4}(?:-\d{2}){5}Z',build)
- out=a.output.resolve();out.mkdir(exist_ok=False);header=out/'identity.h';header.write_text('/* Generated native EMOS identity; do not edit. */\n'+''.join('#define '+k+' '+json.dumps(v)+'\n' for k,v in [('EMOS_SOURCE_IDENTITY',identity['source_identity']),('EMOS_BUILD_ID',build),('EMOS_ARTIFACT_STATUS',identity['status'])]))
+ # INTEG-019: render a compact ID in the existing startup string so the
+ # distinct banner fits the R01 ROM budget. Bind it to the full build pin.
+ boot_id = hashlib.sha256(f'{commit}:{build}'.encode()).hexdigest()[:16]
+ boot_variant = f'Eirene UART0 r06 NMI API R01 [{boot_id}]'
+ out=a.output.resolve();out.mkdir(exist_ok=False);header=out/'identity.h';header.write_text('/* Generated native EMOS identity; do not edit. */\n'+''.join('#define '+k+' '+json.dumps(v)+'\n' for k,v in [('EMOS_SOURCE_IDENTITY',identity['source_identity']),('EMOS_BUILD_ID',build),('EMOS_ARTIFACT_STATUS',identity['status']),('EMOS_NMI_BOOT_ID',boot_id)]))
  cmd=['make','-j1','firmware-check','AGONDEV_TOOLCHAIN='+str(a.toolchain.resolve()),'PYTHON='+str(a.python.resolve()),'EMOS_IDENTITY_HEADER='+str(header)]
  if a.network_parallel:cmd+=['EMOS_NETWORK_PARALLEL=1']
  if a.uart0_rfc25:cmd+=['EMOS_UART0_RFC25=1']
@@ -29,9 +33,10 @@ def main():
  if subprocess.check_output(['git','status','--porcelain'],cwd=root,text=True):raise SystemExit('Source changed during identified build')
  for name in ['mos.bin','mos.elf','mos.map','mos.elf.map']:shutil.copyfile(root/'bin'/name,out/name)
  image=(out/'mos.bin').read_bytes();assert len(image)<=131072
- for value in [identity['source_identity'],build,identity['status']]:assert value.encode()+b'\0' in image,value
+ for value in [identity['source_identity'],build,identity['status'],boot_variant]:assert value.encode()+b'\0' in image,value
  (out/'ROM.bin').write_bytes(image+b'\xff'*(131072-len(image)))
  (out/(build+'.bin')).write_bytes(image)
  m={'build_id':build,'source_identity':identity['source_identity'],'status':identity['status'],'source_commit':commit,'composition':{'sd_parallel_read':a.sd_parallel_read,'network_parallel':a.network_parallel,'uart0_rfc25':a.uart0_rfc25,'control_tx_diagnostic':a.control_tx_diagnostic},'rom_used':len(image),'rom_free':131072-len(image),'scope':'identified native wrapper/all selected mandatory linked checks; no installation','outputs':{f:{'bytes':(out/f).stat().st_size,'sha256':hashlib.sha256((out/f).read_bytes()).hexdigest()} for f in ['mos.bin','mos.elf','mos.map','mos.elf.map','ROM.bin']}}
+ m['boot_variant'] = boot_variant
  (out/'manifest.json').write_text(json.dumps(m,indent=2)+'\n');print(json.dumps(m,indent=2))
 if __name__=='__main__':main()
